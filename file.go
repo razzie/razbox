@@ -57,3 +57,13 @@ func (f *File) Save(content io.Reader) error {
 	_, err = io.Copy(file, content)
 	return err
 }
+
+// HasTag ...
+func (f *File) HasTag(tag string) bool {
+	for _, t := range f.Tags {
+		if t == tag {
+			return true
+		}
+	}
+	return false
+}

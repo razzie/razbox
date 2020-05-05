@@ -6,6 +6,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/rand"
+	"os"
+	"path"
 	"strconv"
 	"time"
 
@@ -66,4 +68,14 @@ func ByteCountIEC(b int64) string {
 	}
 	return fmt.Sprintf("%.1f %ciB",
 		float64(b)/float64(div), "KMGTPE"[exp])
+}
+
+// IsFolder returns whether a relative path is a folder
+func IsFolder(dir string) bool {
+	fi, err := os.Stat(path.Join(Root, dir))
+	if err != nil {
+		return false
+	}
+
+	return fi.IsDir()
 }

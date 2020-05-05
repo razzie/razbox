@@ -30,6 +30,6 @@ func main() {
 	}
 
 	srv := razlink.NewServer()
-	srv.AddPages(&razbox.FolderPage)
+	srv.AddPages(&razbox.FolderPage, &razbox.SearchPage)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(Port), srv))
 }

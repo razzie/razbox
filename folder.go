@@ -88,6 +88,18 @@ func (f *Folder) GetSubfolders() (subfolders []string) {
 	return
 }
 
+// Search ...
+func (f *Folder) Search(tag string) []*File {
+	files := f.GetFiles()
+	results := make([]*File, 0, len(files))
+	for _, file := range files {
+		if file.HasTag(tag) {
+			results = append(results, file)
+		}
+	}
+	return results
+}
+
 // SetPasswords ...
 func (f *Folder) SetPasswords(readPw, writePw string) error {
 	f.Salt = Salt()
