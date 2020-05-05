@@ -9,13 +9,24 @@ import (
 	"github.com/razzie/razlink"
 )
 
-func viewFile(r *http.Request) razlink.PageView {
+func viewFile(db *DB, r *http.Request) razlink.PageView {
 	filename := r.URL.Path[3:] // skip /x/
+	dir := filepath.Dir(filename)
 
-	folder, err := GetFolder(filepath.Dir(filename))
-	if err != nil {
-		log.Println(filename, "error:", err.Error())
-		return razlink.ErrorView(r, "Not found", http.StatusNotFound)
+	var folder *Folder
+	var err error
+	cached := true
+
+	if db != nil {
+		folder, _ = db.GetCachedFolder(dir)
+	}
+	if folder == nil {
+		cached = false
+		folder, err = GetFolder(dir)
+		if err != nil {
+			log.Println(dir, "error:", err.Error())
+			return razlink.ErrorView(r, "Not found", http.StatusNotFound)
+		}
 	}
 
 	err = folder.EnsureReadAccess(r)
@@ -28,6 +39,10 @@ func viewFile(r *http.Request) razlink.PageView {
 	if err != nil {
 		log.Println(filename, "error:", err.Error())
 		return razlink.ErrorView(r, "Not found", http.StatusNotFound)
+	}
+
+	if db != nil && !cached {
+		db.CacheFolder(folder)
 	}
 
 	data, err := file.Open()

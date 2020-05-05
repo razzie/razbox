@@ -13,11 +13,13 @@ import (
 
 // Folder ...
 type Folder struct {
-	Path          string `json:"-"`
-	RelPath       string `json:"-"`
-	Salt          string `json:"salt"`
-	ReadPassword  string `json:"read_pw"`
-	WritePassword string `json:"write_pw"`
+	Path             string   `json:"path,omitempty"`
+	RelPath          string   `json:"rel_path,omitempty"`
+	Salt             string   `json:"salt"`
+	ReadPassword     string   `json:"read_pw"`
+	WritePassword    string   `json:"write_pw"`
+	CachedSubfolders []string `json:"cached_subfolders,omitempty"`
+	CachedFiles      []*File  `json:"cached_files,omitempty"`
 }
 
 /*// ExploreFolders return all the folders located in the given root
@@ -37,6 +39,10 @@ func ExploreFolders(root string) (folders []*Folder, err error) {
 
 // GetFolder returns a new Folder from a handle to a .razbox file
 func GetFolder(path string) (*Folder, error) {
+	if path[len(path)-1] == '/' {
+		path = path[:len(path)-1]
+	}
+
 	if !filepath.IsAbs(path) {
 		path = filepath.Join(Root, path)
 	}
@@ -59,12 +65,25 @@ func GetFolder(path string) (*Folder, error) {
 
 // GetFile ...
 func (f *Folder) GetFile(basename string) (*File, error) {
+	if f.CachedFiles != nil {
+		for _, f := range f.CachedFiles {
+			if f.Name == basename {
+				return f, nil
+			}
+		}
+	}
+
 	internalName := FilenameToUUID(basename).String()
-	return GetFile(path.Join(f.Path, internalName))
+	filename := path.Join(f.Path, internalName)
+	return GetFile(filename)
 }
 
 // GetFiles ...
-func (f *Folder) GetFiles() (files []*File) {
+func (f *Folder) GetFiles() []*File {
+	if f.CachedFiles != nil {
+		return f.CachedFiles
+	}
+
 	filenames, _ := filepath.Glob(path.Join(f.Path, "????????-????-????-????-????????????.json"))
 	for _, filename := range filenames {
 		file, err := GetFile(filename[:len(filename)-5]) // - .json
@@ -72,20 +91,24 @@ func (f *Folder) GetFiles() (files []*File) {
 			log.Print("GetFile error:", err)
 			continue
 		}
-		files = append(files, file)
+		f.CachedFiles = append(f.CachedFiles, file)
 	}
-	return
+	return f.CachedFiles
 }
 
 // GetSubfolders ...
-func (f *Folder) GetSubfolders() (subfolders []string) {
+func (f *Folder) GetSubfolders() []string {
+	if f.CachedSubfolders != nil {
+		return f.CachedSubfolders
+	}
+
 	files, _ := ioutil.ReadDir(f.Path)
 	for _, fi := range files {
 		if fi.IsDir() {
-			subfolders = append(subfolders, fi.Name())
+			f.CachedSubfolders = append(f.CachedSubfolders, fi.Name())
 		}
 	}
-	return
+	return f.CachedSubfolders
 }
 
 // Search ...

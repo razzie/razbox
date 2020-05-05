@@ -49,21 +49,31 @@ var folderPageT = `
 </table>
 `
 
-func folderPageHandler(r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func folderPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[3:] // skip /x/
 
 	if !IsFolder(uri) {
-		return viewFile(r)
+		return viewFile(db, r)
 	}
 
 	if len(uri) > 0 && uri[len(uri)-1] == '/' {
 		uri = uri[:len(uri)-1]
 	}
 
-	folder, err := GetFolder(uri)
-	if err != nil {
-		log.Println(uri, "error:", err.Error())
-		return razlink.ErrorView(r, "Not found", http.StatusNotFound)
+	var folder *Folder
+	var err error
+	cached := true
+
+	if db != nil {
+		folder, _ = db.GetCachedFolder(uri)
+	}
+	if folder == nil {
+		cached = false
+		folder, err = GetFolder(uri)
+		if err != nil {
+			log.Println(uri, "error:", err.Error())
+			return razlink.ErrorView(r, "Not found", http.StatusNotFound)
+		}
 	}
 
 	err = folder.EnsureReadAccess(r)
@@ -104,6 +114,10 @@ func folderPageHandler(r *http.Request, view razlink.ViewFunc) razlink.PageView 
 		entries = append(entries, entry)
 	}
 
+	if db != nil && !cached {
+		db.CacheFolder(folder)
+	}
+
 	v := &folderPageView{
 		Folder:  uri,
 		Entries: entries,
@@ -111,9 +125,13 @@ func folderPageHandler(r *http.Request, view razlink.ViewFunc) razlink.PageView 
 	return view(v, &uri)
 }
 
-// FolderPage ...
-var FolderPage = razlink.Page{
-	Path:            "/x/",
-	ContentTemplate: folderPageT,
-	Handler:         folderPageHandler,
+// GetFolderPage returns a razlink.Page that handles folders
+func GetFolderPage(db *DB) *razlink.Page {
+	return &razlink.Page{
+		Path:            "/x/",
+		ContentTemplate: folderPageT,
+		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
+			return folderPageHandler(db, r, view)
+		},
+	}
 }

@@ -11,12 +11,18 @@ import (
 	"github.com/razzie/razlink"
 )
 
+// Command-line args
 var (
-	// Port is the HTTP port of the application
-	Port int
+	RedisAddr string
+	RedisPw   string
+	RedisDb   int
+	Port      int
 )
 
 func main() {
+	flag.StringVar(&RedisAddr, "redis-addr", "localhost:6379", "Redis hostname:port")
+	flag.StringVar(&RedisPw, "redis-pw", "", "Redis password")
+	flag.IntVar(&RedisDb, "redis-db", 0, "Redis database (0-15)")
 	flag.StringVar(&razbox.Root, "root", "./uploads", "Root directory of folders")
 	flag.IntVar(&Port, "port", 8080, "HTTP port")
 	flag.Parse()
@@ -29,7 +35,12 @@ func main() {
 		}
 	}
 
+	db, err := razbox.NewDB(RedisAddr, RedisPw, RedisDb)
+	if err != nil {
+		log.Print("failed to connect to database:", err)
+	}
+
 	srv := razlink.NewServer()
-	srv.AddPages(&razbox.FolderPage, &razbox.SearchPage)
+	srv.AddPages(razbox.GetFolderPage(db), razbox.GetSearchPage(db))
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(Port), srv))
 }

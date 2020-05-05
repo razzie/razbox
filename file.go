@@ -10,7 +10,7 @@ import (
 // File ...
 type File struct {
 	Name         string   `json:"name"`
-	InternalName string   `json:"-"`
+	InternalName string   `json:"internal_name,omitempty"`
 	Tags         []string `json:"tags"`
 	MIME         string   `json:"mime"`
 	Size         string   `json:"size"`
