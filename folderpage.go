@@ -1,6 +1,8 @@
 package razbox
 
 import (
+	"io"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -49,7 +51,40 @@ func isFolder(dir string) bool {
 }
 
 func viewFile(r *http.Request) razlink.PageView {
-	return razlink.ErrorView(r, "Not implemented", http.StatusInternalServerError)
+	filename := r.URL.Path[3:] // skip /x/
+
+	folder, err := GetFolder(filepath.Dir(filename))
+	if err != nil {
+		log.Println(filename, "error:", err.Error())
+		return razlink.ErrorView(r, "Not found", http.StatusNotFound)
+	}
+
+	err = folder.EnsureReadAccess(r)
+	if err != nil {
+		log.Println(filename, "error:", err.Error())
+		return razlink.ErrorView(r, "Unauthorized", http.StatusUnauthorized)
+	}
+
+	file, err := folder.GetFile(filepath.Base(filename))
+	if err != nil {
+		log.Println(filename, "error:", err.Error())
+		return razlink.ErrorView(r, "Not found", http.StatusNotFound)
+	}
+
+	data, err := file.Open()
+	if err != nil {
+		log.Println(filename, "error:", err.Error())
+		return razlink.ErrorView(r, "Could not open file", http.StatusInternalServerError)
+	}
+
+	return func(w http.ResponseWriter) {
+		defer data.Close()
+		w.Header().Set("Content-Type", file.MIME)
+		_, err := io.Copy(w, data)
+		if err != nil {
+			log.Println(filename, "error:", err.Error())
+		}
+	}
 }
 
 func pageHandler(r *http.Request, view razlink.ViewFunc) razlink.PageView {
@@ -61,12 +96,14 @@ func pageHandler(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 
 	folder, err := GetFolder(filepath.Dir(uri))
 	if err != nil {
-		return razlink.ErrorView(r, err.Error(), http.StatusInternalServerError)
+		log.Println(uri, "error:", err.Error())
+		return razlink.ErrorView(r, "Not found", http.StatusNotFound)
 	}
 
 	err = folder.EnsureReadAccess(r)
 	if err != nil {
-		return razlink.ErrorView(r, err.Error(), http.StatusInternalServerError)
+		log.Println(uri, "error:", err.Error())
+		return razlink.ErrorView(r, "Unauthorized", http.StatusUnauthorized)
 	}
 
 	subfolders := folder.GetSubfolders()

@@ -59,7 +59,8 @@ func GetFolder(path string) (*Folder, error) {
 
 // GetFile ...
 func (f *Folder) GetFile(basename string) (*File, error) {
-	return GetFile(path.Join(f.Path, basename))
+	internalName := FilenameToUUID(basename).String()
+	return GetFile(path.Join(f.Path, internalName))
 }
 
 // GetFiles ...
