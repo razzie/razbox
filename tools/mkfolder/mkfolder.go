@@ -7,7 +7,7 @@ import (
 	"path"
 	"path/filepath"
 
-	razbox "github.com/razzie/razbox"
+	"github.com/razzie/razbox"
 )
 
 var (
