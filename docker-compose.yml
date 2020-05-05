@@ -1,0 +1,15 @@
+version: "2"
+
+services:
+  app:
+    image: golang:alpine
+    ports:
+      - "8080"
+    volumes:
+      - .:/app
+	    - ./uploads:/uploads
+    working_dir: /app
+    environment:
+      - VIRTUAL_HOST=download.gorzsony.com
+      - VIRTUAL_PORT=8080
+    command: go run -mod=vendor . -root /uploads
