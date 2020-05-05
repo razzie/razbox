@@ -41,6 +41,10 @@ func main() {
 	}
 
 	srv := razlink.NewServer()
-	srv.AddPages(razbox.GetFolderPage(db), razbox.GetSearchPage(db))
+	srv.AddPages(
+		&razbox.WelcomePage,
+		razbox.GetFolderPage(db),
+		razbox.GetSearchPage(db),
+	)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(Port), srv))
 }
