@@ -39,7 +39,7 @@ func ExploreFolders(root string) (folders []*Folder, err error) {
 
 // GetFolder returns a new Folder from a handle to a .razbox file
 func GetFolder(path string) (*Folder, error) {
-	if path[len(path)-1] == '/' {
+	if len(path) > 0 && path[len(path)-1] == '/' {
 		path = path[:len(path)-1]
 	}
 
