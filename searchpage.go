@@ -42,6 +42,7 @@ func searchPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.P
 
 	for _, file := range files {
 		entry := &folderEntry{
+			Prefix:   MIMEtoSymbol(file.MIME),
 			Name:     file.Name,
 			RelPath:  path.Join(dir, file.Name),
 			MIME:     file.MIME,

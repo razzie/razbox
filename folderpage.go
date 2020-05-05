@@ -1,7 +1,7 @@
 package razbox
 
 import (
-	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"path"
@@ -15,6 +15,7 @@ type folderPageView struct {
 }
 
 type folderEntry struct {
+	Prefix   template.HTML
 	Name     string
 	RelPath  string
 	MIME     string
@@ -27,7 +28,7 @@ var folderPageT = `
 <table>
 	<tr>
 		<td>Name</td>
-		<td>MIME type</td>
+		<td>Type</td>
 		<td>Tags</td>
 		<td>Size</td>
 		<td>Uploaded</td>
@@ -35,7 +36,7 @@ var folderPageT = `
 	{{$Folder := .Folder}}
 	{{range .Entries}}
 	<tr>
-		<td><a href="/x/{{.RelPath}}">{{.Name}}</a></td>
+		<td>{{.Prefix}}<a href="/x/{{.RelPath}}">{{.Name}}</a></td>
 		<td>{{.MIME}}</td>
 		<td>
 			{{range .Tags}}
@@ -88,7 +89,8 @@ func folderPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.P
 
 	if len(uri) > 0 {
 		entry := &folderEntry{
-			Name:    "<..>",
+			Prefix:  "&#128194;",
+			Name:    "..",
 			RelPath: path.Join(uri, ".."),
 		}
 		entries = append(entries, entry)
@@ -96,7 +98,8 @@ func folderPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.P
 
 	for _, subfolder := range subfolders {
 		entry := &folderEntry{
-			Name:    fmt.Sprintf("<%s>", subfolder),
+			Prefix:  "&#128194;",
+			Name:    subfolder,
 			RelPath: path.Join(uri, subfolder),
 		}
 		entries = append(entries, entry)
@@ -104,6 +107,7 @@ func folderPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.P
 
 	for _, file := range files {
 		entry := &folderEntry{
+			Prefix:   MIMEtoSymbol(file.MIME),
 			Name:     file.Name,
 			RelPath:  path.Join(uri, file.Name),
 			MIME:     file.MIME,

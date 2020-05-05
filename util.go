@@ -5,10 +5,12 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"html/template"
 	"math/rand"
 	"os"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -52,7 +54,7 @@ func ByteCountSI(b int64) string {
 		exp++
 	}
 	return fmt.Sprintf("%.1f %cB",
-		float64(b)/float64(div), "kMGTPE"[exp])
+		float64(b)/float64(div), "KMGTPE"[exp])
 }
 
 // ByteCountIEC ...
@@ -78,4 +80,29 @@ func IsFolder(dir string) bool {
 	}
 
 	return fi.IsDir()
+}
+
+// MIMEtoSymbol returns a symbol that represents the MIME type
+func MIMEtoSymbol(mime string) template.HTML {
+	switch strings.SplitN(mime, "/", 2)[0] {
+	case "audio":
+		return "&#127925;"
+	case "font":
+		return "&#9000;"
+	case "image":
+		return "&#127912;"
+	case "model":
+		return "&#127922;"
+	case "text":
+		return "&#128209;"
+	case "video":
+		return "&#127916;"
+	default:
+		switch mime {
+		case "application/zip", "application/7z", "application/rar":
+			return "&#128230;"
+		default:
+			return "&#128196;"
+		}
+	}
 }
