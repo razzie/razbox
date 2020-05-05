@@ -163,7 +163,7 @@ func (f *Folder) EnsureReadAccess(r *http.Request) error {
 		return nil
 	}
 
-	cookie, err := r.Cookie("read:" + f.Path)
+	cookie, err := r.Cookie("read:" + f.RelPath)
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func (f *Folder) EnsureReadAccess(r *http.Request) error {
 
 // EnsureWriteAccess returns an error if the request doesn't contain a cookie with valid write access
 func (f *Folder) EnsureWriteAccess(r *http.Request) error {
-	cookie, err := r.Cookie("write:" + f.Path)
+	cookie, err := r.Cookie("write:" + f.RelPath)
 	if err != nil {
 		return err
 	}
