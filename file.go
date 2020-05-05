@@ -39,3 +39,21 @@ func GetFile(path string) (*File, error) {
 func (f *File) Open() (FileReader, error) {
 	return os.Open(f.InternalName + ".bin")
 }
+
+// Save ...
+func (f *File) Save(content io.Reader) error {
+	data, _ := json.MarshalIndent(f, "", "  ")
+	err := ioutil.WriteFile(f.InternalName+".json", data, 0644)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create(f.InternalName + ".bin")
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, content)
+	return err
+}
