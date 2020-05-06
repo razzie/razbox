@@ -60,9 +60,11 @@ func searchPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 
 	v := &folderPageView{
 		Text: template.HTML(fmt.Sprintf(`
-		Search results for tag: <strong>%s</strong><br />
-		<a href="/x/%s">View folder content</a>
-		<p></p>`, tag, dir)),
+		<div>
+			<span style="float: left">&#128269; Search results for tag: <strong>%s</strong></span>
+			<span style="float: right">&#128194; <a href="/x/%s">View folder content</a></span>
+		</div>
+		<div style="clear: both; margin-bottom: 1rem"></div>`, tag, dir)),
 		Folder:  dir,
 		Entries: entries,
 	}
