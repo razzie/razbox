@@ -54,7 +54,7 @@ func GetFolder(uri string) (*Folder, error) {
 	return folder, json.Unmarshal(data, folder)
 }
 
-// GetFile ...
+// GetFile returns the file in the folder with the given basename
 func (f *Folder) GetFile(basename string) (*File, error) {
 	if f.CachedFiles != nil {
 		for _, f := range f.CachedFiles {
@@ -69,7 +69,7 @@ func (f *Folder) GetFile(basename string) (*File, error) {
 	return GetFile(filename)
 }
 
-// GetFiles ...
+// GetFiles returns the files in the folder
 func (f *Folder) GetFiles() []*File {
 	if f.CachedFiles != nil {
 		return f.CachedFiles
@@ -92,7 +92,7 @@ func (f *Folder) GetFiles() []*File {
 	return f.CachedFiles
 }
 
-// GetSubfolders ...
+// GetSubfolders returns the subfolders
 func (f *Folder) GetSubfolders() []string {
 	if f.CachedSubfolders != nil {
 		return f.CachedSubfolders
@@ -107,7 +107,7 @@ func (f *Folder) GetSubfolders() []string {
 	return f.CachedSubfolders
 }
 
-// Search ...
+// Search returns the files that contain the given tag
 func (f *Folder) Search(tag string) []*File {
 	files := f.GetFiles()
 	results := make([]*File, 0, len(files))
@@ -119,7 +119,7 @@ func (f *Folder) Search(tag string) []*File {
 	return results
 }
 
-// SetPasswords ...
+// SetPasswords generates a random salt and sets and read and write passwords
 func (f *Folder) SetPasswords(readPw, writePw string) error {
 	f.Salt = Salt()
 	if len(readPw) == 0 {
@@ -131,7 +131,7 @@ func (f *Folder) SetPasswords(readPw, writePw string) error {
 	return f.save()
 }
 
-// SetReadPassword ...
+// SetReadPassword sets the read password
 func (f *Folder) SetReadPassword(readPw string) error {
 	if len(readPw) == 0 {
 		f.ReadPassword = ""
@@ -141,10 +141,22 @@ func (f *Folder) SetReadPassword(readPw string) error {
 	return f.save()
 }
 
-// SetWritePassword ...
+// SetWritePassword sets the write password
 func (f *Folder) SetWritePassword(writePw string) error {
 	f.WritePassword = Hash(f.Salt + writePw)
 	return f.save()
+}
+
+// SetPassword sets the password for the given access type
+func (f *Folder) SetPassword(accessType, pw string) error {
+	switch accessType {
+	case "read":
+		return f.SetReadPassword(pw)
+	case "write":
+		return f.SetWritePassword(pw)
+	default:
+		return fmt.Errorf("invalid access type: %s", accessType)
+	}
 }
 
 func (f *Folder) save() error {
@@ -192,6 +204,18 @@ func (f *Folder) EnsureWriteAccess(r *http.Request) error {
 	return nil
 }
 
+// EnsureAccess returns an error if the request doesn't contain a valid cookie for the given access type
+func (f *Folder) EnsureAccess(accessType string, r *http.Request) error {
+	switch accessType {
+	case "read":
+		return f.EnsureReadAccess(r)
+	case "write":
+		return f.EnsureWriteAccess(r)
+	default:
+		return fmt.Errorf("invalid access type: %s", accessType)
+	}
+}
+
 // TestReadPassword returns true if the given password matches the read password
 func (f *Folder) TestReadPassword(readPw string) bool {
 	if len(f.ReadPassword) == 0 && len(readPw) == 0 {
@@ -203,4 +227,30 @@ func (f *Folder) TestReadPassword(readPw string) bool {
 // TestWritePassword returns true if the given password matches the write password
 func (f *Folder) TestWritePassword(writePw string) bool {
 	return Hash(f.Salt+writePw) == f.WritePassword
+}
+
+// TestPassword returns true if the given password matches the password for the given access type
+func (f *Folder) TestPassword(accessType, pw string) bool {
+	switch accessType {
+	case "read":
+		return f.TestReadPassword(pw)
+	case "write":
+		return f.TestWritePassword(pw)
+	default:
+		log.Print("invalid access type:", accessType)
+		return false
+	}
+}
+
+// GetPasswordHash returns the password hash of the given access type
+func (f *Folder) GetPasswordHash(accessType string) string {
+	switch accessType {
+	case "read":
+		return f.ReadPassword
+	case "write":
+		return f.WritePassword
+	default:
+		log.Print("invalid access type:", accessType)
+		return ""
+	}
 }
