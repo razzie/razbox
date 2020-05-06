@@ -1,6 +1,7 @@
 package razbox
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -81,9 +82,7 @@ func folderPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.P
 
 	err = folder.EnsureReadAccess(r)
 	if err != nil {
-		//log.Println(uri, "error:", err.Error())
-		//return razlink.ErrorView(r, "Unauthorized", http.StatusUnauthorized)
-		return razlink.RedirectView(r, "/read-auth/"+uri)
+		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", uri, r.URL.Path))
 	}
 
 	subfolders := folder.GetSubfolders()

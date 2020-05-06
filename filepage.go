@@ -1,6 +1,7 @@
 package razbox
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -31,9 +32,7 @@ func viewFile(db *DB, r *http.Request) razlink.PageView {
 
 	err = folder.EnsureReadAccess(r)
 	if err != nil {
-		//log.Println(filename, "error:", err.Error())
-		//return razlink.ErrorView(r, "Unauthorized", http.StatusUnauthorized)
-		return razlink.RedirectView(r, "/read-auth/"+dir)
+		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", dir, r.URL.Path))
 	}
 
 	file, err := folder.GetFile(filepath.Base(filename))

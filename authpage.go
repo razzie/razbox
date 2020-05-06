@@ -42,7 +42,7 @@ func readAuthPageHandler(r *http.Request, view razlink.ViewFunc) razlink.PageVie
 		Folder:        uri,
 		PwFieldPrefix: pwPrefix,
 		AccessType:    "read",
-		Redirect:      r.Referer(),
+		Redirect:      r.URL.Query().Get("r"),
 	}
 	if len(v.Redirect) == 0 {
 		v.Redirect = "/x/" + uri
