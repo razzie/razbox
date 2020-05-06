@@ -42,9 +42,14 @@ func GetFolder(uri string) (*Folder, error) {
 		return nil, err
 	}
 
+	var relPath string
+	if len(uri) > len(Root) {
+		relPath = uri[len(Root)+1:]
+	}
+
 	folder := &Folder{
 		Path:    uri,
-		RelPath: uri[len(Root)+1:],
+		RelPath: relPath,
 	}
 	return folder, json.Unmarshal(data, folder)
 }
