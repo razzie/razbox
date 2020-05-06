@@ -1,4 +1,4 @@
-package razbox
+package main
 
 import (
 	"fmt"
@@ -7,14 +7,15 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/razzie/razbox"
 	"github.com/razzie/razlink"
 )
 
-func viewFile(db *DB, r *http.Request) razlink.PageView {
+func viewFile(db *razbox.DB, r *http.Request) razlink.PageView {
 	filename := r.URL.Path[3:] // skip /x/
 	dir := filepath.Dir(filename)
 
-	var folder *Folder
+	var folder *razbox.Folder
 	var err error
 	cached := true
 
@@ -23,7 +24,7 @@ func viewFile(db *DB, r *http.Request) razlink.PageView {
 	}
 	if folder == nil {
 		cached = false
-		folder, err = GetFolder(dir)
+		folder, err = razbox.GetFolder(dir)
 		if err != nil {
 			log.Println(dir, "error:", err.Error())
 			return razlink.ErrorView(r, "Not found", http.StatusNotFound)

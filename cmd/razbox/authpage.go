@@ -1,9 +1,10 @@
-package razbox
+package main
 
 import (
 	"log"
 	"net/http"
 
+	"github.com/razzie/razbox"
 	"github.com/razzie/razlink"
 )
 
@@ -37,7 +38,7 @@ func readAuthPageHandler(r *http.Request, view razlink.ViewFunc) razlink.PageVie
 		uri = uri[:len(uri)-1]
 	}
 
-	pwPrefix := "read-" + FilenameToUUID(uri)
+	pwPrefix := "read-" + razbox.FilenameToUUID(uri)
 	v := &authPageView{
 		Folder:        uri,
 		PwFieldPrefix: pwPrefix,
@@ -49,7 +50,7 @@ func readAuthPageHandler(r *http.Request, view razlink.ViewFunc) razlink.PageVie
 	}
 
 	if r.Method == "POST" {
-		folder, err := GetFolder(uri)
+		folder, err := razbox.GetFolder(uri)
 		if err != nil {
 			log.Println(uri, "error:", err.Error())
 			return razlink.ErrorView(r, "Not found", http.StatusNotFound)
@@ -82,7 +83,7 @@ func writeAuthPageHandler(r *http.Request, view razlink.ViewFunc) razlink.PageVi
 		uri = uri[:len(uri)-1]
 	}
 
-	pwPrefix := "write-" + FilenameToUUID(uri)
+	pwPrefix := "write-" + razbox.FilenameToUUID(uri)
 	v := &authPageView{
 		Folder:        uri,
 		PwFieldPrefix: pwPrefix,
@@ -94,7 +95,7 @@ func writeAuthPageHandler(r *http.Request, view razlink.ViewFunc) razlink.PageVi
 	}
 
 	if r.Method == "POST" {
-		folder, err := GetFolder(uri)
+		folder, err := razbox.GetFolder(uri)
 		if err != nil {
 			log.Println(uri, "error:", err.Error())
 			return razlink.ErrorView(r, "Not found", http.StatusNotFound)

@@ -1,4 +1,4 @@
-package razbox
+package main
 
 import (
 	"fmt"
@@ -8,15 +8,16 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/razzie/razbox"
 	"github.com/razzie/razlink"
 )
 
-func searchPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func searchPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	search := r.URL.Path[8:] // skip /search/
 	dir := filepath.Dir(search)
 	tag := filepath.Base(search)
 
-	var folder *Folder
+	var folder *razbox.Folder
 	var err error
 	cached := true
 
@@ -25,7 +26,7 @@ func searchPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.P
 	}
 	if folder == nil {
 		cached = false
-		folder, err = GetFolder(dir)
+		folder, err = razbox.GetFolder(dir)
 		if err != nil {
 			log.Println(dir, "error:", err.Error())
 			return razlink.ErrorView(r, "Not found", http.StatusNotFound)
@@ -42,7 +43,7 @@ func searchPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.P
 
 	for _, file := range files {
 		entry := &folderEntry{
-			Prefix:   MIMEtoSymbol(file.MIME),
+			Prefix:   razbox.MIMEtoSymbol(file.MIME),
 			Name:     file.Name,
 			RelPath:  path.Join(dir, file.Name),
 			MIME:     file.MIME,
@@ -70,7 +71,7 @@ func searchPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.P
 }
 
 // GetSearchPage returns a razlink.Page that handles folder search by tags
-func GetSearchPage(db *DB) *razlink.Page {
+func GetSearchPage(db *razbox.DB) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/search/",
 		ContentTemplate: folderPageT,

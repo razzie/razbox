@@ -1,4 +1,4 @@
-package razbox
+package main
 
 import (
 	"net/http"

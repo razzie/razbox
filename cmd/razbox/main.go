@@ -42,11 +42,11 @@ func main() {
 
 	srv := razlink.NewServer()
 	srv.AddPages(
-		&razbox.WelcomePage,
-		razbox.GetFolderPage(db),
-		razbox.GetSearchPage(db),
-		&razbox.ReadAuthPage,
-		&razbox.WriteAuthPage,
+		&WelcomePage,
+		GetFolderPage(db),
+		GetSearchPage(db),
+		&ReadAuthPage,
+		&WriteAuthPage,
 	)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(Port), srv))
 }

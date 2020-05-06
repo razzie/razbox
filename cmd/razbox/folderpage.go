@@ -1,4 +1,4 @@
-package razbox
+package main
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/razzie/razbox"
 	"github.com/razzie/razlink"
 )
 
@@ -53,10 +54,10 @@ var folderPageT = `
 </table>
 `
 
-func folderPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[3:] // skip /x/
 
-	if !IsFolder(uri) {
+	if !razbox.IsFolder(uri) {
 		return viewFile(db, r)
 	}
 
@@ -64,7 +65,7 @@ func folderPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.P
 		uri = uri[:len(uri)-1]
 	}
 
-	var folder *Folder
+	var folder *razbox.Folder
 	var err error
 	cached := true
 
@@ -73,7 +74,7 @@ func folderPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.P
 	}
 	if folder == nil {
 		cached = false
-		folder, err = GetFolder(uri)
+		folder, err = razbox.GetFolder(uri)
 		if err != nil {
 			log.Println(uri, "error:", err.Error())
 			return razlink.ErrorView(r, "Not found", http.StatusNotFound)
@@ -109,7 +110,7 @@ func folderPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.P
 
 	for _, file := range files {
 		entry := &folderEntry{
-			Prefix:   MIMEtoSymbol(file.MIME),
+			Prefix:   razbox.MIMEtoSymbol(file.MIME),
 			Name:     file.Name,
 			RelPath:  path.Join(uri, file.Name),
 			MIME:     file.MIME,
@@ -132,7 +133,7 @@ func folderPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.P
 }
 
 // GetFolderPage returns a razlink.Page that handles folders
-func GetFolderPage(db *DB) *razlink.Page {
+func GetFolderPage(db *razbox.DB) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/x/",
 		ContentTemplate: folderPageT,
