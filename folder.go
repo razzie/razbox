@@ -74,7 +74,7 @@ func (f *Folder) GetFile(basename string) (*File, error) {
 		}
 	}
 
-	internalName := FilenameToUUID(basename).String()
+	internalName := FilenameToUUID(basename)
 	filename := path.Join(f.Path, internalName)
 	return GetFile(filename)
 }

@@ -43,7 +43,7 @@ func main() {
 	basename := filepath.Base(SourceFile)
 	dst := &razbox.File{
 		Name:         basename,
-		InternalName: path.Join(razbox.Root, TargetFolder, razbox.FilenameToUUID(basename).String()),
+		InternalName: path.Join(razbox.Root, TargetFolder, razbox.FilenameToUUID(basename)),
 		Tags:         strings.Fields(Tags),
 		MIME:         mime.String(),
 		Size:         razbox.ByteCountSI(srci.Size()),

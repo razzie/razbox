@@ -33,13 +33,13 @@ func Hash(s string) string {
 }
 
 // FilenameToUUID returns an UUID from a filename
-func FilenameToUUID(filename string) uuid.UUID {
+func FilenameToUUID(filename string) string {
 	algorithm := md5.New()
 	algorithm.Write([]byte(filename))
 	bytes := algorithm.Sum(nil)
 	bytes[6] = (bytes[6] & 0x0f) | 0x40 // Version 4
 	bytes[8] = (bytes[8] & 0x3f) | 0x80 // Variant is 10
-	return uuid.Must(uuid.FromBytes(bytes))
+	return uuid.Must(uuid.FromBytes(bytes)).String()
 }
 
 // ByteCountSI ...
