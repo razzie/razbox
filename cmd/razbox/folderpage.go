@@ -12,9 +12,12 @@ import (
 )
 
 type folderPageView struct {
-	Text    template.HTML
-	Folder  string
-	Entries []*folderEntry
+	Header         template.HTML
+	Footer         template.HTML
+	Folder         string
+	Entries        []*folderEntry
+	EditMode       bool
+	ControlButtons bool
 }
 
 type folderEntry struct {
@@ -25,10 +28,11 @@ type folderEntry struct {
 	Tags     []string
 	Size     string
 	Uploaded string
+	EditMode bool
 }
 
 var folderPageT = `
-{{.Text}}
+{{.Header}}
 <table>
 	<tr>
 		<td>Name</td>
@@ -39,19 +43,41 @@ var folderPageT = `
 	</tr>
 	{{$Folder := .Folder}}
 	{{range .Entries}}
-	<tr>
-		<td>{{.Prefix}}<a href="/x/{{.RelPath}}">{{.Name}}</a></td>
-		<td>{{.MIME}}</td>
-		<td>
-			{{range .Tags}}
-				<a href="/search/{{$Folder}}/{{.}}">{{.}}</a>
-			{{end}}
-		</td>
-		<td>{{.Size}}</td>
-		<td>{{.Uploaded}}</td>
-	</tr>
+		<tr>
+			<td>
+				{{.Prefix}}<a href="/x/{{.RelPath}}">{{.Name}}</a>
+				{{if .EditMode}}
+					[<a href="/edit/{{.RelPath}}">edit</a>]
+				{{end}}
+			</td>
+			<td>{{.MIME}}</td>
+			<td>
+				{{range .Tags}}
+					<a href="/search/{{$Folder}}/{{.}}">{{.}}</a>
+				{{end}}
+			</td>
+			<td>{{.Size}}</td>
+			<td>{{.Uploaded}}</td>
+		</tr>
+	{{end}}
+	{{if not .Entries}}
+		<tr><td colspan="5">No entries</td></tr>
 	{{end}}
 </table>
+{{if .ControlButtons}}
+	<div style="text-align: center">
+	{{if .EditMode}}
+		<form method="get">
+			<button formaction="/upload/{{.Folder}}">Upload file</button>
+		</form>
+	{{else}}
+		<form method="get">
+			<button formaction="/write-auth/{{.Folder}}">Edit mode</button>
+		</form>
+	{{end}}
+	</div>
+{{end}}
+{{.Footer}}
 `
 
 func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
@@ -86,6 +112,7 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", uri, r.URL.Path))
 	}
 
+	editMode := folder.EnsureWriteAccess(r) == nil
 	subfolders := folder.GetSubfolders()
 	files := folder.GetFiles()
 	entries := make([]*folderEntry, 0, 1+len(subfolders)+len(files))
@@ -117,6 +144,7 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 			Tags:     file.Tags,
 			Size:     file.Size,
 			Uploaded: file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
+			EditMode: editMode,
 		}
 		entries = append(entries, entry)
 	}
@@ -126,8 +154,10 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 	}
 
 	v := &folderPageView{
-		Folder:  uri,
-		Entries: entries,
+		Folder:         uri,
+		Entries:        entries,
+		EditMode:       editMode,
+		ControlButtons: true,
 	}
 	return view(v, &uri)
 }

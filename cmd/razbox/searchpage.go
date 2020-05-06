@@ -14,7 +14,7 @@ import (
 
 func searchPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	search := r.URL.Path[8:] // skip /search/
-	dir := filepath.Dir(search)
+	dir := path.Dir(search)
 	tag := filepath.Base(search)
 
 	var folder *razbox.Folder
@@ -59,7 +59,7 @@ func searchPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 	}
 
 	v := &folderPageView{
-		Text: template.HTML(fmt.Sprintf(`
+		Header: template.HTML(fmt.Sprintf(`
 		<div>
 			<span style="float: left">&#128269; Search results for tag: <strong>%s</strong></span>
 			<span style="float: right">&#128194; <a href="/x/%s">View folder content</a></span>
