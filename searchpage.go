@@ -2,6 +2,7 @@ package razbox
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"path"
@@ -58,6 +59,10 @@ func searchPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.P
 	}
 
 	v := &folderPageView{
+		Text: template.HTML(fmt.Sprintf(`
+		Search results for tag: <strong>%s</strong><br />
+		<a href="/x/%s">View folder content</a>
+		<p></p>`, tag, dir)),
 		Folder:  dir,
 		Entries: entries,
 	}

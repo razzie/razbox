@@ -10,6 +10,7 @@ import (
 )
 
 type folderPageView struct {
+	Text    template.HTML
 	Folder  string
 	Entries []*folderEntry
 }
@@ -25,6 +26,7 @@ type folderEntry struct {
 }
 
 var folderPageT = `
+{{.Text}}
 <table>
 	<tr>
 		<td>Name</td>
