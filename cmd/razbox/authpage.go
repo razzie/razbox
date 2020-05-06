@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -31,18 +32,18 @@ var authPageT = `
 </form>
 `
 
-func readAuthPageHandler(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	uri := r.URL.Path[11:] // skip /read-auth/
+func authPageHandler(accessType string, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+	uri := r.URL.Path[7+len(accessType):] // skip /[accessType]-auth/
 
 	if len(uri) > 0 && uri[len(uri)-1] == '/' {
 		uri = uri[:len(uri)-1]
 	}
 
-	pwPrefix := "read-" + razbox.FilenameToUUID(uri)
+	pwPrefix := fmt.Sprintf("%s-%s", accessType, razbox.FilenameToUUID(uri))
 	v := &authPageView{
 		Folder:        uri,
 		PwFieldPrefix: pwPrefix,
-		AccessType:    "read",
+		AccessType:    accessType,
 		Redirect:      r.URL.Query().Get("r"),
 	}
 	if len(v.Redirect) == 0 {
@@ -60,56 +61,11 @@ func readAuthPageHandler(r *http.Request, view razlink.ViewFunc) razlink.PageVie
 		pw := r.FormValue(pwPrefix + "-password")
 		v.Redirect = r.FormValue("redirect")
 
-		if folder.TestReadPassword(pw) {
-			folder.SetReadPassword(pw)
+		if folder.TestPassword(accessType, pw) {
+			folder.SetPassword(accessType, pw)
 			cookie := &http.Cookie{
 				Name:  pwPrefix,
-				Value: folder.ReadPassword,
-				Path:  "/",
-			}
-			return razlink.CookieAndRedirectView(r, cookie, v.Redirect)
-		}
-
-		v.Error = "Wrong password!"
-	}
-
-	return view(v, &uri)
-}
-
-func writeAuthPageHandler(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	uri := r.URL.Path[12:] // skip /write-auth/
-
-	if len(uri) > 0 && uri[len(uri)-1] == '/' {
-		uri = uri[:len(uri)-1]
-	}
-
-	pwPrefix := "write-" + razbox.FilenameToUUID(uri)
-	v := &authPageView{
-		Folder:        uri,
-		PwFieldPrefix: pwPrefix,
-		AccessType:    "write",
-		Redirect:      r.Referer(),
-	}
-	if len(v.Redirect) == 0 {
-		v.Redirect = "/x/" + uri
-	}
-
-	if r.Method == "POST" {
-		folder, err := razbox.GetFolder(uri)
-		if err != nil {
-			log.Println(uri, "error:", err.Error())
-			return razlink.ErrorView(r, "Not found", http.StatusNotFound)
-		}
-
-		r.ParseForm()
-		pw := r.FormValue(pwPrefix + "-password")
-		v.Redirect = r.FormValue("redirect")
-
-		if folder.TestWritePassword(pw) {
-			folder.SetWritePassword(pw)
-			cookie := &http.Cookie{
-				Name:  pwPrefix,
-				Value: folder.WritePassword,
+				Value: folder.GetPasswordHash(accessType),
 				Path:  "/",
 			}
 			return razlink.CookieAndRedirectView(r, cookie, v.Redirect)
@@ -125,12 +81,16 @@ func writeAuthPageHandler(r *http.Request, view razlink.ViewFunc) razlink.PageVi
 var ReadAuthPage = razlink.Page{
 	Path:            "/read-auth/",
 	ContentTemplate: authPageT,
-	Handler:         readAuthPageHandler,
+	Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
+		return authPageHandler("read", r, view)
+	},
 }
 
 // WriteAuthPage handles authentication for write access
 var WriteAuthPage = razlink.Page{
 	Path:            "/write-auth/",
 	ContentTemplate: authPageT,
-	Handler:         writeAuthPageHandler,
+	Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
+		return authPageHandler("write", r, view)
+	},
 }
