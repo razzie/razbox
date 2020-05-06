@@ -161,8 +161,6 @@ func (f *Folder) EnsureReadAccess(r *http.Request) error {
 	cookieName := "read-" + FilenameToUUID(f.RelPath)
 	cookie, err := r.Cookie(cookieName)
 	if err != nil {
-		fmt.Println(err.Error(), cookieName, f.RelPath)
-		fmt.Println(r.Cookies())
 		return err
 	}
 
