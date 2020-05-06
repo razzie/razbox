@@ -39,27 +39,27 @@ func ExploreFolders(root string) (folders []*Folder, err error) {
 }*/
 
 // GetFolder returns a new Folder from a handle to a .razbox file
-func GetFolder(path string) (*Folder, error) {
-	if len(path) > 0 && path[len(path)-1] == '/' {
-		path = path[:len(path)-1]
+func GetFolder(uri string) (*Folder, error) {
+	if len(uri) > 0 && uri[len(uri)-1] == '/' {
+		uri = uri[:len(uri)-1]
 	}
 
-	if !filepath.IsAbs(path) {
-		path = filepath.Join(Root, path)
+	if !filepath.IsAbs(uri) {
+		uri = path.Join(Root, uri)
 	}
 
-	if !strings.HasPrefix(path, Root) {
-		return nil, fmt.Errorf("path %s is not in root (%s)", path, Root)
+	if !strings.HasPrefix(uri, Root) {
+		return nil, fmt.Errorf("path %s is not in root (%s)", uri, Root)
 	}
 
-	data, err := ioutil.ReadFile(filepath.Join(path, ".razbox"))
+	data, err := ioutil.ReadFile(filepath.Join(uri, ".razbox"))
 	if err != nil {
 		return nil, err
 	}
 
 	folder := &Folder{
-		Path:    path,
-		RelPath: path[len(Root):],
+		Path:    uri,
+		RelPath: uri[len(Root)+1:],
 	}
 	return folder, json.Unmarshal(data, folder)
 }
@@ -173,12 +173,16 @@ func (f *Folder) EnsureReadAccess(r *http.Request) error {
 		return nil
 	}
 
-	cookie, err := r.Cookie("read:" + f.RelPath)
+	cookieName := "read-" + FilenameToUUID(f.RelPath)
+	cookie, err := r.Cookie(cookieName)
 	if err != nil {
+		fmt.Println(err.Error(), cookieName, f.RelPath)
+		fmt.Println(r.Cookies())
 		return err
 	}
 
 	if cookie.Value != f.ReadPassword {
+		fmt.Println(cookie.Value, f.ReadPassword)
 		return fmt.Errorf("incorrect read password")
 	}
 
@@ -187,7 +191,8 @@ func (f *Folder) EnsureReadAccess(r *http.Request) error {
 
 // EnsureWriteAccess returns an error if the request doesn't contain a cookie with valid write access
 func (f *Folder) EnsureWriteAccess(r *http.Request) error {
-	cookie, err := r.Cookie("write:" + f.RelPath)
+	cookieName := "write-" + FilenameToUUID(f.RelPath)
+	cookie, err := r.Cookie(cookieName)
 	if err != nil {
 		return err
 	}
@@ -197,4 +202,17 @@ func (f *Folder) EnsureWriteAccess(r *http.Request) error {
 	}
 
 	return nil
+}
+
+// TestReadPassword returns true if the given password matches the read password
+func (f *Folder) TestReadPassword(readPw string) bool {
+	if len(f.ReadPassword) == 0 && len(readPw) == 0 {
+		return true
+	}
+	return Hash(f.Salt+readPw) == f.ReadPassword
+}
+
+// TestWritePassword returns true if the given password matches the write password
+func (f *Folder) TestWritePassword(writePw string) bool {
+	return Hash(f.Salt+writePw) == f.WritePassword
 }

@@ -45,6 +45,8 @@ func main() {
 		&razbox.WelcomePage,
 		razbox.GetFolderPage(db),
 		razbox.GetSearchPage(db),
+		&razbox.ReadAuthPage,
+		&razbox.WriteAuthPage,
 	)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(Port), srv))
 }

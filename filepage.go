@@ -31,8 +31,9 @@ func viewFile(db *DB, r *http.Request) razlink.PageView {
 
 	err = folder.EnsureReadAccess(r)
 	if err != nil {
-		log.Println(filename, "error:", err.Error())
-		return razlink.ErrorView(r, "Unauthorized", http.StatusUnauthorized)
+		//log.Println(filename, "error:", err.Error())
+		//return razlink.ErrorView(r, "Unauthorized", http.StatusUnauthorized)
+		return razlink.RedirectView(r, "/read-auth/"+dir)
 	}
 
 	file, err := folder.GetFile(filepath.Base(filename))

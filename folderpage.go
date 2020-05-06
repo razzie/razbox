@@ -81,8 +81,9 @@ func folderPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.P
 
 	err = folder.EnsureReadAccess(r)
 	if err != nil {
-		log.Println(uri, "error:", err.Error())
-		return razlink.ErrorView(r, "Unauthorized", http.StatusUnauthorized)
+		//log.Println(uri, "error:", err.Error())
+		//return razlink.ErrorView(r, "Unauthorized", http.StatusUnauthorized)
+		return razlink.RedirectView(r, "/read-auth/"+uri)
 	}
 
 	subfolders := folder.GetSubfolders()
