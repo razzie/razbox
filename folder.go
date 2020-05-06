@@ -23,21 +23,6 @@ type Folder struct {
 	CachedFiles      []*File  `json:"cached_files,omitempty"`
 }
 
-/*// ExploreFolders return all the folders located in the given root
-func ExploreFolders(root string) (folders []*Folder, err error) {
-	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if info.IsDir() && path != root {
-			folder, err2 := GetFolder(filepath.Join(path, info.Name()))
-			if err2 != nil {
-				return err2
-			}
-			folders = append(folders, folder)
-		}
-		return nil
-	})
-	return
-}*/
-
 // GetFolder returns a new Folder from a handle to a .razbox file
 func GetFolder(uri string) (*Folder, error) {
 	if len(uri) > 0 && uri[len(uri)-1] == '/' {
