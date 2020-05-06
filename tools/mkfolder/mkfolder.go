@@ -39,6 +39,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	folder := &razbox.Folder{Path: Folder}
-	folder.SetPasswords(ReadPassword, WritePassword)
+	folder := &razbox.Folder{Path: path.Join(razbox.Root, Folder)}
+	err = folder.SetPasswords(ReadPassword, WritePassword)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

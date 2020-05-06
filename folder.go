@@ -132,15 +132,13 @@ func (f *Folder) Search(tag string) []*File {
 // SetPasswords ...
 func (f *Folder) SetPasswords(readPw, writePw string) error {
 	f.Salt = Salt()
-	f.ReadPassword = Hash(f.Salt + readPw)
-	f.WritePassword = Hash(f.Salt + writePw)
-
 	if len(readPw) == 0 {
 		f.ReadPassword = ""
+	} else {
+		f.ReadPassword = Hash(f.Salt + readPw)
 	}
-
-	data, _ := json.MarshalIndent(f, "", "  ")
-	return ioutil.WriteFile(path.Join(f.Path, ".razbox"), data, 0644)
+	f.WritePassword = Hash(f.Salt + writePw)
+	return f.save()
 }
 
 // SetReadPassword ...
@@ -150,16 +148,22 @@ func (f *Folder) SetReadPassword(readPw string) error {
 	} else {
 		f.ReadPassword = Hash(f.Salt + readPw)
 	}
-
-	data, _ := json.MarshalIndent(f, "", "  ")
-	return ioutil.WriteFile(path.Join(f.Path, ".razbox"), data, 0644)
+	return f.save()
 }
 
 // SetWritePassword ...
 func (f *Folder) SetWritePassword(writePw string) error {
 	f.WritePassword = Hash(f.Salt + writePw)
+	return f.save()
+}
 
-	data, _ := json.MarshalIndent(f, "", "  ")
+func (f *Folder) save() error {
+	tmp := Folder{
+		Salt:          f.Salt,
+		ReadPassword:  f.ReadPassword,
+		WritePassword: f.WritePassword,
+	}
+	data, _ := json.MarshalIndent(&tmp, "", "  ")
 	return ioutil.WriteFile(path.Join(f.Path, ".razbox"), data, 0644)
 }
 
