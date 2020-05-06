@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"path"
 	"path/filepath"
 
 	"github.com/razzie/razbox"
@@ -13,7 +14,7 @@ import (
 
 func viewFile(db *razbox.DB, r *http.Request) razlink.PageView {
 	filename := r.URL.Path[3:] // skip /x/
-	dir := filepath.Dir(filename)
+	dir := path.Dir(filename)
 
 	var folder *razbox.Folder
 	var err error
