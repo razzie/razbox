@@ -32,7 +32,7 @@ var authPageT = `
 </form>
 `
 
-func authPageHandler(accessType string, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func authPageHandler(db *razbox.DB, accessType string, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[7+len(accessType):] // skip /[accessType]-auth/
 
 	if len(uri) > 0 && uri[len(uri)-1] == '/' {
@@ -51,10 +51,18 @@ func authPageHandler(accessType string, r *http.Request, view razlink.ViewFunc) 
 	}
 
 	if r.Method == "POST" {
-		folder, err := razbox.GetFolder(uri)
-		if err != nil {
-			log.Println(uri, "error:", err.Error())
-			return razlink.ErrorView(r, "Not found", http.StatusNotFound)
+		var folder *razbox.Folder
+		var err error
+
+		if db != nil {
+			folder, _ = db.GetCachedFolder(uri)
+		}
+		if folder == nil {
+			folder, err = razbox.GetFolder(uri)
+			if err != nil {
+				log.Println(uri, "error:", err.Error())
+				return razlink.ErrorView(r, "Not found", http.StatusNotFound)
+			}
 		}
 
 		r.ParseForm()
@@ -77,20 +85,24 @@ func authPageHandler(accessType string, r *http.Request, view razlink.ViewFunc) 
 	return view(v, &uri)
 }
 
-// ReadAuthPage handles authentication for read access
-var ReadAuthPage = razlink.Page{
-	Path:            "/read-auth/",
-	ContentTemplate: authPageT,
-	Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-		return authPageHandler("read", r, view)
-	},
+// GetReadAuthPage returns a razlink.Page that handles authentication for read access
+func GetReadAuthPage(db *razbox.DB) *razlink.Page {
+	return &razlink.Page{
+		Path:            "/read-auth/",
+		ContentTemplate: authPageT,
+		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
+			return authPageHandler(db, "read", r, view)
+		},
+	}
 }
 
-// WriteAuthPage handles authentication for write access
-var WriteAuthPage = razlink.Page{
-	Path:            "/write-auth/",
-	ContentTemplate: authPageT,
-	Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-		return authPageHandler("write", r, view)
-	},
+// GetWriteAuthPage returns a razlink.Page that handles authentication for read access
+func GetWriteAuthPage(db *razbox.DB) *razlink.Page {
+	return &razlink.Page{
+		Path:            "/write-auth/",
+		ContentTemplate: authPageT,
+		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
+			return authPageHandler(db, "write", r, view)
+		},
+	}
 }
