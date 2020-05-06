@@ -84,7 +84,22 @@ func IsFolder(dir string) bool {
 
 // MIMEtoSymbol returns a symbol that represents the MIME type
 func MIMEtoSymbol(mime string) template.HTML {
-	switch strings.SplitN(mime, "/", 2)[0] {
+	t := strings.SplitN(mime, "/", 2)
+	switch t[0] {
+	case "application":
+		if len(t) < 2 {
+			break
+		}
+		switch t[1] {
+		case "zip", "7z", "rar", "tar", "tar+gzip":
+			return "&#128230;"
+		case "vnd.microsoft.portable-executable":
+			return "&#128187;"
+		case "pdf", "msword":
+			return "&#128209;"
+		case "x-iso9660-image", "x-cd-image", "x-raw-disk-image":
+			return "&#128191;"
+		}
 	case "audio":
 		return "&#127925;"
 	case "font":
@@ -97,12 +112,7 @@ func MIMEtoSymbol(mime string) template.HTML {
 		return "&#128209;"
 	case "video":
 		return "&#127916;"
-	default:
-		switch mime {
-		case "application/zip", "application/7z", "application/rar":
-			return "&#128230;"
-		default:
-			return "&#128196;"
-		}
 	}
+
+	return "&#128196;"
 }
