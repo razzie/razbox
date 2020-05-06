@@ -47,7 +47,7 @@ func main() {
 		Tags:         strings.Fields(Tags),
 		MIME:         mime.String(),
 		Size:         razbox.ByteCountSI(srci.Size()),
-		Uploaded:     time.Now().Format("Mon, 02 Jan 2006 15:04:05 MST"),
+		Uploaded:     time.Now(),
 	}
 
 	err = dst.Save(src)

@@ -113,7 +113,7 @@ func folderPageHandler(db *DB, r *http.Request, view razlink.ViewFunc) razlink.P
 			MIME:     file.MIME,
 			Tags:     file.Tags,
 			Size:     file.Size,
-			Uploaded: file.Uploaded,
+			Uploaded: file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
 		}
 		entries = append(entries, entry)
 	}
