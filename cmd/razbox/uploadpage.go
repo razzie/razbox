@@ -86,12 +86,12 @@ func uploadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 		data.Seek(0, io.SeekStart)
 
 		file := &razbox.File{
-			Name:         filename,
-			InternalName: path.Join(razbox.Root, uri, razbox.FilenameToUUID(filename)),
-			Tags:         strings.Fields(r.FormValue("tags")),
-			MIME:         mime.String(),
-			Size:         handler.Size,
-			Uploaded:     time.Now(),
+			Name:     filename,
+			RelPath:  path.Join(uri, razbox.FilenameToUUID(filename)),
+			Tags:     strings.Fields(r.FormValue("tags")),
+			MIME:     mime.String(),
+			Size:     handler.Size,
+			Uploaded: time.Now(),
 		}
 		err = file.Create(data)
 		if err != nil {

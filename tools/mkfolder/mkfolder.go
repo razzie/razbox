@@ -43,7 +43,7 @@ func main() {
 	}
 
 	folder := &razbox.Folder{
-		Path:          path.Join(razbox.Root, Folder),
+		RelPath:       Folder,
 		MaxFileSizeMB: MaxFileSizeMB,
 	}
 	err = folder.SetPasswords(ReadPassword, WritePassword)

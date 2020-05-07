@@ -42,12 +42,12 @@ func main() {
 
 	basename := filepath.Base(SourceFile)
 	dst := &razbox.File{
-		Name:         basename,
-		InternalName: path.Join(razbox.Root, TargetFolder, razbox.FilenameToUUID(basename)),
-		Tags:         strings.Fields(Tags),
-		MIME:         mime.String(),
-		Size:         srci.Size(),
-		Uploaded:     time.Now(),
+		Name:     basename,
+		RelPath:  path.Join(TargetFolder, razbox.FilenameToUUID(basename)),
+		Tags:     strings.Fields(Tags),
+		MIME:     mime.String(),
+		Size:     srci.Size(),
+		Uploaded: time.Now(),
 	}
 
 	err = dst.Create(src)

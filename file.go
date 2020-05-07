@@ -8,18 +8,17 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
 // File ...
 type File struct {
-	Name         string    `json:"name"`
-	InternalName string    `json:"internal_name,omitempty"`
-	Tags         []string  `json:"tags"`
-	MIME         string    `json:"mime"`
-	Size         int64     `json:"size"`
-	Uploaded     time.Time `json:"uploaded"`
+	Name     string    `json:"name"`
+	RelPath  string    `json:"rel_path,omitempty"`
+	Tags     []string  `json:"tags"`
+	MIME     string    `json:"mime"`
+	Size     int64     `json:"size"`
+	Uploaded time.Time `json:"uploaded"`
 }
 
 // FileReader ...
@@ -28,21 +27,12 @@ type FileReader interface {
 	io.Closer
 }
 
-// GetFile ...
-func GetFile(uri string) (*File, error) {
-	if !filepath.IsAbs(uri) {
-		uri = path.Join(Root, uri)
-	}
-
-	if !strings.HasPrefix(uri, Root) {
-		return nil, fmt.Errorf("path %s is not in root (%s)", uri, Root)
-	}
-
+func getFile(relPath string) (*File, error) {
 	file := &File{
-		InternalName: uri,
+		RelPath: relPath,
 	}
 
-	data, err := ioutil.ReadFile(uri + ".json")
+	data, err := ioutil.ReadFile(path.Join(Root, relPath+".json"))
 	if err != nil {
 		return nil, err
 	}
@@ -52,18 +42,18 @@ func GetFile(uri string) (*File, error) {
 
 // Open ...
 func (f *File) Open() (FileReader, error) {
-	return os.Open(f.InternalName + ".bin")
+	return os.Open(path.Join(Root, f.RelPath+".bin"))
 }
 
 // Save ...
 func (f *File) Save() error {
 	data, _ := json.MarshalIndent(f, "", "  ")
-	return ioutil.WriteFile(f.InternalName+".json", data, 0644)
+	return ioutil.WriteFile(path.Join(Root, f.RelPath+".json"), data, 0644)
 }
 
 // Create ...
 func (f *File) Create(content io.Reader) error {
-	jsonFilename := f.InternalName + ".json"
+	jsonFilename := path.Join(Root, f.RelPath+".json")
 	if _, err := os.Stat(jsonFilename); os.IsNotExist(err) {
 		data, _ := json.MarshalIndent(f, "", "  ")
 		err := ioutil.WriteFile(jsonFilename, data, 0644)
@@ -71,11 +61,11 @@ func (f *File) Create(content io.Reader) error {
 			return err
 		}
 	} else {
-		return fmt.Errorf("file already exists: %s", jsonFilename)
+		return fmt.Errorf("file already exists: %s", f.Name)
 	}
 
 	if content != nil {
-		file, err := os.Create(f.InternalName + ".bin")
+		file, err := os.Create(path.Join(Root, f.RelPath+".bin"))
 		if err != nil {
 			return err
 		}
@@ -89,15 +79,7 @@ func (f *File) Create(content io.Reader) error {
 }
 
 // Move ...
-func (f *File) Move(newNameAndPath string) error {
-	if !filepath.IsAbs(newNameAndPath) {
-		newNameAndPath = path.Join(Root, newNameAndPath)
-	}
-
-	if !strings.HasPrefix(newNameAndPath, Root) {
-		return fmt.Errorf("path %s is not in root (%s)", newNameAndPath, Root)
-	}
-
+func (f *File) Move(relPath string) error {
 	reader, err := f.Open()
 	if err != nil {
 		return err
@@ -105,26 +87,26 @@ func (f *File) Move(newNameAndPath string) error {
 	//defer reader.Close()
 
 	oldName := f.Name
-	oldInternalName := f.InternalName
-	f.Name = filepath.Base(newNameAndPath)
-	f.InternalName = path.Join(path.Dir(newNameAndPath), FilenameToUUID(f.Name))
+	oldRelPath := f.RelPath
+	f.Name = filepath.Base(relPath)
+	f.RelPath = path.Join(path.Dir(relPath), FilenameToUUID(f.Name))
 
 	err = f.Create(reader)
 	reader.Close()
 	if err != nil {
 		f.Name = oldName
-		f.InternalName = oldInternalName
+		f.RelPath = oldRelPath
 		return err
 	}
 
-	_ = os.Remove(oldInternalName + ".json")
-	return os.Remove(oldInternalName + ".bin")
+	_ = os.Remove(path.Join(Root, oldRelPath+".json"))
+	return os.Remove(path.Join(Root, oldRelPath+".bin"))
 }
 
 // Delete ...
 func (f *File) Delete() error {
-	_ = os.Remove(f.InternalName + ".json")
-	return os.Remove(f.InternalName + ".bin")
+	_ = os.Remove(path.Join(Root, f.RelPath+".json"))
+	return os.Remove(path.Join(Root, f.RelPath+".bin"))
 }
 
 // HasTag ...

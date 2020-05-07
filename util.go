@@ -82,6 +82,14 @@ func IsFolder(dir string) bool {
 	return fi.IsDir()
 }
 
+// RemoveTrailingSlash removes the trailing slash from a path
+func RemoveTrailingSlash(path string) string {
+	if len(path) > 0 && path[len(path)-1] == '/' {
+		path = path[:len(path)-1]
+	}
+	return path
+}
+
 // MIMEtoSymbol returns a symbol that represents the MIME type
 func MIMEtoSymbol(mime string) template.HTML {
 	t := strings.SplitN(mime, "/", 2)

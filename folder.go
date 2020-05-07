@@ -9,13 +9,11 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
-	"strings"
 	"time"
 )
 
 // Folder ...
 type Folder struct {
-	Path             string   `json:"path,omitempty"`
 	RelPath          string   `json:"rel_path,omitempty"`
 	Salt             string   `json:"salt"`
 	ReadPassword     string   `json:"read_pw"`
@@ -26,31 +24,15 @@ type Folder struct {
 }
 
 // GetFolder returns a new Folder from a handle to a .razbox file
-func GetFolder(uri string) (*Folder, error) {
-	if len(uri) > 0 && uri[len(uri)-1] == '/' {
-		uri = uri[:len(uri)-1]
-	}
+func GetFolder(relPath string) (*Folder, error) {
+	relPath = RemoveTrailingSlash(relPath)
 
-	if !filepath.IsAbs(uri) {
-		uri = path.Join(Root, uri)
-	}
-
-	if !strings.HasPrefix(uri, Root) {
-		return nil, fmt.Errorf("path %s is not in root (%s)", uri, Root)
-	}
-
-	data, err := ioutil.ReadFile(filepath.Join(uri, ".razbox"))
+	data, err := ioutil.ReadFile(filepath.Join(Root, relPath, ".razbox"))
 	if err != nil {
 		return nil, err
 	}
 
-	var relPath string
-	if len(uri) > len(Root) {
-		relPath = uri[len(Root)+1:]
-	}
-
 	folder := &Folder{
-		Path:    uri,
 		RelPath: relPath,
 	}
 	err = json.Unmarshal(data, folder)
@@ -74,8 +56,8 @@ func (f *Folder) GetFile(basename string) (*File, error) {
 	}
 
 	internalName := FilenameToUUID(basename)
-	filename := path.Join(f.Path, internalName)
-	return GetFile(filename)
+	filename := path.Join(f.RelPath, internalName)
+	return getFile(filename)
 }
 
 // GetFiles returns the files in the folder
@@ -84,9 +66,10 @@ func (f *Folder) GetFiles() []*File {
 		return f.CachedFiles
 	}
 
-	filenames, _ := filepath.Glob(path.Join(f.Path, "????????-????-????-????-????????????.json"))
+	filenames, _ := filepath.Glob(path.Join(Root, f.RelPath, "????????-????-????-????-????????????.json"))
 	for _, filename := range filenames {
-		file, err := GetFile(filename[:len(filename)-5]) // - .json
+		filename = filename[len(Root)+1:]
+		file, err := getFile(filename[:len(filename)-5]) // - .json
 		if err != nil {
 			log.Print("GetFile error:", err)
 			continue
@@ -107,7 +90,7 @@ func (f *Folder) GetSubfolders() []string {
 		return f.CachedSubfolders
 	}
 
-	files, _ := ioutil.ReadDir(f.Path)
+	files, _ := ioutil.ReadDir(path.Join(Root, f.RelPath))
 	for _, fi := range files {
 		if fi.IsDir() {
 			f.CachedSubfolders = append(f.CachedSubfolders, fi.Name())
@@ -176,7 +159,7 @@ func (f *Folder) save() error {
 		MaxFileSizeMB: f.MaxFileSizeMB,
 	}
 	data, _ := json.MarshalIndent(&tmp, "", "  ")
-	return ioutil.WriteFile(path.Join(f.Path, ".razbox"), data, 0644)
+	return ioutil.WriteFile(path.Join(Root, f.RelPath, ".razbox"), data, 0644)
 }
 
 // EnsureReadAccess returns an error if the request doesn't contain a cookie with valid read access
