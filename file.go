@@ -48,7 +48,7 @@ func (f *File) Open() (FileReader, error) {
 // Save ...
 func (f *File) Save() error {
 	data, _ := json.MarshalIndent(f, "", "  ")
-	return ioutil.WriteFile(path.Join(Root, f.RelPath+".json"), data, 0644)
+	return ioutil.WriteFile(path.Join(Root, f.RelPath+".json"), data, 0755)
 }
 
 // Create ...
@@ -56,7 +56,7 @@ func (f *File) Create(content io.Reader) error {
 	jsonFilename := path.Join(Root, f.RelPath+".json")
 	if _, err := os.Stat(jsonFilename); os.IsNotExist(err) {
 		data, _ := json.MarshalIndent(f, "", "  ")
-		err := ioutil.WriteFile(jsonFilename, data, 0644)
+		err := ioutil.WriteFile(jsonFilename, data, 0755)
 		if err != nil {
 			return err
 		}

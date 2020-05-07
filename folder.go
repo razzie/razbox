@@ -159,7 +159,7 @@ func (f *Folder) save() error {
 		MaxFileSizeMB: f.MaxFileSizeMB,
 	}
 	data, _ := json.MarshalIndent(&tmp, "", "  ")
-	return ioutil.WriteFile(path.Join(Root, f.RelPath, ".razbox"), data, 0644)
+	return ioutil.WriteFile(path.Join(Root, f.RelPath, ".razbox"), data, 0755)
 }
 
 // EnsureReadAccess returns an error if the request doesn't contain a cookie with valid read access

@@ -37,7 +37,7 @@ func main() {
 		}
 	}
 
-	err := os.MkdirAll(path.Join(razbox.Root, Folder), 0644)
+	err := os.MkdirAll(path.Join(razbox.Root, Folder), 0755)
 	if err != nil {
 		log.Fatal(err)
 	}
