@@ -13,9 +13,9 @@ import (
 )
 
 func searchPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	search := r.URL.Path[8:] // skip /search/
-	dir := path.Dir(search)
-	tag := filepath.Base(search)
+	uri := r.URL.Path[8:] // skip /search/
+	dir := path.Dir(uri)
+	tag := filepath.Base(uri)
 
 	var folder *razbox.Folder
 	var err error
@@ -42,6 +42,7 @@ func searchPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", dir, r.URL.Path))
 	}
 
+	editMode := folder.EnsureWriteAccess(r) == nil
 	files := folder.Search(tag)
 	entries := make([]*folderEntry, 0, len(files))
 
@@ -54,6 +55,7 @@ func searchPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 			Tags:     file.Tags,
 			Size:     razbox.ByteCountSI(file.Size),
 			Uploaded: file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
+			EditMode: editMode,
 		}
 		entries = append(entries, entry)
 	}
@@ -65,8 +67,9 @@ func searchPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 			<span style="float: right">&#128194; <a href="/x/%s">View folder content</a></span>
 		</div>
 		<div style="clear: both; margin-bottom: 1rem"></div>`, tag, dir)),
-		Folder:  dir,
-		Entries: entries,
+		Folder:   dir,
+		Entries:  entries,
+		Redirect: r.URL.Path,
 	}
 	title := fmt.Sprintf("%s search:%s", dir, tag)
 	return view(v, &title)

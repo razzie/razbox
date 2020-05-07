@@ -15,6 +15,10 @@ func deletePageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 	filename := r.URL.Path[8:] // skip /delete/
 	filename = razbox.RemoveTrailingSlash(filename)
 	dir := path.Dir(filename)
+	redirect := r.URL.Query().Get("r")
+	if len(redirect) == 0 {
+		redirect = "/x/" + dir
+	}
 
 	var folder *razbox.Folder
 	var err error
@@ -54,7 +58,7 @@ func deletePageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 	}
 
 	folder.CachedFiles = nil
-	return razlink.RedirectView(r, "/x/"+dir)
+	return razlink.RedirectView(r, redirect)
 }
 
 // GetDeletePage returns a razlink.Page that handles deletes

@@ -20,6 +20,7 @@ type folderPageView struct {
 	Entries        []*folderEntry
 	EditMode       bool
 	ControlButtons bool
+	Redirect       string
 }
 
 type folderEntry struct {
@@ -45,6 +46,7 @@ var folderPageT = `
 		<td></td>
 	</tr>
 	{{$Folder := .Folder}}
+	{{$Redirect := .Redirect}}
 	{{range .Entries}}
 		<tr>
 			<td>{{.Prefix}}<a href="/x/{{.RelPath}}">{{.Name}}</a></td>
@@ -58,8 +60,8 @@ var folderPageT = `
 			<td>{{.Uploaded}}</td>
 			<td>
 				{{if .EditMode}}
-					<a href="/edit/{{.RelPath}}/">&#9998;</a>
-					<a href="/delete/{{.RelPath}}/" onclick="return confirm('Are you sure?')">&#10008;</a>
+					<a href="/edit/{{.RelPath}}/?r={{$Redirect}}">&#9998;</a>
+					<a href="/delete/{{.RelPath}}/?r={{$Redirect}}" onclick="return confirm('Are you sure?')">&#10008;</a>
 				{{end}}
 			</td>
 		</tr>
@@ -185,6 +187,7 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 		Entries:        entries,
 		EditMode:       editMode,
 		ControlButtons: true,
+		Redirect:       r.URL.Path,
 	}
 	return view(v, &uri)
 }

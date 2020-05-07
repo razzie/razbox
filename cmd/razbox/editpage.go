@@ -18,6 +18,7 @@ type editPageView struct {
 	Folder   string
 	Filename string
 	Tags     string
+	Redirect string
 }
 
 var editPageT = `
@@ -30,7 +31,7 @@ var editPageT = `
 	<button>Save</button>
 </form>
 <div style="float: right">
-	<a href="/x/{{.Folder}}">Go back &#10548;</a>
+	<a href="{{.Redirect}}">Go back &#10548;</a>
 </div>
 `
 
@@ -38,6 +39,10 @@ func editPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razl
 	filename := r.URL.Path[6:] // skip /edit/
 	filename = razbox.RemoveTrailingSlash(filename)
 	dir := path.Dir(filename)
+	redirect := r.URL.Query().Get("r")
+	if len(redirect) == 0 {
+		redirect = "/x/" + dir
+	}
 
 	var folder *razbox.Folder
 	var err error
@@ -75,6 +80,7 @@ func editPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razl
 		Folder:   dir,
 		Filename: basename,
 		Tags:     strings.Join(file.Tags, " "),
+		Redirect: redirect,
 	}
 	title := "Edit " + filename
 
@@ -107,7 +113,7 @@ func editPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razl
 		}
 
 		folder.CachedFiles = nil
-		return razlink.RedirectView(r, "/x/"+dir)
+		return razlink.RedirectView(r, redirect)
 	}
 
 	return view(v, &title)
