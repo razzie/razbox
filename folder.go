@@ -84,7 +84,7 @@ func (f *Folder) GetFiles() []*File {
 	}
 
 	sort.SliceStable(f.CachedFiles, func(i, j int) bool {
-		return f.CachedFiles[i].Uploaded.Before(f.CachedFiles[j].Uploaded)
+		return f.CachedFiles[i].Uploaded.After(f.CachedFiles[j].Uploaded)
 	})
 
 	return f.CachedFiles
