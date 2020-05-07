@@ -56,7 +56,13 @@ func (f *File) Open() (FileReader, error) {
 }
 
 // Save ...
-func (f *File) Save(content io.Reader) error {
+func (f *File) Save() error {
+	data, _ := json.MarshalIndent(f, "", "  ")
+	return ioutil.WriteFile(f.InternalName+".json", data, 0644)
+}
+
+// Create ...
+func (f *File) Create(content io.Reader) error {
 	jsonFilename := f.InternalName + ".json"
 	if _, err := os.Stat(jsonFilename); os.IsNotExist(err) {
 		data, _ := json.MarshalIndent(f, "", "  ")
@@ -84,6 +90,14 @@ func (f *File) Save(content io.Reader) error {
 
 // Move ...
 func (f *File) Move(newNameAndPath string) error {
+	if !filepath.IsAbs(newNameAndPath) {
+		newNameAndPath = path.Join(Root, newNameAndPath)
+	}
+
+	if !strings.HasPrefix(newNameAndPath, Root) {
+		return fmt.Errorf("path %s is not in root (%s)", newNameAndPath, Root)
+	}
+
 	reader, err := f.Open()
 	if err != nil {
 		return err
@@ -95,7 +109,7 @@ func (f *File) Move(newNameAndPath string) error {
 	f.Name = filepath.Base(newNameAndPath)
 	f.InternalName = path.Join(path.Dir(newNameAndPath), FilenameToUUID(f.Name))
 
-	err = f.Save(reader)
+	err = f.Create(reader)
 	reader.Close()
 	if err != nil {
 		f.Name = oldName

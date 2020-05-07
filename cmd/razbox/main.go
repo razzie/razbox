@@ -49,6 +49,7 @@ func main() {
 		GetReadAuthPage(db),
 		GetWriteAuthPage(db),
 		GetUploadPage(db),
+		GetEditPage(db),
 	)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(Port), srv))
 }

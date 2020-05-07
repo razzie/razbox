@@ -93,7 +93,7 @@ func uploadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 			Size:         handler.Size,
 			Uploaded:     time.Now(),
 		}
-		err = file.Save(data)
+		err = file.Create(data)
 		if err != nil {
 			v.Error = err.Error()
 			return view(v, &title)

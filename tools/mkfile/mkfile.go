@@ -50,7 +50,7 @@ func main() {
 		Uploaded:     time.Now(),
 	}
 
-	err = dst.Save(src)
+	err = dst.Create(src)
 	if err != nil {
 		log.Fatal(err)
 	}
