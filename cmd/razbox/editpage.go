@@ -36,6 +36,7 @@ var editPageT = `
 
 func editPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	filename := r.URL.Path[6:] // skip /edit/
+	filename = razbox.RemoveTrailingSlash(filename)
 	dir := path.Dir(filename)
 
 	var folder *razbox.Folder
