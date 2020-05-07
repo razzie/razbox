@@ -56,11 +56,9 @@ func GetFolder(uri string) (*Folder, error) {
 
 // GetFile returns the file in the folder with the given basename
 func (f *Folder) GetFile(basename string) (*File, error) {
-	if f.CachedFiles != nil {
-		for _, f := range f.CachedFiles {
-			if f.Name == basename {
-				return f, nil
-			}
+	for _, f := range f.CachedFiles {
+		if f.Name == basename {
+			return f, nil
 		}
 	}
 
