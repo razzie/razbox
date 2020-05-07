@@ -30,6 +30,9 @@ var authPageT = `
 	<input type="hidden" name="redirect" value="{{.Redirect}}" />
 	<button>Enter</button>
 </form>
+<div style="float: right">
+	<a href="{{.Redirect}}">Go back &#10548;</a>
+</div>
 `
 
 func authPageHandler(db *razbox.DB, accessType string, r *http.Request, view razlink.ViewFunc) razlink.PageView {
