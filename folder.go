@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 )
 
 // Folder ...
@@ -259,6 +260,9 @@ func (f *Folder) GetCookie(accessType string) *http.Cookie {
 		Name:  fmt.Sprintf("%s-%s", accessType, FilenameToUUID(f.RelPath)),
 		Value: f.GetPasswordHash(accessType),
 		Path:  "/",
+	}
+	if accessType == "read" {
+		cookie.Expires = time.Now().Add(time.Hour * 24 * 7)
 	}
 	return cookie
 }
