@@ -71,11 +71,7 @@ func authPageHandler(db *razbox.DB, accessType string, r *http.Request, view raz
 
 		if folder.TestPassword(accessType, pw) {
 			folder.SetPassword(accessType, pw)
-			cookie := &http.Cookie{
-				Name:  pwPrefix,
-				Value: folder.GetPasswordHash(accessType),
-				Path:  "/",
-			}
+			cookie := folder.GetCookie(accessType)
 			return razlink.CookieAndRedirectView(r, cookie, v.Redirect)
 		}
 

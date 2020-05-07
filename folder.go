@@ -254,3 +254,13 @@ func (f *Folder) GetPasswordHash(accessType string) string {
 		return ""
 	}
 }
+
+// GetCookie returns a cookie that permits access of the given access type
+func (f *Folder) GetCookie(accessType string) *http.Cookie {
+	cookie := &http.Cookie{
+		Name:  fmt.Sprintf("%s-%s", accessType, FilenameToUUID(f.RelPath)),
+		Value: f.GetPasswordHash(accessType),
+		Path:  "/",
+	}
+	return cookie
+}
