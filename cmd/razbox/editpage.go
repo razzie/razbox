@@ -105,6 +105,7 @@ func editPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razl
 			}
 		}
 
+		folder.CachedFiles = nil
 		return razlink.RedirectView(r, "/x/"+dir)
 	}
 

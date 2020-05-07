@@ -58,8 +58,8 @@ var folderPageT = `
 			<td>{{.Uploaded}}</td>
 			<td>
 				{{if .EditMode}}
-					<a href="/edit/{{.RelPath}}">&#9998;</a>
-					<a href="/delete/{{.RelPath}}" onclick="return confirm('Are you sure?')">&#10008;</a>
+					<a href="/edit/{{.RelPath}}/">&#9998;</a>
+					<a href="/delete/{{.RelPath}}/" onclick="return confirm('Are you sure?')">&#10008;</a>
 				{{end}}
 			</td>
 		</tr>
@@ -86,10 +86,7 @@ var folderPageT = `
 
 func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[3:] // skip /x/
-
-	if len(uri) > 0 && uri[len(uri)-1] == '/' {
-		uri = uri[:len(uri)-1]
-	}
+	uri = razbox.RemoveTrailingSlash(uri)
 
 	var filename string
 	dir := uri

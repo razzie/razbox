@@ -37,10 +37,7 @@ var authPageT = `
 
 func authPageHandler(db *razbox.DB, accessType string, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[7+len(accessType):] // skip /[accessType]-auth/
-
-	if len(uri) > 0 && uri[len(uri)-1] == '/' {
-		uri = uri[:len(uri)-1]
-	}
+	uri = razbox.RemoveTrailingSlash(uri)
 
 	pwPrefix := fmt.Sprintf("%s-%s", accessType, razbox.FilenameToUUID(uri))
 	v := &authPageView{

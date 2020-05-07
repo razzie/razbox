@@ -31,14 +31,14 @@ var uploadPageT = `
 	<input type="text" name="tags" placeholder="Tags (space separated)" /><br />
 	<button>Upload &#10548;</button>
 </form>
+<div style="float: right">
+	<a href="/x/{{.Folder}}">Go back &#10548;</a>
+</div>
 `
 
 func uploadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[8:] // skip /upload/
-
-	if len(uri) > 0 && uri[len(uri)-1] == '/' {
-		uri = uri[:len(uri)-1]
-	}
+	uri = razbox.RemoveTrailingSlash(uri)
 
 	var folder *razbox.Folder
 	var err error
