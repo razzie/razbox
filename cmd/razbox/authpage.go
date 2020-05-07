@@ -53,16 +53,22 @@ func authPageHandler(db *razbox.DB, accessType string, r *http.Request, view raz
 	if r.Method == "POST" {
 		var folder *razbox.Folder
 		var err error
+		cached := true
 
 		if db != nil {
 			folder, _ = db.GetCachedFolder(uri)
 		}
 		if folder == nil {
+			cached = false
 			folder, err = razbox.GetFolder(uri)
 			if err != nil {
 				log.Println(uri, "error:", err.Error())
-				return razlink.ErrorView(r, "Not found", http.StatusNotFound)
+				return razlink.ErrorView(r, "Folder not found", http.StatusNotFound)
 			}
+		}
+
+		if db != nil && !cached {
+			defer db.CacheFolder(folder)
 		}
 
 		r.ParseForm()

@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"path"
+	"path/filepath"
 
 	"github.com/razzie/razbox"
 	"github.com/razzie/razlink"
@@ -85,12 +87,15 @@ var folderPageT = `
 func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[3:] // skip /x/
 
-	if !razbox.IsFolder(uri) {
-		return viewFile(db, r)
-	}
-
 	if len(uri) > 0 && uri[len(uri)-1] == '/' {
 		uri = uri[:len(uri)-1]
+	}
+
+	var filename string
+	dir := uri
+	if !razbox.IsFolder(uri) {
+		dir = path.Dir(uri)
+		filename = filepath.Base(uri)
 	}
 
 	var folder *razbox.Folder
@@ -98,20 +103,47 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 	cached := true
 
 	if db != nil {
-		folder, _ = db.GetCachedFolder(uri)
+		folder, _ = db.GetCachedFolder(dir)
 	}
 	if folder == nil {
 		cached = false
-		folder, err = razbox.GetFolder(uri)
+		folder, err = razbox.GetFolder(dir)
 		if err != nil {
-			log.Println(uri, "error:", err.Error())
-			return razlink.ErrorView(r, "Not found", http.StatusNotFound)
+			log.Println(dir, "error:", err.Error())
+			return razlink.ErrorView(r, "Folder not found", http.StatusNotFound)
 		}
+	}
+
+	if db != nil && !cached {
+		defer db.CacheFolder(folder)
 	}
 
 	err = folder.EnsureReadAccess(r)
 	if err != nil {
 		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", uri, r.URL.Path))
+	}
+
+	if len(filename) > 0 {
+		file, err := folder.GetFile(filepath.Base(filename))
+		if err != nil {
+			log.Println(filename, "error:", err.Error())
+			return razlink.ErrorView(r, "File not found", http.StatusNotFound)
+		}
+
+		data, err := file.Open()
+		if err != nil {
+			log.Println(filename, "error:", err.Error())
+			return razlink.ErrorView(r, "Could not open file", http.StatusInternalServerError)
+		}
+
+		return func(w http.ResponseWriter) {
+			defer data.Close()
+			w.Header().Set("Content-Type", file.MIME)
+			_, err := io.Copy(w, data)
+			if err != nil {
+				log.Println(filename, "error:", err.Error())
+			}
+		}
 	}
 
 	editMode := folder.EnsureWriteAccess(r) == nil
@@ -149,10 +181,6 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 			EditMode: editMode,
 		}
 		entries = append(entries, entry)
-	}
-
-	if db != nil && !cached {
-		db.CacheFolder(folder)
 	}
 
 	v := &folderPageView{

@@ -29,8 +29,12 @@ func searchPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 		folder, err = razbox.GetFolder(dir)
 		if err != nil {
 			log.Println(dir, "error:", err.Error())
-			return razlink.ErrorView(r, "Not found", http.StatusNotFound)
+			return razlink.ErrorView(r, "Folder not found", http.StatusNotFound)
 		}
+	}
+
+	if db != nil && !cached {
+		defer db.CacheFolder(folder)
 	}
 
 	err = folder.EnsureReadAccess(r)
@@ -52,10 +56,6 @@ func searchPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 			Uploaded: file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
 		}
 		entries = append(entries, entry)
-	}
-
-	if db != nil && !cached {
-		db.CacheFolder(folder)
 	}
 
 	v := &folderPageView{
