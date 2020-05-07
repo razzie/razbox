@@ -190,7 +190,7 @@ func (f *Folder) EnsureWriteAccess(r *http.Request) error {
 		return err
 	}
 
-	if cookie.Value != f.ReadPassword {
+	if cookie.Value != f.WritePassword {
 		return fmt.Errorf("incorrect write password")
 	}
 
