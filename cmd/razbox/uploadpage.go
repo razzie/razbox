@@ -22,17 +22,55 @@ type uploadPageView struct {
 }
 
 var uploadPageT = `
+<script>
+function _(el) {
+	return document.getElementById(el);
+}
+function uploadFile() {
+	var file = _("file").files[0];
+	var formdata = new FormData();
+	formdata.append("file", file);
+	var ajax = new XMLHttpRequest();
+	ajax.upload.addEventListener("progress", progressHandler, false);
+	ajax.addEventListener("load", completeHandler, false);
+	ajax.addEventListener("error", errorHandler, false);
+	ajax.addEventListener("abort", abortHandler, false);
+	ajax.open("POST", "/upload/{{.Folder}}");
+	ajax.send(formdata);
+}
+function progressHandler(event) {
+	_("loaded_n_total").innerHTML = "Uploaded " + event.loaded + " bytes of " + event.total;
+	var percent = (event.loaded / event.total) * 100;
+	_("progressBar").value = Math.round(percent);
+	_("status").innerHTML = Math.round(percent) + "% uploaded... please wait";
+}
+function completeHandler(event) {
+	_("status").innerHTML = event.target.responseText;
+	_("progressBar").value = 0; //wil clear progress bar after successful upload
+}
+function errorHandler(event) {
+	_("status").innerHTML = "Upload Failed";
+}
+function abortHandler(event) {
+	_("status").innerHTML = "Upload Aborted";
+}
+</script>
 {{if .Error}}
 <strong style="color: red">{{.Error}}</strong><br /><br />
 {{end}}
-<form enctype="multipart/form-data" action="/upload/{{.Folder}}" method="post">
-	<input type="file" name="file" /> max file size: <strong>{{.MaxFileSize}}</strong><br />
+<form enctype="multipart/form-data" action="/upload/{{.Folder}}" method="post" onsubmit="uploadFile()">
+	<input type="file" name="file" id="file" /> max file size: <strong>{{.MaxFileSize}}</strong><br />
 	<input type="text" name="filename" placeholder="Filename (optional)" /><br />
 	<input type="text" name="tags" placeholder="Tags (space separated)" /><br />
 	<button>Upload &#10548;</button>
 </form>
 <div style="float: right">
 	<a href="/x/{{.Folder}}">Go back &#10548;</a>
+</div>
+<div style="clear: both">
+	<progress id="progressBar" value="0" max="100" style="width: 100%"></progress>
+	<p id="status"></p>
+	<p id="loaded_n_total"></p>
 </div>
 `
 
