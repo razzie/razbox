@@ -2,9 +2,12 @@ package razbox
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
+	"path/filepath"
 	"time"
 )
 
@@ -43,20 +46,60 @@ func (f *File) Open() (FileReader, error) {
 
 // Save ...
 func (f *File) Save(content io.Reader) error {
-	data, _ := json.MarshalIndent(f, "", "  ")
-	err := ioutil.WriteFile(f.InternalName+".json", data, 0644)
-	if err != nil {
+	jsonFilename := f.InternalName + ".json"
+	if _, err := os.Stat(jsonFilename); os.IsNotExist(err) {
+		data, _ := json.MarshalIndent(f, "", "  ")
+		err := ioutil.WriteFile(jsonFilename, data, 0644)
+		if err != nil {
+			return err
+		}
+	} else {
+		return fmt.Errorf("file already exists: %s", jsonFilename)
+	}
+
+	if content != nil {
+		file, err := os.Create(f.InternalName + ".bin")
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		_, err = io.Copy(file, content)
 		return err
 	}
 
-	file, err := os.Create(f.InternalName + ".bin")
+	return nil
+}
+
+// Move ...
+func (f *File) Move(newNameAndPath string) error {
+	reader, err := f.Open()
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	//defer reader.Close()
 
-	_, err = io.Copy(file, content)
-	return err
+	oldName := f.Name
+	oldInternalName := f.InternalName
+	f.Name = filepath.Base(newNameAndPath)
+	f.InternalName = path.Join(path.Dir(newNameAndPath), FilenameToUUID(f.Name))
+
+	err = f.Save(reader)
+	reader.Close()
+	if err != nil {
+		f.Name = oldName
+		f.InternalName = oldInternalName
+		return err
+	}
+
+	_ = os.Remove(oldInternalName + ".json")
+	return os.Remove(oldInternalName + ".bin")
+}
+
+// Delete ...
+func (f *File) Delete() error {
+	_ = os.Remove(f.InternalName + ".json")
+	return os.Remove(f.InternalName + ".bin")
 }
 
 // HasTag ...
