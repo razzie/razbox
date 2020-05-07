@@ -142,7 +142,7 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 			RelPath:  path.Join(uri, file.Name),
 			MIME:     file.MIME,
 			Tags:     file.Tags,
-			Size:     file.Size,
+			Size:     razbox.ByteCountSI(file.Size),
 			Uploaded: file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
 			EditMode: editMode,
 		}

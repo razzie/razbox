@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -17,7 +18,7 @@ type File struct {
 	InternalName string    `json:"internal_name,omitempty"`
 	Tags         []string  `json:"tags"`
 	MIME         string    `json:"mime"`
-	Size         string    `json:"size"`
+	Size         int64     `json:"size"`
 	Uploaded     time.Time `json:"uploaded"`
 }
 
@@ -28,14 +29,24 @@ type FileReader interface {
 }
 
 // GetFile ...
-func GetFile(path string) (*File, error) {
-	file := &File{
-		InternalName: path,
+func GetFile(uri string) (*File, error) {
+	if !filepath.IsAbs(uri) {
+		uri = path.Join(Root, uri)
 	}
-	data, err := ioutil.ReadFile(path + ".json")
+
+	if !strings.HasPrefix(uri, Root) {
+		return nil, fmt.Errorf("path %s is not in root (%s)", uri, Root)
+	}
+
+	file := &File{
+		InternalName: uri,
+	}
+
+	data, err := ioutil.ReadFile(uri + ".json")
 	if err != nil {
 		return nil, err
 	}
+
 	return file, json.Unmarshal(data, file)
 }
 
