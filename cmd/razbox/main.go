@@ -24,6 +24,7 @@ func main() {
 	flag.StringVar(&RedisPw, "redis-pw", "", "Redis password")
 	flag.IntVar(&RedisDb, "redis-db", 0, "Redis database (0-15)")
 	flag.StringVar(&razbox.Root, "root", "./uploads", "Root directory of folders")
+	flag.Int64Var(&razbox.DefaultMaxFileSizeMB, "max-file-size", 10, "Default file size limit for uploads in MiB")
 	flag.IntVar(&Port, "port", 8080, "HTTP port")
 	flag.Parse()
 

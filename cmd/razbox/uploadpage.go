@@ -33,8 +33,6 @@ var uploadPageT = `
 </form>
 `
 
-const maxFileSize = 100 << 20 // 100MB
-
 func uploadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[8:] // skip /upload/
 
@@ -64,11 +62,11 @@ func uploadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 	title := "Upload file to " + uri
 	v := &uploadPageView{
 		Folder:      uri,
-		MaxFileSize: razbox.ByteCountIEC(maxFileSize),
+		MaxFileSize: fmt.Sprintf("%dMB", folder.MaxFileSizeMB),
 	}
 
 	if r.Method == "POST" {
-		r.ParseMultipartForm(maxFileSize)
+		r.ParseMultipartForm(folder.MaxFileSizeMB << 20)
 		data, handler, err := r.FormFile("file")
 		if err != nil {
 			v.Error = err.Error()

@@ -20,6 +20,7 @@ type Folder struct {
 	Salt             string   `json:"salt"`
 	ReadPassword     string   `json:"read_pw"`
 	WritePassword    string   `json:"write_pw"`
+	MaxFileSizeMB    int64    `json:"max_file_size"`
 	CachedSubfolders []string `json:"cached_subfolders,omitempty"`
 	CachedFiles      []*File  `json:"cached_files,omitempty"`
 }
@@ -52,7 +53,16 @@ func GetFolder(uri string) (*Folder, error) {
 		Path:    uri,
 		RelPath: relPath,
 	}
-	return folder, json.Unmarshal(data, folder)
+	err = json.Unmarshal(data, folder)
+	if err != nil {
+		return nil, err
+	}
+
+	if folder.MaxFileSizeMB == 0 {
+		folder.MaxFileSizeMB = DefaultMaxFileSizeMB
+	}
+
+	return folder, nil
 }
 
 // GetFile returns the file in the folder with the given basename
@@ -163,6 +173,7 @@ func (f *Folder) save() error {
 		Salt:          f.Salt,
 		ReadPassword:  f.ReadPassword,
 		WritePassword: f.WritePassword,
+		MaxFileSizeMB: f.MaxFileSizeMB,
 	}
 	data, _ := json.MarshalIndent(&tmp, "", "  ")
 	return ioutil.WriteFile(path.Join(f.Path, ".razbox"), data, 0644)
