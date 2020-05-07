@@ -40,16 +40,12 @@ var folderPageT = `
 		<td>Tags</td>
 		<td>Size</td>
 		<td>Uploaded</td>
+		<td></td>
 	</tr>
 	{{$Folder := .Folder}}
 	{{range .Entries}}
 		<tr>
-			<td>
-				{{.Prefix}}<a href="/x/{{.RelPath}}">{{.Name}}</a>
-				{{if .EditMode}}
-					[<a href="/edit/{{.RelPath}}">edit</a>]
-				{{end}}
-			</td>
+			<td>{{.Prefix}}<a href="/x/{{.RelPath}}">{{.Name}}</a></td>
 			<td>{{.MIME}}</td>
 			<td>
 				{{range .Tags}}
@@ -58,10 +54,16 @@ var folderPageT = `
 			</td>
 			<td>{{.Size}}</td>
 			<td>{{.Uploaded}}</td>
+			<td>
+				{{if .EditMode}}
+					<a href="/edit/{{.RelPath}}">&#9998;</a>
+					<a href="/delete/{{.RelPath}}" onclick="return confirm('Are you sure?')">&#10008;</a>
+				{{end}}
+			</td>
 		</tr>
 	{{end}}
 	{{if not .Entries}}
-		<tr><td colspan="5">No entries</td></tr>
+		<tr><td colspan="6">No entries</td></tr>
 	{{end}}
 </table>
 {{if .ControlButtons}}
