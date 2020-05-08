@@ -72,7 +72,10 @@ func (f *File) Create(content io.Reader) error {
 		defer file.Close()
 
 		_, err = io.Copy(file, content)
-		return err
+		if err != nil {
+			os.Remove(jsonFilename)
+			return err
+		}
 	}
 
 	return nil

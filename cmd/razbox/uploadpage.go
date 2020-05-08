@@ -27,9 +27,12 @@ function _(el) {
 	return document.getElementById(el);
 }
 function uploadFile() {
-	var file = _("file").files[0];
+	_("submit").disabled = true;
+	var form = _("upload_form")
 	var formdata = new FormData();
-	formdata.append("file", file);
+	formdata.append("file", form.elements["file"].files[0]);
+	formdata.append("filename", form.elements["filename"].value);
+	formdata.append("tags", form.elements["tags"].value);
 	var ajax = new XMLHttpRequest();
 	ajax.upload.addEventListener("progress", progressHandler, false);
 	ajax.addEventListener("load", completeHandler, false);
@@ -41,12 +44,11 @@ function uploadFile() {
 function progressHandler(event) {
 	_("loaded_n_total").innerHTML = "Uploaded " + event.loaded + " bytes of " + event.total;
 	var percent = (event.loaded / event.total) * 100;
-	_("progressBar").value = Math.round(percent);
+	_("progress").value = Math.round(percent);
 	_("status").innerHTML = Math.round(percent) + "% uploaded... please wait";
 }
 function completeHandler(event) {
-	_("status").innerHTML = event.target.responseText;
-	_("progressBar").value = 0; //wil clear progress bar after successful upload
+	window.location.replace("/x/{{.Folder}}")
 }
 function errorHandler(event) {
 	_("status").innerHTML = "Upload Failed";
@@ -58,17 +60,23 @@ function abortHandler(event) {
 {{if .Error}}
 <strong style="color: red">{{.Error}}</strong><br /><br />
 {{end}}
-<form enctype="multipart/form-data" action="/upload/{{.Folder}}" method="post" onsubmit="uploadFile()">
+<form
+	enctype="multipart/form-data"
+	action="/upload/{{.Folder}}"
+	method="post"
+	onsubmit="uploadFile(); return false;"
+	id="upload_form"
+>
 	<input type="file" name="file" id="file" /> max file size: <strong>{{.MaxFileSize}}</strong><br />
 	<input type="text" name="filename" placeholder="Filename (optional)" /><br />
 	<input type="text" name="tags" placeholder="Tags (space separated)" /><br />
-	<button>Upload &#10548;</button>
+	<button id="submit">Upload &#10548;</button>
 </form>
 <div style="float: right">
 	<a href="/x/{{.Folder}}">Go back &#10548;</a>
 </div>
 <div style="clear: both">
-	<progress id="progressBar" value="0" max="100" style="width: 100%"></progress>
+	<progress id="progress" value="0" max="100" style="width: 100%"></progress>
 	<p id="status"></p>
 	<p id="loaded_n_total"></p>
 </div>
