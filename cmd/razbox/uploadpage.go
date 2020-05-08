@@ -67,7 +67,7 @@ function abortHandler(event) {
 	onsubmit="uploadFile(); return false;"
 	id="upload_form"
 >
-	<input type="file" name="file" id="file" /> max file size: <strong>{{.MaxFileSize}}</strong><br />
+	<input type="file" name="file" /> max file size: <strong>{{.MaxFileSize}}</strong><br />
 	<input type="text" name="filename" placeholder="Filename (optional)" /><br />
 	<input type="text" name="tags" placeholder="Tags (space separated)" /><br />
 	<button id="submit">Upload &#10548;</button>
