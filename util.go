@@ -99,14 +99,16 @@ func MIMEtoSymbol(mime string) template.HTML {
 			break
 		}
 		switch t[1] {
-		case "zip", "7z", "rar", "tar", "tar+gzip":
+		case "zip", "x-7z-compressed", "x-rar-compressed", "x-tar", "tar+gzip", "gzip", "x-bzip", "x-bzip2":
 			return "&#128230;"
-		case "vnd.microsoft.portable-executable":
+		case "vnd.microsoft.portable-executable", "vnd.debian.binary-package", "jar", "x-rpm":
 			return "&#128187;"
-		case "pdf", "msword":
+		case "pdf", "msword", "vnd.openxmlformats-officedocument.wordprocessingml.document", "x-mobipocket-ebook", "epub+zip":
 			return "&#128209;"
 		case "x-iso9660-image", "x-cd-image", "x-raw-disk-image":
 			return "&#128191;"
+		case "vnd.ms-excel", "vnd.ms-powerpoint", "vnd.openxmlformats-officedocument.presentationml.presentation":
+			return "&#128200;"
 		}
 	case "audio":
 		return "&#127925;"
