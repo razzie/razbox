@@ -51,6 +51,7 @@ func main() {
 		GetUploadPage(db),
 		GetEditPage(db),
 		GetDeletePage(db),
+		GetPasswordPage(db),
 	)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(Port), srv))
 }

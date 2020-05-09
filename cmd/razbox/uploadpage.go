@@ -70,7 +70,7 @@ function abortHandler(event) {
 	<input type="file" name="file" /> max file size: <strong>{{.MaxFileSize}}</strong><br />
 	<input type="text" name="filename" placeholder="Filename (optional)" /><br />
 	<input type="text" name="tags" placeholder="Tags (space separated)" /><br />
-	<button id="submit">Upload &#10548;</button>
+	<button id="submit">&#8686; Upload</button>
 </form>
 <div style="float: right">
 	<a href="/x/{{.Folder}}">Go back &#10548;</a>

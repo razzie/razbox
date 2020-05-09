@@ -75,6 +75,7 @@ var folderPageT = `
 	{{if .EditMode}}
 		<form method="get">
 			<button formaction="/upload/{{.Folder}}">Upload file</button>
+			<button formaction="/change-password/{{.Folder}}">Change password</button>
 		</form>
 	{{else}}
 		<form method="get">

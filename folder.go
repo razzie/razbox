@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"sort"
 	"time"
+
+	"github.com/nbutton23/zxcvbn-go"
 )
 
 // Folder ...
@@ -113,6 +115,9 @@ func (f *Folder) Search(tag string) []*File {
 
 // SetPasswords generates a random salt and sets and read and write passwords
 func (f *Folder) SetPasswords(readPw, writePw string) error {
+	if readPw == writePw {
+		return fmt.Errorf("read and write passwords cannot match")
+	}
 	f.Salt = Salt()
 	if len(readPw) == 0 {
 		f.ReadPassword = ""
@@ -128,14 +133,27 @@ func (f *Folder) SetReadPassword(readPw string) error {
 	if len(readPw) == 0 {
 		f.ReadPassword = ""
 	} else {
-		f.ReadPassword = Hash(f.Salt + readPw)
+		hash := Hash(f.Salt + readPw)
+		if hash == f.WritePassword {
+			return fmt.Errorf("read and write passwords cannot match")
+		}
+		f.ReadPassword = hash
 	}
 	return f.save()
 }
 
 // SetWritePassword sets the write password
 func (f *Folder) SetWritePassword(writePw string) error {
-	f.WritePassword = Hash(f.Salt + writePw)
+	pwtest := zxcvbn.PasswordStrength(writePw, []string{f.RelPath, filepath.Base(f.RelPath)})
+	if pwtest.Score < 3 {
+		return fmt.Errorf("password scored too low (%d) on zxcvbn test", pwtest.Score)
+	}
+
+	hash := Hash(f.Salt + writePw)
+	if hash == f.ReadPassword {
+		return fmt.Errorf("read and write passwords cannot match")
+	}
+	f.WritePassword = hash
 	return f.save()
 }
 
