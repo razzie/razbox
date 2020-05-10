@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/razzie/razbox"
 	"github.com/razzie/razlink"
@@ -20,6 +21,7 @@ type folderPageView struct {
 	Entries        []*folderEntry
 	EditMode       bool
 	ControlButtons bool
+	Gallery        bool
 	Redirect       string
 }
 
@@ -32,6 +34,28 @@ type folderEntry struct {
 	Size     string
 	Uploaded string
 	EditMode bool
+	IsImage  bool
+}
+
+func newSubfolderEntry(uri, subfolder string) *folderEntry {
+	return &folderEntry{
+		Prefix:  "&#128194;",
+		Name:    subfolder,
+		RelPath: path.Join(uri, subfolder),
+	}
+}
+
+func newFileEntry(uri string, file *razbox.File) *folderEntry {
+	return &folderEntry{
+		Prefix:   razbox.MIMEtoSymbol(file.MIME),
+		Name:     file.Name,
+		RelPath:  path.Join(uri, file.Name),
+		MIME:     file.MIME,
+		Tags:     file.Tags,
+		Size:     razbox.ByteCountSI(file.Size),
+		Uploaded: file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
+		IsImage:  strings.HasPrefix(file.MIME, "image/"),
+	}
 }
 
 var folderPageT = `
@@ -72,16 +96,15 @@ var folderPageT = `
 </table>
 {{if .ControlButtons}}
 	<div style="text-align: center">
-	{{if .EditMode}}
 		<form method="get">
+		{{if .EditMode}}
 			<button formaction="/upload/{{.Folder}}">Upload file</button>
 			<button formaction="/change-password/{{.Folder}}">Change password</button>
-		</form>
-	{{else}}
-		<form method="get">
+		{{else}}
 			<button formaction="/write-auth/{{.Folder}}">Edit mode</button>
+		{{end}}
+		<button formaction="/gallery/{{.Folder}}"{{if not .Gallery}} disabled{{end}}>Gallery</button>
 		</form>
-	{{end}}
 	</div>
 {{end}}
 {{.Footer}}
@@ -152,33 +175,21 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 	entries := make([]*folderEntry, 0, 1+len(subfolders)+len(files))
 
 	if len(uri) > 0 {
-		entry := &folderEntry{
-			Prefix:  "&#128194;",
-			Name:    "..",
-			RelPath: path.Join(uri, ".."),
-		}
+		entry := newSubfolderEntry(uri, "..")
 		entries = append(entries, entry)
 	}
 
 	for _, subfolder := range subfolders {
-		entry := &folderEntry{
-			Prefix:  "&#128194;",
-			Name:    subfolder,
-			RelPath: path.Join(uri, subfolder),
-		}
+		entry := newSubfolderEntry(uri, subfolder)
 		entries = append(entries, entry)
 	}
 
+	var enableGallery bool
 	for _, file := range files {
-		entry := &folderEntry{
-			Prefix:   razbox.MIMEtoSymbol(file.MIME),
-			Name:     file.Name,
-			RelPath:  path.Join(uri, file.Name),
-			MIME:     file.MIME,
-			Tags:     file.Tags,
-			Size:     razbox.ByteCountSI(file.Size),
-			Uploaded: file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
-			EditMode: editMode,
+		entry := newFileEntry(uri, file)
+		entry.EditMode = editMode
+		if !enableGallery && entry.IsImage {
+			enableGallery = true
 		}
 		entries = append(entries, entry)
 	}
@@ -188,6 +199,7 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 		Entries:        entries,
 		EditMode:       editMode,
 		ControlButtons: true,
+		Gallery:        enableGallery,
 		Redirect:       r.URL.Path,
 	}
 	return view(v, &uri)
