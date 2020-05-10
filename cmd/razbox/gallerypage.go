@@ -16,8 +16,9 @@ type galleryPageView struct {
 }
 
 var galleryPageT = `
+<script src="https://unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
 <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
-<div class="grid" data-masonry='{ "itemSelector": ".grid-item", "columnWidth": 400 }' style="min-width: 90vw">
+<div class="grid" style="min-width: 90vw">
 	{{$Folder := .Folder}}
 	{{range .Entries}}
 		<div class="grid-item">
@@ -28,6 +29,14 @@ var galleryPageT = `
 <div style="text-align: right">
 	<a href="{{.Redirect}}">Go back &#10548;</a>
 </div>
+<script>
+imagesLoaded('.grid', function() {
+	var msnry = new Masonry( '.grid', {
+		itemSelector: '.grid-item',
+		columnWidth: 400
+	});
+});
+</script>
 `
 
 func galleryPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
