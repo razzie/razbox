@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"path"
@@ -46,29 +45,21 @@ func searchPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 	files := folder.Search(tag)
 	entries := make([]*folderEntry, 0, len(files))
 
+	var enableGallery bool
 	for _, file := range files {
-		entry := &folderEntry{
-			Prefix:   razbox.MIMEtoSymbol(file.MIME),
-			Name:     file.Name,
-			RelPath:  path.Join(dir, file.Name),
-			MIME:     file.MIME,
-			Tags:     file.Tags,
-			Size:     razbox.ByteCountSI(file.Size),
-			Uploaded: file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
-			EditMode: editMode,
+		entry := newFileEntry(uri, file)
+		entry.EditMode = editMode
+		if !enableGallery && entry.IsImage {
+			enableGallery = true
 		}
 		entries = append(entries, entry)
 	}
 
 	v := &folderPageView{
-		Header: template.HTML(fmt.Sprintf(`
-		<div>
-			<span style="float: left">&#128269; Search results for tag: <strong>%s</strong></span>
-			<span style="float: right">&#128194; <a href="/x/%s">View folder content</a></span>
-		</div>
-		<div style="clear: both; margin-bottom: 1rem"></div>`, tag, dir)),
 		Folder:   dir,
+		Search:   tag,
 		Entries:  entries,
+		Gallery:  enableGallery,
 		Redirect: r.URL.Path,
 	}
 	title := fmt.Sprintf("%s search:%s", dir, tag)

@@ -10,8 +10,9 @@ import (
 )
 
 type galleryPageView struct {
-	Folder  string
-	Entries []*folderEntry
+	Folder   string
+	Entries  []*folderEntry
+	Redirect string
 }
 
 var galleryPageT = `
@@ -25,13 +26,14 @@ var galleryPageT = `
 	{{end}}
 </div>
 <div style="text-align: right">
-	<a href="/x/{{.Folder}}">Go back &#10548;</a>
+	<a href="{{.Redirect}}">Go back &#10548;</a>
 </div>
 `
 
 func galleryPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[9:] // skip /gallery/
 	uri = razbox.RemoveTrailingSlash(uri)
+	tag := r.URL.Query().Get("tag")
 
 	var folder *razbox.Folder
 	var err error
@@ -62,14 +64,22 @@ func galleryPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) r
 	entries := make([]*folderEntry, 0, len(files))
 	for _, file := range files {
 		entry := newFileEntry(uri, file)
-		if entry.IsImage {
-			entries = append(entries, entry)
+		if !entry.IsImage {
+			continue
 		}
+		if len(tag) > 0 && !file.HasTag(tag) {
+			continue
+		}
+		entries = append(entries, entry)
 	}
 
 	v := &galleryPageView{
-		Folder:  uri,
-		Entries: entries,
+		Folder:   uri,
+		Entries:  entries,
+		Redirect: r.URL.Query().Get("r"),
+	}
+	if len(v.Redirect) == 0 {
+		v.Redirect = "/x/" + uri
 	}
 
 	return view(v, &uri)

@@ -15,14 +15,12 @@ import (
 )
 
 type folderPageView struct {
-	Header         template.HTML
-	Footer         template.HTML
-	Folder         string
-	Entries        []*folderEntry
-	EditMode       bool
-	ControlButtons bool
-	Gallery        bool
-	Redirect       string
+	Folder   string
+	Search   string
+	Entries  []*folderEntry
+	EditMode bool
+	Gallery  bool
+	Redirect string
 }
 
 type folderEntry struct {
@@ -59,7 +57,13 @@ func newFileEntry(uri string, file *razbox.File) *folderEntry {
 }
 
 var folderPageT = `
-{{.Header}}
+{{if .Search}}
+	<div>
+		<span style="float: left">&#128269; Search results for tag: <strong>{{.Search}}</strong></span>
+		<span style="float: right">&#128194; <a href="/x/{{.Folder}}">View folder content</a></span>
+	</div>
+	<div style="clear: both; margin-bottom: 1rem"></div>
+{{end}}
 <table>
 	<tr>
 		<td>Name</td>
@@ -94,20 +98,23 @@ var folderPageT = `
 		<tr><td colspan="6">No entries</td></tr>
 	{{end}}
 </table>
-{{if .ControlButtons}}
-	<div style="text-align: center">
-		<form method="get">
-		{{if .EditMode}}
-			<button formaction="/upload/{{.Folder}}">Upload file</button>
-			<button formaction="/change-password/{{.Folder}}">Change password</button>
+<div style="text-align: center">
+	<form method="get">
+		{{if .Search}}
+			<input type="hidden" name="tag" value="{{.Search}}" />
+			<input type="hidden" name="r" value="{{.Redirect}}" />
+			<button formaction="/gallery/{{.Folder}}/"{{if not .Gallery}} disabled{{end}}>Gallery</button>
 		{{else}}
-			<button formaction="/write-auth/{{.Folder}}">Edit mode</button>
+			{{if .EditMode}}
+				<button formaction="/upload/{{.Folder}}">Upload file</button>
+				<button formaction="/change-password/{{.Folder}}">Change password</button>
+			{{else}}
+				<button formaction="/write-auth/{{.Folder}}">Edit mode</button>
+			{{end}}
+			<button formaction="/gallery/{{.Folder}}"{{if not .Gallery}} disabled{{end}}>Gallery</button>
 		{{end}}
-		<button formaction="/gallery/{{.Folder}}"{{if not .Gallery}} disabled{{end}}>Gallery</button>
-		</form>
-	</div>
-{{end}}
-{{.Footer}}
+	</form>
+</div>
 `
 
 func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
@@ -195,12 +202,11 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 	}
 
 	v := &folderPageView{
-		Folder:         uri,
-		Entries:        entries,
-		EditMode:       editMode,
-		ControlButtons: true,
-		Gallery:        enableGallery,
-		Redirect:       r.URL.Path,
+		Folder:   uri,
+		Entries:  entries,
+		EditMode: editMode,
+		Gallery:  enableGallery,
+		Redirect: r.URL.Path,
 	}
 	return view(v, &uri)
 }
