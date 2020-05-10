@@ -68,7 +68,7 @@ func galleryPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) r
 
 	err = folder.EnsureReadAccess(r)
 	if err != nil {
-		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", uri, r.URL.Path))
+		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", uri, r.URL.RequestURI()))
 	}
 
 	files := folder.GetFiles()

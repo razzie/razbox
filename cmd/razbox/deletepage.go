@@ -42,7 +42,7 @@ func deletePageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 
 	err = folder.EnsureWriteAccess(r)
 	if err != nil {
-		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.Path))
+		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()))
 	}
 
 	basename := filepath.Base(filename)

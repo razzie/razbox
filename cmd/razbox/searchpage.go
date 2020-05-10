@@ -38,7 +38,7 @@ func searchPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 
 	err = folder.EnsureReadAccess(r)
 	if err != nil {
-		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", dir, r.URL.Path))
+		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", dir, r.URL.RequestURI()))
 	}
 
 	editMode := folder.EnsureWriteAccess(r) == nil

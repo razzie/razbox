@@ -102,7 +102,7 @@ func uploadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 
 	err = folder.EnsureWriteAccess(r)
 	if err != nil {
-		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", uri, r.URL.Path))
+		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", uri, r.URL.RequestURI()))
 	}
 
 	title := "Upload file to " + uri
