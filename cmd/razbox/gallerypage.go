@@ -21,12 +21,10 @@ var galleryPageT = `
 <div class="grid" style="width: 90vw; max-width: 1000px">
 	{{$Folder := .Folder}}
 	{{range .Entries}}
-		<div class="grid-item" style="width: 100%; max-width: 400px; height: auto; max-height: 400px">
-			<div style="padding: 1rem">
-				<a href="/x/{{.RelPath}}" target="_blank">
-					<img src="/x/{{.RelPath}}" style="width: 100%; border-radius: 15px" />
-				</a>
-			</div>
+		<div class="grid-item" style="padding: 15px">
+			<a href="/x/{{.RelPath}}" target="_blank">
+				<img src="/x/{{.RelPath}}" style="max-width: 400px; max-height: 400px; border-radius: 15px" />
+			</a>
 		</div>
 	{{end}}
 </div>
@@ -37,7 +35,7 @@ var galleryPageT = `
 imagesLoaded('.grid', function() {
 	var msnry = new Masonry('.grid', {
 		itemSelector: '.grid-item',
-		columnWidth: 400
+		columnWidth: 430
 	});
 });
 </script>
