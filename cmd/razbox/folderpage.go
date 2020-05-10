@@ -81,7 +81,7 @@ var folderPageT = `
 			<td>{{.MIME}}</td>
 			<td>
 				{{range .Tags}}
-					<a href="/search/{{$Folder}}/{{.}}">{{.}}</a>
+					<a href="/x/{{$Folder}}/?tag={{.}}">{{.}}</a>
 				{{end}}
 			</td>
 			<td>{{.Size}}</td>
@@ -119,6 +119,7 @@ var folderPageT = `
 func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[3:] // skip /x/
 	uri = razbox.RemoveTrailingSlash(uri)
+	tag := r.URL.Query().Get("tag")
 
 	var filename string
 	dir := uri
@@ -192,6 +193,10 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 
 	var enableGallery bool
 	for _, file := range files {
+		if len(tag) > 0 && !file.HasTag(tag) {
+			continue
+		}
+
 		entry := newFileEntry(uri, file)
 		entry.EditMode = editMode
 		if !enableGallery && entry.IsImage {
@@ -202,6 +207,7 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 
 	v := &folderPageView{
 		Folder:   uri,
+		Search:   tag,
 		Entries:  entries,
 		EditMode: editMode,
 		Gallery:  enableGallery,

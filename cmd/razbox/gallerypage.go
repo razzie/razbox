@@ -90,7 +90,7 @@ func galleryPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) r
 		Redirect: "/x/" + uri,
 	}
 	if len(tag) > 0 {
-		v.Redirect = fmt.Sprintf("/search/%s/%s", uri, tag)
+		v.Redirect = fmt.Sprintf("/x/%s/?tag=%s", uri, tag)
 	}
 
 	return view(v, &uri)

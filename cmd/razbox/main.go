@@ -45,7 +45,6 @@ func main() {
 	srv.AddPages(
 		&WelcomePage,
 		GetFolderPage(db),
-		GetSearchPage(db),
 		GetReadAuthPage(db),
 		GetWriteAuthPage(db),
 		GetUploadPage(db),
