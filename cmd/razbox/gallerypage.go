@@ -18,12 +18,12 @@ type galleryPageView struct {
 var galleryPageT = `
 <script src="https://unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
 <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
-<div class="grid" style="width: 90vw; max-width: 1000px">
+<div class="grid" style="width: 90vw; max-width: 900px">
 	{{$Folder := .Folder}}
 	{{range .Entries}}
 		<div class="grid-item" style="padding: 15px">
 			<a href="/x/{{.RelPath}}" target="_blank">
-				<img src="/x/{{.RelPath}}" style="max-width: 400px; max-height: 400px; border-radius: 15px" />
+				<img src="/x/{{.RelPath}}" style="max-width: 400px; border-radius: 15px" />
 			</a>
 		</div>
 	{{end}}
@@ -87,10 +87,10 @@ func galleryPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) r
 	v := &galleryPageView{
 		Folder:   uri,
 		Entries:  entries,
-		Redirect: r.URL.Query().Get("r"),
+		Redirect: "/x/" + uri,
 	}
-	if len(v.Redirect) == 0 {
-		v.Redirect = "/x/" + uri
+	if len(tag) > 0 {
+		v.Redirect = fmt.Sprintf("/search/%s/%s", uri, tag)
 	}
 
 	return view(v, &uri)

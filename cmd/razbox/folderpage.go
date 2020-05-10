@@ -102,7 +102,6 @@ var folderPageT = `
 	<form method="get">
 		{{if .Search}}
 			<input type="hidden" name="tag" value="{{.Search}}" />
-			<input type="hidden" name="r" value="{{.Redirect}}" />
 			<button formaction="/gallery/{{.Folder}}/"{{if not .Gallery}} disabled{{end}}>Gallery</button>
 		{{else}}
 			{{if .EditMode}}
