@@ -17,7 +17,7 @@ type galleryPageView struct {
 
 var galleryPageT = `
 <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
-<div class="grid" data-masonry='{ "itemSelector": ".grid-item", "columnWidth": 400 }' style="min-width: 800px">
+<div class="grid" data-masonry='{ "itemSelector": ".grid-item", "columnWidth": 400 }' style="min-width: 90vw">
 	{{$Folder := .Folder}}
 	{{range .Entries}}
 		<div class="grid-item">
