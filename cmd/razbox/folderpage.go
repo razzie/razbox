@@ -176,42 +176,36 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 		}
 	}
 
-	editMode := folder.EnsureWriteAccess(r) == nil
-	subfolders := folder.GetSubfolders()
-	files := folder.GetFiles()
-	entries := make([]*folderEntry, 0, 1+len(subfolders)+len(files))
-
-	if len(uri) > 0 {
-		entry := newSubfolderEntry(uri, "..")
-		entries = append(entries, entry)
+	v := &folderPageView{
+		Folder:   uri,
+		Search:   tag,
+		EditMode: folder.EnsureWriteAccess(r) == nil,
+		Redirect: r.URL.Path,
 	}
 
-	for _, subfolder := range subfolders {
-		entry := newSubfolderEntry(uri, subfolder)
-		entries = append(entries, entry)
+	if len(tag) == 0 {
+		subfolders := folder.GetSubfolders()
+		if len(uri) > 0 {
+			entry := newSubfolderEntry(uri, "..")
+			v.Entries = append(v.Entries, entry)
+		}
+		for _, subfolder := range subfolders {
+			entry := newSubfolderEntry(uri, subfolder)
+			v.Entries = append(v.Entries, entry)
+		}
 	}
 
-	var enableGallery bool
-	for _, file := range files {
+	for _, file := range folder.GetFiles() {
 		if len(tag) > 0 && !file.HasTag(tag) {
 			continue
 		}
 
 		entry := newFileEntry(uri, file)
-		entry.EditMode = editMode
-		if !enableGallery && entry.IsImage {
-			enableGallery = true
+		entry.EditMode = v.EditMode
+		if !v.Gallery && entry.IsImage {
+			v.Gallery = true
 		}
-		entries = append(entries, entry)
-	}
-
-	v := &folderPageView{
-		Folder:   uri,
-		Search:   tag,
-		Entries:  entries,
-		EditMode: editMode,
-		Gallery:  enableGallery,
-		Redirect: r.URL.Path,
+		v.Entries = append(v.Entries, entry)
 	}
 	return view(v, &uri)
 }
