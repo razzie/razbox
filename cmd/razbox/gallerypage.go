@@ -18,11 +18,15 @@ type galleryPageView struct {
 var galleryPageT = `
 <script src="https://unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
 <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
-<div class="grid" style="min-width: 90vw">
+<div class="grid" style="width: 90vw; max-width: 1000px">
 	{{$Folder := .Folder}}
 	{{range .Entries}}
-		<div class="grid-item">
-			<img src="/x/{{.RelPath}}" style="width: 100%; max-width: 400px" />
+		<div class="grid-item" style="width: 100%; max-width: 400px; height: auto; max-height: 400px">
+			<div style="padding: 1rem">
+				<a href="/x/{{.RelPath}}" target="_blank">
+					<img src="/x/{{.RelPath}}" style="width: 100%; border-radius: 15px" />
+				</a>
+			</div>
 		</div>
 	{{end}}
 </div>
@@ -31,7 +35,7 @@ var galleryPageT = `
 </div>
 <script>
 imagesLoaded('.grid', function() {
-	var msnry = new Masonry( '.grid', {
+	var msnry = new Masonry('.grid', {
 		itemSelector: '.grid-item',
 		columnWidth: 400
 	});
