@@ -8,6 +8,8 @@ require (
 	github.com/go-redis/redis/v7 v7.2.0
 	github.com/google/uuid v1.1.1
 	github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d
+	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/razzie/razlink v0.0.0-20200422034755-969b412feb6d
 	github.com/stretchr/testify v1.5.1 // indirect
+	golang.org/x/image v0.0.0-20200430140353-33d19683fad8
 )

@@ -52,6 +52,7 @@ func main() {
 		GetDeletePage(db),
 		GetPasswordPage(db),
 		GetGalleryPage(db),
+		GetThumbnailPage(db),
 	)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(Port), srv))
 }

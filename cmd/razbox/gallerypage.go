@@ -21,9 +21,9 @@ var galleryPageT = `
 <div class="grid" style="width: 90vw; max-width: 900px">
 	{{$Folder := .Folder}}
 	{{range .Entries}}
-		<div class="grid-item" style="padding: 15px">
+		<div class="grid-item" style="padding: 15px; text-align: center">
 			<a href="/x/{{.RelPath}}" target="_blank">
-				<img src="/x/{{.RelPath}}" style="max-width: 400px; border-radius: 15px" />
+				<img src="/thumb/{{.RelPath}}" style="max-width: 250px; border-radius: 15px" />
 			</a>
 		</div>
 	{{end}}
@@ -35,7 +35,8 @@ var galleryPageT = `
 imagesLoaded('.grid', function() {
 	var msnry = new Masonry('.grid', {
 		itemSelector: '.grid-item',
-		columnWidth: 430
+		columnWidth: 280,
+		fitWidth: true
 	});
 });
 </script>

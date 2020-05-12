@@ -34,7 +34,7 @@ func NewDB(addr, password string, db int) (*DB, error) {
 
 // GetCachedFolder returns a cached Folder
 func (db *DB) GetCachedFolder(path string) (*Folder, error) {
-	data, err := db.client.Get(pathToKey(path)).Result()
+	data, err := db.client.Get("folder:" + RemoveTrailingSlash(path)).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -66,12 +66,31 @@ func (db *DB) CacheFolder(folder *Folder) error {
 		return err
 	}
 
-	return db.client.Set(pathToKey(folder.RelPath), string(data), time.Minute).Err()
+	return db.client.Set("folder:"+RemoveTrailingSlash(folder.RelPath), string(data), time.Minute).Err()
 }
 
-func pathToKey(path string) string {
-	if len(path) > 0 && path[len(path)-1] == '/' {
-		path = path[:len(path)-1]
+// GetCachedThumbnail return a cached Thumbnail
+func (db *DB) GetCachedThumbnail(path string) (*Thumbnail, error) {
+	data, err := db.client.Get("thumb:" + RemoveTrailingSlash(path)).Result()
+	if err != nil {
+		return nil, err
 	}
-	return path
+
+	var thumb Thumbnail
+	err = json.Unmarshal([]byte(data), &thumb)
+	if err != nil {
+		return nil, err
+	}
+
+	return &thumb, nil
+}
+
+// CacheThumbnail caches a Thumbnail
+func (db *DB) CacheThumbnail(path string, thumb *Thumbnail) error {
+	data, err := json.Marshal(thumb)
+	if err != nil {
+		return err
+	}
+
+	return db.client.Set("thumb:"+RemoveTrailingSlash(path), string(data), time.Hour).Err()
 }
