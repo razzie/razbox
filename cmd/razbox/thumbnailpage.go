@@ -64,13 +64,13 @@ func handleThumbnailPage(db *razbox.DB, r *http.Request, view razlink.ViewFunc) 
 		reader, err := file.Open()
 		if err != nil {
 			log.Println(filename, "error:", err.Error())
-			return razlink.ErrorView(r, "Could not open file", http.StatusInternalServerError)
+			return razlink.RedirectView(r, "/x/"+filename)
 		}
 		defer reader.Close()
 		thumb, err = razbox.GetThumbnail(reader)
 		if err != nil {
 			log.Println(filename, "error:", err.Error())
-			return razlink.ErrorView(r, "Could not create thumbnail", http.StatusInternalServerError)
+			return razlink.RedirectView(r, "/x/"+filename)
 		}
 	}
 
