@@ -13,10 +13,11 @@ import (
 
 // Command-line args
 var (
-	RedisAddr string
-	RedisPw   string
-	RedisDb   int
-	Port      int
+	RedisAddr     string
+	RedisPw       string
+	RedisDb       int
+	Port          int
+	DefaultFolder string
 )
 
 func main() {
@@ -26,6 +27,7 @@ func main() {
 	flag.StringVar(&razbox.Root, "root", "./uploads", "Root directory of folders")
 	flag.Int64Var(&razbox.DefaultMaxFileSizeMB, "max-file-size", 10, "Default file size limit for uploads in MiB")
 	flag.IntVar(&Port, "port", 8080, "HTTP port")
+	flag.StringVar(&DefaultFolder, "default-folder", "", "Default folder to show in case of empty URL path")
 	flag.Parse()
 
 	if !filepath.IsAbs(razbox.Root) {
@@ -43,7 +45,7 @@ func main() {
 
 	srv := razlink.NewServer()
 	srv.AddPages(
-		&WelcomePage,
+		GetWelcomePage(DefaultFolder),
 		GetFolderPage(db),
 		GetReadAuthPage(db),
 		GetWriteAuthPage(db),
