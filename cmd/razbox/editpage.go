@@ -18,6 +18,7 @@ type editPageView struct {
 	Folder   string
 	Filename string
 	Tags     string
+	Public   bool
 	Redirect string
 }
 
@@ -28,6 +29,8 @@ var editPageT = `
 <form method="post">
 	<input type="text" name="filename" value="{{.Filename}}" placeholder="Filename" /><br />
 	<input type="text" name="tags" value="{{.Tags}}" placeholder="Tags (space separated)" /><br />
+	<input type="checkbox" name="public" value="public"{{if .Public}} checked{{end}}>
+	<label for="public">Public</label><br />
 	<button>Save</button>
 </form>
 <div style="float: right">
@@ -80,6 +83,7 @@ func editPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razl
 		Folder:   dir,
 		Filename: basename,
 		Tags:     strings.Join(file.Tags, " "),
+		Public:   file.Public,
 		Redirect: redirect,
 	}
 	title := "Edit " + filename
@@ -88,9 +92,11 @@ func editPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razl
 		r.ParseForm()
 		newName := govalidator.SafeFileName(r.FormValue("filename"))
 		newTags := r.FormValue("tags")
+		public := r.FormValue("public") == "public"
 
-		if newTags != v.Tags {
+		if newTags != v.Tags || public != file.Public {
 			file.Tags = strings.Fields(newTags)
+			file.Public = public
 			err := file.Save()
 			if err != nil {
 				v.Error = err.Error()

@@ -20,6 +20,7 @@ type File struct {
 	MIME     string    `json:"mime"`
 	Size     int64     `json:"size"`
 	Uploaded time.Time `json:"uploaded"`
+	Public   bool      `json:"public"`
 }
 
 // FileReader ...

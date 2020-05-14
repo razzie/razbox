@@ -30,6 +30,7 @@ type folderEntry struct {
 	Tags     []string
 	Size     string
 	Uploaded string
+	Public   bool
 	EditMode bool
 	IsImage  bool
 }
@@ -51,6 +52,7 @@ func newFileEntry(uri string, file *razbox.File) *folderEntry {
 		Tags:     file.Tags,
 		Size:     razbox.ByteCountSI(file.Size),
 		Uploaded: file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
+		Public:   file.Public,
 		IsImage:  strings.HasPrefix(file.MIME, "image/"),
 	}
 }
@@ -76,7 +78,10 @@ var folderPageT = `
 	{{$Redirect := .Redirect}}
 	{{range .Entries}}
 		<tr>
-			<td>{{.Prefix}}<a href="/x/{{.RelPath}}">{{.Name}}</a></td>
+			<td>
+				{{.Prefix}}<a href="/x/{{.RelPath}}">{{.Name}}</a>
+				{{if .Public}}[public]{{end}}
+			</td>
 			<td>{{.MIME}}</td>
 			<td>
 				{{range .Tags}}
@@ -147,21 +152,27 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 		defer db.CacheFolder(folder)
 	}
 
-	err = folder.EnsureReadAccess(r)
-	if err != nil {
-		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", dir, r.URL.RequestURI()))
-	}
+	hasViewAccess := folder.EnsureReadAccess(r) == nil
 
 	if len(filename) > 0 {
 		file, err := folder.GetFile(filepath.Base(filename))
 		if err != nil {
+			if !hasViewAccess { // fake legacy behavior
+				return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", dir, r.URL.RequestURI()))
+			}
 			log.Println(filename, "error:", err.Error())
 			return razlink.ErrorView(r, "File not found", http.StatusNotFound)
 		}
 
-		return func(w http.ResponseWriter) {
-			file.ServeHTTP(w, r)
+		if hasViewAccess || file.Public {
+			return func(w http.ResponseWriter) {
+				file.ServeHTTP(w, r)
+			}
 		}
+	}
+
+	if !hasViewAccess {
+		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", dir, r.URL.RequestURI()))
 	}
 
 	v := &folderPageView{
