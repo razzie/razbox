@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"io"
 	"log"
 	"net/http"
 	"path"
@@ -160,19 +159,8 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 			return razlink.ErrorView(r, "File not found", http.StatusNotFound)
 		}
 
-		data, err := file.Open()
-		if err != nil {
-			log.Println(filename, "error:", err.Error())
-			return razlink.ErrorView(r, "Could not open file", http.StatusInternalServerError)
-		}
-
 		return func(w http.ResponseWriter) {
-			defer data.Close()
-			w.Header().Set("Content-Type", file.MIME)
-			_, err := io.Copy(w, data)
-			if err != nil {
-				log.Println(filename, "error:", err.Error())
-			}
+			file.ServeHTTP(w, r)
 		}
 	}
 

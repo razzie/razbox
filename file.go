@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -120,4 +121,8 @@ func (f *File) HasTag(tag string) bool {
 		}
 	}
 	return false
+}
+
+func (f *File) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, path.Join(Root, f.RelPath+".bin"))
 }
