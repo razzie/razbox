@@ -8,7 +8,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/razzie/razbox"
@@ -30,27 +29,27 @@ func main() {
 	flag.StringVar(&Tags, "tags", "", "Search tags for the file (space separated)")
 	flag.Parse()
 
-	src, err := os.Open(SourceFile)
+	file, err := os.Open(SourceFile)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer src.Close()
+	defer file.Close()
 
-	srci, _ := src.Stat()
-	mime, _ := mimetype.DetectReader(src)
-	src.Seek(0, io.SeekStart)
+	fi, _ := file.Stat()
+	mime, _ := mimetype.DetectReader(file)
+	file.Seek(0, io.SeekStart)
 
 	basename := filepath.Base(SourceFile)
-	dst := &razbox.File{
+	boxfile := &razbox.File{
 		Name:     basename,
 		RelPath:  path.Join(TargetFolder, razbox.FilenameToUUID(basename)),
 		Tags:     strings.Fields(Tags),
 		MIME:     mime.String(),
-		Size:     srci.Size(),
-		Uploaded: time.Now(),
+		Size:     fi.Size(),
+		Uploaded: fi.ModTime(),
 	}
 
-	err = dst.Create(src)
+	err = boxfile.Create(file)
 	if err != nil {
 		log.Fatal(err)
 	}
