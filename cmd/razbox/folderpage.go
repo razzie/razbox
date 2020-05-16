@@ -179,7 +179,7 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 		Folder:   uri,
 		Search:   tag,
 		EditMode: folder.EnsureWriteAccess(r) == nil,
-		Redirect: r.URL.Path,
+		Redirect: r.URL.RequestURI(),
 	}
 
 	if len(tag) == 0 {
