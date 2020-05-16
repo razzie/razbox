@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/razzie/razlink"
@@ -11,7 +12,7 @@ func GetWelcomePage(defaultFolder string) *razlink.Page {
 	return &razlink.Page{
 		Path: "/",
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return razlink.RedirectView(r, "/x/"+defaultFolder)
+			return razlink.RedirectView(r, fmt.Sprintf("/x/%s/%s", defaultFolder, r.URL.RequestURI()))
 		},
 	}
 }
