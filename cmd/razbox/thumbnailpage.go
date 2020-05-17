@@ -6,13 +6,12 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
-	"strings"
 
 	"github.com/razzie/razbox"
 	"github.com/razzie/razlink"
 )
 
-func handleThumbnailPage(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func thumbnailPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	filename := r.URL.Path[7:] // skip /thumb/
 	filename = razbox.RemoveTrailingSlash(filename)
 	dir := path.Dir(filename)
@@ -49,8 +48,8 @@ func handleThumbnailPage(db *razbox.DB, r *http.Request, view razlink.ViewFunc) 
 		return razlink.ErrorView(r, "File not found", http.StatusNotFound)
 	}
 
-	if !strings.HasPrefix(file.MIME, "image/") {
-		return razlink.ErrorView(r, "Not an image", http.StatusInternalServerError)
+	if !razbox.IsThumbnailSupported(file.MIME) {
+		return razlink.ErrorView(r, "Unsupported format: "+file.MIME, http.StatusInternalServerError)
 	}
 
 	var thumb *razbox.Thumbnail
@@ -64,10 +63,10 @@ func handleThumbnailPage(db *razbox.DB, r *http.Request, view razlink.ViewFunc) 
 		reader, err := file.Open()
 		if err != nil {
 			log.Println(filename, "error:", err.Error())
-			return razlink.RedirectView(r, "/x/"+filename)
+			return razlink.ErrorView(r, "Could not open file", http.StatusInternalServerError)
 		}
 		defer reader.Close()
-		thumb, err = razbox.GetThumbnail(reader)
+		thumb, err = razbox.GetThumbnail(reader, file.MIME)
 		if err != nil {
 			log.Println(filename, "error:", err.Error())
 			return razlink.RedirectView(r, "/x/"+filename)
@@ -88,7 +87,7 @@ func GetThumbnailPage(db *razbox.DB) *razlink.Page {
 	return &razlink.Page{
 		Path: "/thumb/",
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return handleThumbnailPage(db, r, view)
+			return thumbnailPageHandler(db, r, view)
 		},
 	}
 }

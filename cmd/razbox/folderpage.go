@@ -24,16 +24,16 @@ type folderPageView struct {
 }
 
 type folderEntry struct {
-	Prefix   template.HTML
-	Name     string
-	RelPath  string
-	MIME     string
-	Tags     []string
-	Size     string
-	Uploaded string
-	Public   bool
-	EditMode bool
-	IsImage  bool
+	Prefix       template.HTML
+	Name         string
+	RelPath      string
+	MIME         string
+	Tags         []string
+	Size         string
+	Uploaded     string
+	Public       bool
+	EditMode     bool
+	HasThumbnail bool
 }
 
 func newSubfolderEntry(uri, subfolder string) *folderEntry {
@@ -46,15 +46,15 @@ func newSubfolderEntry(uri, subfolder string) *folderEntry {
 
 func newFileEntry(uri string, file *razbox.File) *folderEntry {
 	return &folderEntry{
-		Prefix:   razbox.MIMEtoSymbol(file.MIME),
-		Name:     file.Name,
-		RelPath:  path.Join(uri, file.Name),
-		MIME:     file.MIME,
-		Tags:     file.Tags,
-		Size:     razbox.ByteCountSI(file.Size),
-		Uploaded: file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
-		Public:   file.Public,
-		IsImage:  strings.HasPrefix(file.MIME, "image/"),
+		Prefix:       razbox.MIMEtoSymbol(file.MIME),
+		Name:         file.Name,
+		RelPath:      path.Join(uri, file.Name),
+		MIME:         file.MIME,
+		Tags:         file.Tags,
+		Size:         razbox.ByteCountSI(file.Size),
+		Uploaded:     file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
+		Public:       file.Public,
+		HasThumbnail: razbox.IsThumbnailSupported(file.MIME),
 	}
 }
 
@@ -206,7 +206,7 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 
 		entry := newFileEntry(uri, file)
 		entry.EditMode = v.EditMode
-		if !v.Gallery && entry.IsImage {
+		if !v.Gallery && entry.HasThumbnail {
 			v.Gallery = true
 		}
 		v.Entries = append(v.Entries, entry)

@@ -76,7 +76,7 @@ func galleryPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) r
 	entries := make([]*folderEntry, 0, len(files))
 	for _, file := range files {
 		entry := newFileEntry(uri, file)
-		if !entry.IsImage {
+		if !entry.HasThumbnail {
 			continue
 		}
 		if len(tag) > 0 && !file.HasTag(tag) {
