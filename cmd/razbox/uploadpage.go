@@ -127,7 +127,8 @@ func uploadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 	}
 
 	if r.Method == "POST" {
-		r.ParseMultipartForm(folder.MaxFileSizeMB << 20)
+		limit := folder.MaxFileSizeMB << 20
+		r.ParseMultipartForm(limit)
 		data, handler, err := r.FormFile("file")
 		if err != nil {
 			if ajax {
@@ -137,6 +138,14 @@ func uploadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 			return view(v, &title)
 		}
 		defer data.Close()
+
+		if handler.Size > limit {
+			if ajax {
+				return ajaxErr("limit exceeded")
+			}
+			v.Error = "limit exceeded"
+			return view(v, &title)
+		}
 
 		filename := govalidator.SafeFileName(r.FormValue("filename"))
 		if len(filename) == 0 || filename == "." {
@@ -160,6 +169,8 @@ func uploadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 		}
 		err = file.Create(data, overwrite)
 		if err != nil {
+			file.Delete()
+
 			if ajax {
 				return ajaxErr(err.Error())
 			}
