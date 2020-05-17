@@ -116,7 +116,7 @@ func (f *Folder) Search(tag string) []*File {
 
 // SetPasswords generates a random salt and sets and read and write passwords
 func (f *Folder) SetPasswords(readPw, writePw string) error {
-	if readPw == writePw {
+	if readPw == writePw && len(readPw) > 0 {
 		return fmt.Errorf("read and write passwords cannot match")
 	}
 	f.Salt = Salt()
@@ -125,7 +125,11 @@ func (f *Folder) SetPasswords(readPw, writePw string) error {
 	} else {
 		f.ReadPassword = Hash(f.Salt + readPw)
 	}
-	f.WritePassword = Hash(f.Salt + writePw)
+	if len(writePw) == 0 {
+		f.WritePassword = ""
+	} else {
+		f.WritePassword = Hash(f.Salt + writePw)
+	}
 	return f.save()
 }
 
