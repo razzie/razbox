@@ -129,7 +129,7 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 	dir := uri
 	if !razbox.IsFolder(uri) {
 		dir = path.Dir(uri)
-		filename = filepath.Base(uri)
+		filename = uri
 	}
 
 	var folder *razbox.Folder
@@ -165,6 +165,9 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 		}
 
 		if hasViewAccess || file.Public {
+			if strings.HasPrefix(file.MIME, "text/") {
+				return razlink.RedirectView(r, "/text/"+filename)
+			}
 			return func(w http.ResponseWriter) {
 				file.ServeHTTP(w, r)
 			}
