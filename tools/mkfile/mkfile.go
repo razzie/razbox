@@ -59,10 +59,6 @@ func main() {
 			fmt.Println("error:", err)
 			continue
 		}
-		if Move {
-			defer os.Remove(filename)
-		}
-		defer file.Close()
 
 		fi, _ := file.Stat()
 		mime, _ := mimetype.DetectReader(file)
@@ -78,11 +74,14 @@ func main() {
 		}
 
 		err = boxfile.Create(file, false)
+		file.Close()
 		if err != nil {
 			fmt.Println("error:", err)
-			continue
+		} else {
+			if Move {
+				os.Remove(filename)
+			}
+			fmt.Println("done")
 		}
-
-		fmt.Println("done")
 	}
 }
