@@ -18,6 +18,7 @@ type folderPageView struct {
 	Search   string
 	Entries  []*folderEntry
 	EditMode bool
+	Editable bool
 	Gallery  bool
 	Redirect string
 }
@@ -111,7 +112,7 @@ var folderPageT = `
 			{{if .EditMode}}
 				<button formaction="/upload/{{.Folder}}">Upload file</button>
 				<button formaction="/change-password/{{.Folder}}">Change password</button>
-			{{else}}
+			{{else if .Editable}}
 				<button formaction="/write-auth/{{.Folder}}">Edit mode</button>
 			{{end}}
 			<button formaction="/gallery/{{.Folder}}"{{if not .Gallery}} disabled{{end}}>Gallery</button>
@@ -182,6 +183,7 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 		Folder:   uri,
 		Search:   tag,
 		EditMode: folder.EnsureWriteAccess(r) == nil,
+		Editable: len(folder.WritePassword) > 0,
 		Redirect: r.URL.RequestURI(),
 	}
 

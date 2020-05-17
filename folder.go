@@ -34,19 +34,20 @@ func GetFolder(relPath string) (*Folder, error) {
 		return nil, err
 	}
 
-	folder := &Folder{
-		RelPath: relPath,
+	var folder Folder
+	if len(data) > 0 {
+		err = json.Unmarshal(data, &folder)
+		if err != nil {
+			return nil, err
+		}
 	}
-	err = json.Unmarshal(data, folder)
-	if err != nil {
-		return nil, err
-	}
+	folder.RelPath = relPath
 
 	if folder.MaxFileSizeMB == 0 {
 		folder.MaxFileSizeMB = DefaultMaxFileSizeMB
 	}
 
-	return folder, nil
+	return &folder, nil
 }
 
 // GetFile returns the file in the folder with the given basename
