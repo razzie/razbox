@@ -19,7 +19,9 @@ type textPageView struct {
 }
 
 var textPageT = `
-<pre><code>{{.}}</code></pre>
+<div style="max-width: 90vw">
+	<pre><code>{{.}}</code></pre>
+</div>
 <script>
 document.querySelectorAll('pre code').forEach((block) => {
 	hljs.highlightBlock(block);
