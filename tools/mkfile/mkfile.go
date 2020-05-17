@@ -21,6 +21,8 @@ var (
 	TargetFolder string
 	// Tags are the search tags for the file
 	Tags string
+	// Move (if enabled) removes the original file(s)
+	Move bool
 )
 
 func main() {
@@ -28,6 +30,7 @@ func main() {
 	flag.StringVar(&SourceFiles, "file", "", "Source file(s) to be copied to the target folder - supports patterns")
 	flag.StringVar(&TargetFolder, "folder", "", "Relative path of target/destination folder for the file")
 	flag.StringVar(&Tags, "tags", "", "Search tags for the file (space separated)")
+	flag.BoolVar(&Move, "move", false, "Remove original file(s)")
 	flag.Parse()
 
 	if len(SourceFiles) == 0 {
@@ -55,6 +58,9 @@ func main() {
 		if err != nil {
 			fmt.Println("error:", err)
 			continue
+		}
+		if Move {
+			defer os.Remove(filename)
 		}
 		defer file.Close()
 
