@@ -16,8 +16,6 @@ type galleryPageView struct {
 }
 
 var galleryPageT = `
-<script src="https://unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
-<script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
 <div class="grid" style="width: 90vw; max-width: 900px">
 	{{$Folder := .Folder}}
 	{{range .Entries}}
@@ -102,6 +100,10 @@ func GetGalleryPage(db *razbox.DB) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/gallery/",
 		ContentTemplate: galleryPageT,
+		Scripts: []string{
+			"/static/masonry.min.js",
+			"/static/imagesloaded.min.js",
+		},
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return galleryPageHandler(db, r, view)
 		},

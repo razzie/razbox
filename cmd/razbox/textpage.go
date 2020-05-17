@@ -19,7 +19,6 @@ type textPageView struct {
 }
 
 var textPageT = `
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/highlight.min.js"></script>
 <pre><code>{{.}}</code></pre>
 <script>
 document.querySelectorAll('pre code').forEach((block) => {
@@ -91,7 +90,12 @@ func GetTextPage(db *razbox.DB) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/text/",
 		ContentTemplate: textPageT,
-		Stylesheets:     []string{"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/styles/tomorrow.min.css"},
+		Stylesheets: []string{
+			"/static/highlight.tomorrow.min.css",
+		},
+		Scripts: []string{
+			"/static/highlight.min.js",
+		},
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return textPageHandler(db, r, view)
 		},

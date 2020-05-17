@@ -45,6 +45,7 @@ func main() {
 
 	srv := razlink.NewServer()
 	srv.AddPages(
+		GetStaticPage(),
 		GetWelcomePage(DefaultFolder),
 		GetFolderPage(db),
 		GetReadAuthPage(db),
