@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-var errViewRenderer, _ = BindLayout("<strong>{{.}}</strong>")
+var errViewRenderer, _ = BindLayout("<strong>{{.}}</strong>", nil, nil, nil)
 
 // ErrorView returns a PageView that represents an error
 func ErrorView(r *http.Request, errmsg string, errcode int) PageView {

@@ -11,8 +11,10 @@ var layoutT = `
 	<head>
 		{{if .Title}}<title>{{.Title}}</title>{{end}}
 		<base href="{{.Base}}" />
+		{{range $name, $content := .Meta}}
+			<meta name="{{$name}}" content="{{$content}}" />
+		{{end}}
 		<link rel="icon" href="favicon.png" type="image/png" />
-		<meta name="author" content="Gábor Görzsöny" />
 		<style>
 		body {
 			background-color: white;
@@ -52,6 +54,12 @@ var layoutT = `
 			padding: 10px;
 		}
 		</style>
+		{{range .Stylesheets}}
+			<link rel="stylesheet" href="{{.}}" />
+		{{end}}
+		{{range .Scripts}}
+			<script src="{{.}}"></script>
+		{{end}}
 	</head>
 	<body>
 		<div class="outer">
@@ -71,23 +79,35 @@ var layout = template.Must(template.New("layout").Parse(layoutT))
 type LayoutRenderer func(w http.ResponseWriter, r *http.Request, title string, data interface{})
 
 // BindLayout creates a layout renderer function
-func BindLayout(pageTemplate string) (LayoutRenderer, error) {
+func BindLayout(pageTemplate string, stylesheets, scripts []string, meta map[string]string) (LayoutRenderer, error) {
 	cloneLayout, _ := layout.Clone()
 	tmpl, err := cloneLayout.New("page").Parse(pageTemplate)
 	if err != nil {
 		return nil, err
 	}
 
-	return func(w http.ResponseWriter, r *http.Request, title string, data interface{}) {
-		var view struct {
-			Title string
-			Base  string
-			Data  interface{}
+	if meta == nil {
+		meta = map[string]string{
+			"author": "Gábor Görzsöny",
 		}
+	}
 
-		view.Title = title
-		view.Base = GetBase(r)
-		view.Data = data
+	return func(w http.ResponseWriter, r *http.Request, title string, data interface{}) {
+		view := struct {
+			Title       string
+			Base        string
+			Stylesheets []string
+			Scripts     []string
+			Meta        map[string]string
+			Data        interface{}
+		}{
+			Title:       title,
+			Base:        GetBase(r),
+			Stylesheets: stylesheets,
+			Scripts:     scripts,
+			Meta:        meta,
+			Data:        data,
+		}
 
 		tmpl.ExecuteTemplate(w, "layout", &view)
 	}, nil

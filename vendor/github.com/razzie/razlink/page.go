@@ -9,6 +9,9 @@ type Page struct {
 	Path            string
 	Title           string
 	ContentTemplate string
+	Stylesheets     []string
+	Scripts         []string
+	Meta            map[string]string
 	Handler         PageHandler
 }
 
@@ -24,7 +27,7 @@ type PageHandler func(r *http.Request, viewFunc ViewFunc) PageView
 
 // BindLayout creates a page renderer function that uses Razlink layout
 func (page *Page) BindLayout() (func(http.ResponseWriter, *http.Request), error) {
-	renderer, err := BindLayout(page.ContentTemplate)
+	renderer, err := BindLayout(page.ContentTemplate, page.Stylesheets, page.Scripts, page.Meta)
 	if err != nil {
 		return nil, err
 	}

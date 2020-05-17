@@ -16,6 +16,9 @@ func NewServer() *Server {
 	srv.mux.HandleFunc("/favicon.png", func(w http.ResponseWriter, r *http.Request) {
 		WriteFavicon(w)
 	})
+	srv.mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/favicon.png", http.StatusSeeOther)
+	})
 	return srv
 }
 
