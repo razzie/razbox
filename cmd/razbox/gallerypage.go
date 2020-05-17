@@ -16,7 +16,7 @@ type galleryPageView struct {
 }
 
 var galleryPageT = `
-<div class="grid" style="width: 90vw; max-width: 900px">
+<div class="grid" style="width: 90vw; max-width: 1200px">
 	{{$Folder := .Folder}}
 	{{range .Entries}}
 		<div class="grid-item" style="padding: 15px; text-align: center">
