@@ -71,7 +71,7 @@ func main() {
 			Uploaded: fi.ModTime(),
 		}
 
-		err = boxfile.Create(file)
+		err = boxfile.Create(file, false)
 		if err != nil {
 			fmt.Println("error:", err)
 			continue

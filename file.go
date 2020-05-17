@@ -28,6 +28,7 @@ type File struct {
 // FileReader ...
 type FileReader interface {
 	io.Reader
+	io.Seeker
 	io.Closer
 }
 
@@ -56,9 +57,9 @@ func (f *File) Save() error {
 }
 
 // Create ...
-func (f *File) Create(content io.Reader) error {
+func (f *File) Create(content io.Reader, overwrite bool) error {
 	jsonFilename := path.Join(Root, f.RelPath+".json")
-	if _, err := os.Stat(jsonFilename); os.IsNotExist(err) {
+	if _, err := os.Stat(jsonFilename); os.IsNotExist(err) || overwrite {
 		data, _ := json.MarshalIndent(f, "", "  ")
 		err := ioutil.WriteFile(jsonFilename, data, 0755)
 		if err != nil {
@@ -98,7 +99,7 @@ func (f *File) Move(relPath string) error {
 	f.Name = filepath.Base(relPath)
 	f.RelPath = path.Join(path.Dir(relPath), FilenameToUUID(f.Name))
 
-	err = f.Create(reader)
+	err = f.Create(reader, false)
 	reader.Close()
 	if err != nil {
 		f.Name = oldName

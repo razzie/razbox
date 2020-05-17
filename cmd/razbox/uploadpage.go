@@ -33,12 +33,13 @@ function uploadFile() {
 	formdata.append("file", form.elements["file"].files[0]);
 	formdata.append("filename", form.elements["filename"].value);
 	formdata.append("tags", form.elements["tags"].value);
+	formdata.append("overwrite", form.elements["overwrite"].checked ? "overwrite" : "");
 	var ajax = new XMLHttpRequest();
 	ajax.upload.addEventListener("progress", progressHandler, false);
 	ajax.addEventListener("load", completeHandler, false);
 	ajax.addEventListener("error", errorHandler, false);
 	ajax.addEventListener("abort", abortHandler, false);
-	ajax.open("POST", "/upload/{{.Folder}}");
+	ajax.open("POST", "/upload/{{.Folder}}?u=ajax");
 	ajax.send(formdata);
 }
 function progressHandler(event) {
@@ -48,7 +49,11 @@ function progressHandler(event) {
 	_("status").innerHTML = Math.round(percent) + "% uploaded... please wait";
 }
 function completeHandler(event) {
-	window.location.replace("/x/{{.Folder}}")
+	_("submit").disabled = false;
+	if (event.target.statusText === 'OK')
+		window.location.replace("/x/{{.Folder}}");
+	else
+		_("error").innerHTML = event.target.responseText;
 }
 function errorHandler(event) {
 	_("status").innerHTML = "Upload Failed";
@@ -57,9 +62,10 @@ function abortHandler(event) {
 	_("status").innerHTML = "Upload Aborted";
 }
 </script>
-{{if .Error}}
-<strong style="color: red">{{.Error}}</strong><br /><br />
-{{end}}
+<strong style="color: red" id="error">{{.Error}}</strong><br /><br />
+<div style="text-align: right; min-width: 400px">
+	<small>max file size: <strong>{{.MaxFileSize}}</strong></small>
+</div>
 <form
 	enctype="multipart/form-data"
 	action="/upload/{{.Folder}}"
@@ -67,9 +73,11 @@ function abortHandler(event) {
 	onsubmit="uploadFile(); return false;"
 	id="upload_form"
 >
-	<input type="file" name="file" /> max file size: <strong>{{.MaxFileSize}}</strong><br />
+	<input type="file" name="file" /><br />
 	<input type="text" name="filename" placeholder="Filename (optional)" /><br />
 	<input type="text" name="tags" placeholder="Tags (space separated)" /><br />
+	<input type="checkbox" name="overwrite" value="overwrite" />
+	<label for="overwrite">Overwrite if exists</label><br />
 	<button id="submit">&#8686; Upload</button>
 </form>
 <div style="float: right">
@@ -82,9 +90,16 @@ function abortHandler(event) {
 </div>
 `
 
+func ajaxErr(err string) razlink.PageView {
+	return func(w http.ResponseWriter) {
+		http.Error(w, err, http.StatusInternalServerError)
+	}
+}
+
 func uploadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[8:] // skip /upload/
 	uri = razbox.RemoveTrailingSlash(uri)
+	ajax := r.URL.Query().Get("u") == "ajax"
 
 	var folder *razbox.Folder
 	var err error
@@ -115,6 +130,9 @@ func uploadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 		r.ParseMultipartForm(folder.MaxFileSizeMB << 20)
 		data, handler, err := r.FormFile("file")
 		if err != nil {
+			if ajax {
+				return ajaxErr(err.Error())
+			}
 			v.Error = err.Error()
 			return view(v, &title)
 		}
@@ -131,6 +149,7 @@ func uploadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 		mime, _ := mimetype.DetectReader(data)
 		data.Seek(0, io.SeekStart)
 
+		overwrite := r.FormValue("overwrite") == "overwrite"
 		file := &razbox.File{
 			Name:     filename,
 			RelPath:  path.Join(uri, razbox.FilenameToUUID(filename)),
@@ -139,8 +158,11 @@ func uploadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 			Size:     handler.Size,
 			Uploaded: time.Now(),
 		}
-		err = file.Create(data)
+		err = file.Create(data, overwrite)
 		if err != nil {
+			if ajax {
+				return ajaxErr(err.Error())
+			}
 			v.Error = err.Error()
 			return view(v, &title)
 		}
