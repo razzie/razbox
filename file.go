@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gabriel-vasile/mimetype"
 )
 
 // File ...
@@ -30,6 +32,7 @@ type FileReader interface {
 	io.Reader
 	io.Seeker
 	io.Closer
+	Stat() (os.FileInfo, error)
 }
 
 func getFile(relPath string) (*File, error) {
@@ -125,6 +128,26 @@ func (f *File) HasTag(tag string) bool {
 		}
 	}
 	return false
+}
+
+// FixMimeAndSize ...
+func (f *File) FixMimeAndSize() error {
+	file, err := f.Open()
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	fi, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
+	mime, _ := mimetype.DetectReader(file)
+	f.Size = fi.Size()
+	f.MIME = mime.String()
+
+	return f.Save()
 }
 
 // credit: https://github.com/rb-de0/go-mp4-stream/

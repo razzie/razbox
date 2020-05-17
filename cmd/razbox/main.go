@@ -51,6 +51,7 @@ func main() {
 		GetReadAuthPage(db),
 		GetWriteAuthPage(db),
 		GetUploadPage(db),
+		GetDownloadPage(db),
 		GetEditPage(db),
 		GetDeletePage(db),
 		GetPasswordPage(db),

@@ -111,6 +111,7 @@ var folderPageT = `
 		{{else}}
 			{{if .EditMode}}
 				<button formaction="/upload/{{.Folder}}">Upload file</button>
+				<button formaction="/download-to-folder/{{.Folder}}">Download file to folder</button>
 				<button formaction="/change-password/{{.Folder}}">Change password</button>
 			{{else if .Editable}}
 				<button formaction="/write-auth/{{.Folder}}">Edit mode</button>
