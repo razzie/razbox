@@ -91,27 +91,31 @@ func (f *File) Create(content io.Reader, overwrite bool) error {
 
 // Move ...
 func (f *File) Move(relPath string) error {
-	reader, err := f.Open()
-	if err != nil {
-		return err
-	}
-	//defer reader.Close()
-
 	oldName := f.Name
 	oldRelPath := f.RelPath
 	f.Name = filepath.Base(relPath)
 	f.RelPath = path.Join(path.Dir(relPath), FilenameToUUID(f.Name))
 
-	err = f.Create(reader, false)
-	reader.Close()
+	err := f.Create(nil, false)
 	if err != nil {
 		f.Name = oldName
 		f.RelPath = oldRelPath
 		return err
 	}
 
+	err = os.Rename(
+		path.Join(Root, oldRelPath+".bin"),
+		path.Join(Root, f.RelPath+".bin"),
+	)
+	if err != nil {
+		_ = os.Remove(path.Join(Root, f.RelPath+".json"))
+		f.Name = oldName
+		f.RelPath = oldRelPath
+		return err
+	}
+
 	_ = os.Remove(path.Join(Root, oldRelPath+".json"))
-	return os.Remove(path.Join(Root, oldRelPath+".bin"))
+	return nil
 }
 
 // Delete ...
