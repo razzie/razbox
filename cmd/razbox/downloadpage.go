@@ -107,6 +107,11 @@ func downloadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) 
 		}
 		defer resp.Body.Close()
 
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			v.Error = "bad response status code: " + http.StatusText(resp.StatusCode)
+			return view(v, &title)
+		}
+
 		limit := folder.MaxFileSizeMB << 20
 		data := &limitedReader{
 			r: resp.Body,
