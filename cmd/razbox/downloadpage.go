@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime"
 	"net/http"
 	"path"
 	"strings"
@@ -55,6 +56,18 @@ func (r *limitedReader) Read(p []byte) (n int, err error) {
 	return
 }
 
+func getResponseFilename(resp *http.Response) string {
+	contentDisposition := resp.Header.Get("Content-Disposition")
+	if len(contentDisposition) > 0 {
+		_, params, _ := mime.ParseMediaType(contentDisposition)
+		filename := govalidator.SafeFileName(params["filename"])
+		if len(filename) > 0 && filename != "." {
+			return filename
+		}
+	}
+	return govalidator.SafeFileName(path.Base(resp.Request.URL.Path))
+}
+
 func downloadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[20:] // skip /download-to-folder/
 	uri = razbox.RemoveTrailingSlash(uri)
@@ -87,13 +100,6 @@ func downloadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) 
 	if r.Method == "POST" {
 		r.ParseForm()
 		url := r.FormValue("url")
-		filename := govalidator.SafeFileName(r.FormValue("filename"))
-		if len(filename) == 0 || filename == "." {
-			filename = govalidator.SafeFileName(path.Base(url))
-			if len(filename) == 0 || filename == "." {
-				filename = razbox.Salt()
-			}
-		}
 
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
@@ -116,6 +122,14 @@ func downloadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) 
 		data := &limitedReader{
 			r: resp.Body,
 			n: limit,
+		}
+
+		filename := govalidator.SafeFileName(r.FormValue("filename"))
+		if len(filename) == 0 || filename == "." {
+			filename = getResponseFilename(resp)
+			if len(filename) == 0 || filename == "." {
+				filename = razbox.Salt()
+			}
 		}
 
 		file := &razbox.File{
