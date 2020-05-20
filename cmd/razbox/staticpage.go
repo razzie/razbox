@@ -2,15 +2,24 @@ package main
 
 import (
 	"net/http"
+	"os"
 	"path"
 
-	"github.com/razzie/razbox"
 	"github.com/razzie/razlink"
 )
 
+func isFolder(dir string) bool {
+	fi, err := os.Stat(path.Join("web/static", dir))
+	if err != nil {
+		return false
+	}
+
+	return fi.IsDir()
+}
+
 func staticPageHandler(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := path.Clean(r.URL.Path[8:]) // skip /static/
-	if razbox.IsFolder(uri) {
+	if isFolder(uri) {
 		return razlink.ErrorView(r, "Forbidden", http.StatusForbidden)
 	}
 	return func(w http.ResponseWriter) {
