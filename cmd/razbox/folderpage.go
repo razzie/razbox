@@ -14,13 +14,14 @@ import (
 )
 
 type folderPageView struct {
-	Folder   string
-	Search   string
-	Entries  []*folderEntry
-	EditMode bool
-	Editable bool
-	Gallery  bool
-	Redirect string
+	Folder       string
+	Search       string
+	Entries      []*folderEntry
+	EditMode     bool
+	Editable     bool
+	Configurable bool
+	Gallery      bool
+	Redirect     string
 }
 
 type folderEntry struct {
@@ -112,7 +113,7 @@ var folderPageT = `
 			{{if .EditMode}}
 				<button formaction="/upload/{{.Folder}}">Upload file</button>
 				<button formaction="/download-to-folder/{{.Folder}}">Download file to folder</button>
-				<button formaction="/change-password/{{.Folder}}">Change password</button>
+				<button formaction="/change-password/{{.Folder}}"{{if not .Configurable}} disabled{{end}}>Change password</button>
 			{{else if .Editable}}
 				<button formaction="/write-auth/{{.Folder}}">Edit mode</button>
 			{{end}}
@@ -181,11 +182,12 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 	}
 
 	v := &folderPageView{
-		Folder:   uri,
-		Search:   tag,
-		EditMode: folder.EnsureWriteAccess(r) == nil,
-		Editable: len(folder.WritePassword) > 0,
-		Redirect: r.URL.RequestURI(),
+		Folder:       uri,
+		Search:       tag,
+		EditMode:     folder.EnsureWriteAccess(r) == nil,
+		Editable:     len(folder.WritePassword) > 0,
+		Configurable: !folder.ConfigInherited,
+		Redirect:     r.URL.RequestURI(),
 	}
 
 	if len(tag) == 0 {

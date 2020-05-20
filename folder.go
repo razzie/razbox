@@ -23,25 +23,40 @@ type Folder struct {
 	MaxFileSizeMB    int64    `json:"max_file_size"`
 	CachedSubfolders []string `json:"cached_subfolders,omitempty"`
 	CachedFiles      []*File  `json:"cached_files,omitempty"`
+	ConfigInherited  bool     `json:"config_inherited,omitempty"`
 }
 
 // GetFolder returns a new Folder from a handle to a .razbox file
 func GetFolder(relPath string) (*Folder, error) {
 	relPath = RemoveTrailingSlash(relPath)
+	searchPath := filepath.Join(Root, relPath)
+	var data []byte
+	var configInherited bool
+	var configFound bool
 
-	data, err := ioutil.ReadFile(filepath.Join(Root, relPath, ".razbox"))
-	if err != nil {
-		return nil, err
+	for len(searchPath) >= len(Root) {
+		data, _ = ioutil.ReadFile(filepath.Join(searchPath, ".razbox"))
+		if data != nil {
+			configFound = true
+			break
+		}
+		configInherited = true
+		searchPath = filepath.Join(searchPath, "..")
+	}
+
+	if !configFound {
+		return nil, fmt.Errorf("config file not found for folder: %s", relPath)
 	}
 
 	var folder Folder
 	if len(data) > 0 {
-		err = json.Unmarshal(data, &folder)
+		err := json.Unmarshal(data, &folder)
 		if err != nil {
 			return nil, err
 		}
 	}
 	folder.RelPath = relPath
+	folder.ConfigInherited = configInherited
 
 	if folder.MaxFileSizeMB == 0 {
 		folder.MaxFileSizeMB = DefaultMaxFileSizeMB
