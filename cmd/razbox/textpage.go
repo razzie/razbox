@@ -25,6 +25,7 @@ var textPageT = `
 <script>
 document.querySelectorAll('pre code').forEach((block) => {
 	hljs.highlightBlock(block);
+	hljs.lineNumbersBlock(block);
 });
 </script>
 `
@@ -94,9 +95,11 @@ func GetTextPage(db *razbox.DB) *razlink.Page {
 		ContentTemplate: textPageT,
 		Stylesheets: []string{
 			"/static/highlight.tomorrow.min.css",
+			"/static/highlightjs-line-numbers.css",
 		},
 		Scripts: []string{
 			"/static/highlight.min.js",
+			"/static/highlightjs-line-numbers.min.js",
 		},
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return textPageHandler(db, r, view)
