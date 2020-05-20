@@ -90,16 +90,16 @@ func HasContentType(header http.Header, mimetype string) bool {
 	return false
 }
 
+var pixel, _ = base64.StdEncoding.DecodeString("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=")
+
 // WritePixel writes a transparent pixel to a http.ResponseWriter
 func WritePixel(w http.ResponseWriter) {
-	pixel := "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
-	bytes, _ := base64.StdEncoding.DecodeString(pixel)
 	w.Header().Set("Content-Type", "image/png")
-	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
-	_, _ = w.Write(bytes)
+	w.Header().Set("Content-Length", strconv.Itoa(len(pixel)))
+	_, _ = w.Write(pixel)
 }
 
-var favicon = "iVBORw0KGgoAAAANSUhEUgAAACAAAAAjCAYAAAD17ghaAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAa" +
+var favicon, _ = base64.StdEncoding.DecodeString("iVBORw0KGgoAAAANSUhEUgAAACAAAAAjCAYAAAD17ghaAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAa" +
 	"PwAAGj8BlYhsxgAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAIBSURBVFiFvddN" +
 	"iE5xFMfxz4yMtyjvY/KShYXkrZGdl7L1slCKZCNLWShkIUoWZCcLJRpKlI0dpfEyLO3EGCShKDVjmqkZ" +
 	"Mz0Wf0+e7nNn/Kfn/59TZ3Pv6Xx/955zz/9c8to8XEAPhvEdd7AhMxeswidUSnwYh3LCp+L1GPBaERtz" +
@@ -109,14 +109,13 @@ var favicon = "iVBORw0KGgoAAAANSUhEUgAAACAAAAAjCAYAAAD17ghaAAAABHNCSVQICAgIfAhki
 	"GdufGl61a+Kb7ybaUgtYKXxSsY3Yj9OYnlLENmF+lwGf4FHJ9Y/Ym1LEApxBp3BS3cd+oU9gtzD1ikI6" +
 	"TdKWS1g2j6FXfX90YPFkCWkVpmHxGO4VTryWQvwybMEa/95oEmtHl/qydGMn1uNZ4d5XHEkpoknolbJV" +
 	"rHiA1frFlCIIy+g5DI4DLfrW1CJgOR5GCrg9JYOAPqHpdsQE5/oxGYmMG8ol4GVkXFcmPnhq/PoPYEVO" +
-	"AW14OwZ8UIJFNsZm4yzeYAjfcEtYgsEfmmcOvhtYrlIAAAAASUVORK5CYII="
+	"AW14OwZ8UIJFNsZm4yzeYAjfcEtYgsEfmmcOvhtYrlIAAAAASUVORK5CYII=")
 
 // WriteFavicon writes Razlink favicon to a http.ResponseWriter
 func WriteFavicon(w http.ResponseWriter) {
-	bytes, _ := base64.StdEncoding.DecodeString(favicon)
 	w.Header().Set("Content-Type", "image/png")
-	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
-	_, _ = w.Write(bytes)
+	w.Header().Set("Content-Length", strconv.Itoa(len(favicon)))
+	_, _ = w.Write(favicon)
 }
 
 // GetBase returns the base target for relative URLs

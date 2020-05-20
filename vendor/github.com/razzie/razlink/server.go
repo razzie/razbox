@@ -3,18 +3,24 @@ package razlink
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
 // Server ...
 type Server struct {
-	mux http.ServeMux
+	mux        http.ServeMux
+	FaviconPNG []byte
 }
 
 // NewServer creates a new Server
 func NewServer() *Server {
-	srv := &Server{}
+	srv := &Server{
+		FaviconPNG: favicon,
+	}
 	srv.mux.HandleFunc("/favicon.png", func(w http.ResponseWriter, r *http.Request) {
-		WriteFavicon(w)
+		w.Header().Set("Content-Type", "image/png")
+		w.Header().Set("Content-Length", strconv.Itoa(len(srv.FaviconPNG)))
+		_, _ = w.Write(srv.FaviconPNG)
 	})
 	srv.mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/favicon.png", http.StatusSeeOther)
