@@ -95,6 +95,11 @@ func passwordPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) 
 			v.WriteAccess = true
 		}
 
+		if folder.ConfigInherited {
+			v.Error = "Cannot change password of folders that inherit parent configuration"
+			return view(v, &title)
+		}
+
 		if pw != pwconfirm {
 			v.Error = "Password mismatch"
 			return view(v, &title)
