@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
-	"sort"
 	"time"
 
 	"github.com/nbutton23/zxcvbn-go"
@@ -95,9 +94,9 @@ func (f *Folder) GetFiles() []*File {
 		f.CachedFiles = append(f.CachedFiles, file)
 	}
 
-	sort.SliceStable(f.CachedFiles, func(i, j int) bool {
+	/*sort.SliceStable(f.CachedFiles, func(i, j int) bool {
 		return f.CachedFiles[i].Uploaded.After(f.CachedFiles[j].Uploaded)
-	})
+	})*/
 
 	return f.CachedFiles
 }

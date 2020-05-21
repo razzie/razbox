@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
+	"time"
 
 	"github.com/razzie/razbox"
 	"github.com/razzie/razlink"
@@ -22,16 +24,20 @@ type folderPageView struct {
 	Configurable bool
 	Gallery      bool
 	Redirect     string
+	SortRedirect string
 }
 
 type folderEntry struct {
+	Folder       bool
 	Prefix       template.HTML
 	Name         string
 	RelPath      string
 	MIME         string
 	Tags         []string
-	Size         string
-	Uploaded     string
+	Size         int64
+	SizeStr      string
+	Uploaded     time.Time
+	UploadedStr  string
 	Public       bool
 	EditMode     bool
 	HasThumbnail bool
@@ -39,6 +45,7 @@ type folderEntry struct {
 
 func newSubfolderEntry(uri, subfolder string) *folderEntry {
 	return &folderEntry{
+		Folder:  true,
 		Prefix:  "&#128194;",
 		Name:    subfolder,
 		RelPath: path.Join(uri, subfolder),
@@ -52,8 +59,10 @@ func newFileEntry(uri string, file *razbox.File) *folderEntry {
 		RelPath:      path.Join(uri, file.Name),
 		MIME:         file.MIME,
 		Tags:         file.Tags,
-		Size:         razbox.ByteCountSI(file.Size),
-		Uploaded:     file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
+		Size:         file.Size,
+		SizeStr:      razbox.ByteCountSI(file.Size),
+		Uploaded:     file.Uploaded,
+		UploadedStr:  file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
 		Public:       file.Public,
 		HasThumbnail: razbox.IsThumbnailSupported(file.MIME),
 	}
@@ -69,11 +78,31 @@ var folderPageT = `
 {{end}}
 <table>
 	<tr>
-		<td>Name</td>
-		<td>Type</td>
-		<td>Tags</td>
-		<td>Size</td>
-		<td>Uploaded</td>
+		<td>
+			Name
+			<a href="{{.SortRedirect}}&sort=name_asc" style="text-decoration: none; color: lightgrey">&#11014;</a>
+			<a href="{{.SortRedirect}}&sort=name_desc" style="text-decoration: none; color: lightgrey">&#11015;</a>
+		</td>
+		<td>
+			Type
+			<a href="{{.SortRedirect}}&sort=type_asc" style="text-decoration: none; color: lightgrey">&#11014;</a>
+			<a href="{{.SortRedirect}}&sort=type_desc" style="text-decoration: none; color: lightgrey">&#11015;</a>
+		</td>
+		<td>
+			Tags
+			<a href="{{.SortRedirect}}&sort=tags_asc" style="text-decoration: none; color: lightgrey">&#11014;</a>
+			<a href="{{.SortRedirect}}&sort=tags_desc" style="text-decoration: none; color: lightgrey">&#11015;</a>
+		</td>
+		<td>
+			Size
+			<a href="{{.SortRedirect}}&sort=size_asc" style="text-decoration: none; color: lightgrey">&#11014;</a>
+			<a href="{{.SortRedirect}}&sort=size_desc" style="text-decoration: none; color: lightgrey">&#11015;</a>
+		</td>
+		<td>
+			Uploaded
+			<a href="{{.SortRedirect}}&sort=uploaded_asc" style="text-decoration: none; color: lightgrey">&#11014;</a>
+			<a href="{{.SortRedirect}}&sort=uploaded_desc" style="text-decoration: none; color: lightgrey">&#11015;</a>
+		</td>
 		<td></td>
 	</tr>
 	{{$Folder := .Folder}}
@@ -90,8 +119,8 @@ var folderPageT = `
 					<a href="/x/{{$Folder}}/?tag={{.}}">{{.}}</a>
 				{{end}}
 			</td>
-			<td>{{.Size}}</td>
-			<td>{{.Uploaded}}</td>
+			<td>{{.SizeStr}}</td>
+			<td>{{.UploadedStr}}</td>
 			<td>
 				{{if .EditMode}}
 					<a href="/edit/{{.RelPath}}/?r={{$Redirect}}">&#9998;</a>
@@ -127,6 +156,7 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 	uri := r.URL.Path[3:] // skip /x/
 	uri = razbox.RemoveTrailingSlash(uri)
 	tag := r.URL.Query().Get("tag")
+	sortOrder := r.URL.Query().Get("sort")
 
 	var filename string
 	dir := uri
@@ -188,6 +218,7 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 		Editable:     len(folder.WritePassword) > 0,
 		Configurable: !folder.ConfigInherited,
 		Redirect:     r.URL.RequestURI(),
+		SortRedirect: r.URL.Path + "?tag=" + tag,
 	}
 
 	if len(tag) == 0 {
@@ -214,6 +245,8 @@ func folderPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 		}
 		v.Entries = append(v.Entries, entry)
 	}
+
+	sortFolderEntries(v.Entries, sortOrder)
 	return view(v, &uri)
 }
 
@@ -226,4 +259,67 @@ func GetFolderPage(db *razbox.DB) *razlink.Page {
 			return folderPageHandler(db, r, view)
 		},
 	}
+}
+
+func sortFolderEntries(files []*folderEntry, order string) {
+	switch order {
+	case "name_asc":
+		sort.SliceStable(files, func(i, j int) bool {
+			return files[i].Name > files[j].Name
+		})
+
+	case "name_desc":
+		sort.SliceStable(files, func(i, j int) bool {
+			return files[i].Name < files[j].Name
+		})
+
+	case "type_asc":
+		sort.SliceStable(files, func(i, j int) bool {
+			return files[i].MIME > files[j].MIME
+		})
+
+	case "type_desc":
+		sort.SliceStable(files, func(i, j int) bool {
+			return files[i].MIME < files[j].MIME
+		})
+
+	case "tags_asc":
+		sort.SliceStable(files, func(i, j int) bool {
+			return strings.Join(files[i].Tags, " ") > strings.Join(files[j].Tags, " ")
+		})
+
+	case "tags_desc":
+		sort.SliceStable(files, func(i, j int) bool {
+			return strings.Join(files[i].Tags, " ") < strings.Join(files[j].Tags, " ")
+		})
+
+	case "size_asc":
+		sort.SliceStable(files, func(i, j int) bool {
+			return files[i].Size > files[j].Size
+		})
+
+	case "size_desc":
+		sort.SliceStable(files, func(i, j int) bool {
+			return files[i].Size < files[j].Size
+		})
+
+	case "uploaded_asc":
+		sort.SliceStable(files, func(i, j int) bool {
+			return files[i].Uploaded.After(files[j].Uploaded)
+		})
+
+	case "uploaded_desc":
+		sort.SliceStable(files, func(i, j int) bool {
+			return files[i].Uploaded.Before(files[j].Uploaded)
+		})
+
+	default:
+		sort.SliceStable(files, func(i, j int) bool {
+			return files[i].Uploaded.After(files[j].Uploaded)
+		})
+	}
+
+	sort.SliceStable(files, func(i, j int) bool {
+		return files[i].Folder && !files[j].Folder
+	})
 }
