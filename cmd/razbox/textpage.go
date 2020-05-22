@@ -14,13 +14,20 @@ import (
 )
 
 type textPageView struct {
-	Error string
-	Text  string
+	Filename string
+	Folder   string
+	Text     string
 }
 
 var textPageT = `
+<div style="clear: both">
+	<div style="float: right">
+		<a href="/text/{{.Folder}}/{{.Filename}}?download">&#8681; Download raw</a> |
+		<a href="/x/{{.Folder}}">Go back &#10548;</a>
+	</div>
+</div>
 <div style="max-width: 90vw">
-	<pre><code>{{.}}</code></pre>
+	<pre><code>{{.Text}}</code></pre>
 </div>
 <script>
 document.querySelectorAll('pre code').forEach((block) => {
@@ -74,6 +81,14 @@ func textPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razl
 		return razlink.ErrorView(r, "Not a text file", http.StatusInternalServerError)
 	}
 
+	_, download := r.URL.Query()["download"]
+	if download {
+		return func(w http.ResponseWriter) {
+			w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", basename))
+			file.ServeHTTP(w, r)
+		}
+	}
+
 	reader, err := file.Open()
 	if err != nil {
 		log.Println(filename, "error:", err.Error())
@@ -87,8 +102,12 @@ func textPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razl
 		return razlink.ErrorView(r, "Could not read file", http.StatusInternalServerError)
 	}
 
-	text := string(data)
-	return view(&text, &filename)
+	v := &textPageView{
+		Filename: basename,
+		Folder:   dir,
+		Text:     string(data),
+	}
+	return view(v, &filename)
 }
 
 // GetTextPage returns a razlink.Page that visualizes text files
