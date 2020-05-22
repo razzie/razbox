@@ -55,16 +55,19 @@ func textPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razl
 		defer db.CacheFolder(folder)
 	}
 
-	err = folder.EnsureReadAccess(r)
-	if err != nil {
-		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", dir, r.URL.RequestURI()))
-	}
-
+	hasViewAccess := folder.EnsureReadAccess(r) == nil
 	basename := filepath.Base(filename)
 	file, err := folder.GetFile(basename)
 	if err != nil {
+		if !hasViewAccess { // fake legacy behavior
+			return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", dir, r.URL.RequestURI()))
+		}
 		log.Println(filename, "error:", err.Error())
 		return razlink.ErrorView(r, "File not found", http.StatusNotFound)
+	}
+
+	if !file.Public && !hasViewAccess {
+		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", dir, r.URL.RequestURI()))
 	}
 
 	if !strings.HasPrefix(file.MIME, "text/") {
