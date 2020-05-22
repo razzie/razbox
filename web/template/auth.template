@@ -1,0 +1,15 @@
+{{if .Error}}
+<strong style="color: red">{{.Error}}</strong><br /><br />
+{{end}}
+<p>
+	<strong>{{.Folder}}</strong><br />
+	Enter password for <strong>{{.AccessType}}</strong> access:
+</p>
+<form method="post">
+	<input type="password" name="{{.PwFieldPrefix}}-password" placeholder="Password" /><br />
+	<input type="hidden" name="redirect" value="{{.Redirect}}" />
+	<button>Enter</button>
+</form>
+<div style="float: right">
+	<a href="{{.Redirect}}">Go back &#10548;</a>
+</div>

@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
-	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/lib"
 )
 
 var (
@@ -26,7 +26,7 @@ var (
 )
 
 func main() {
-	flag.StringVar(&razbox.Root, "root", "./uploads", "Root directory of folders")
+	flag.StringVar(&lib.Root, "root", "./uploads", "Root directory of folders")
 	flag.StringVar(&SourceFiles, "file", "", "Source file(s) to be copied to the target folder - supports patterns")
 	flag.StringVar(&TargetFolder, "folder", "", "Relative path of target/destination folder for the file")
 	flag.StringVar(&Tags, "tags", "", "Search tags for the file (space separated)")
@@ -64,9 +64,9 @@ func main() {
 		mime, _ := mimetype.DetectReader(file)
 		file.Seek(0, io.SeekStart)
 
-		boxfile := &razbox.File{
+		boxfile := &lib.File{
 			Name:     basename,
-			RelPath:  path.Join(TargetFolder, razbox.FilenameToUUID(basename)),
+			RelPath:  path.Join(TargetFolder, lib.FilenameToUUID(basename)),
 			Tags:     strings.Fields(Tags),
 			MIME:     mime.String(),
 			Size:     fi.Size(),

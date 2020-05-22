@@ -1,0 +1,19 @@
+{{if .Error}}
+<strong style="color: red">{{.Error}}</strong><br /><br />
+{{end}}
+<div style="float: left; margin: 1rem">
+	<form method="post">
+		<input type="text" name="filename" value="{{.Filename}}" placeholder="Filename" /><br />
+		<input type="text" name="tags" value="{{.Tags}}" placeholder="Tags (space separated)" /><br />
+		<input type="checkbox" name="public" value="public"{{if .Public}} checked{{end}}>
+		<label for="public">Public</label><br />
+		<button>Save</button>
+	</form>
+</div>
+<div style="float: right; margin: 1rem; text-align: right">
+	{{if .Thumb}}
+		<img src="/thumb/{{.Folder}}/{{.Filename}}" style="max-width: 250px; max-height: 500px; border-radius: 15px" />
+		<br />
+	{{end}}
+	<a href="{{.Redirect}}">Go back &#10548;</a>
+</div>

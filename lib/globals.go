@@ -1,4 +1,4 @@
-package razbox
+package lib
 
 // Root is the root directory to look for folders and files
 var Root = "./uploads"

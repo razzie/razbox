@@ -1,4 +1,4 @@
-package main
+package page
 
 import (
 	"fmt"
@@ -11,7 +11,8 @@ import (
 	"time"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/web/page/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -20,24 +21,6 @@ type downloadPageView struct {
 	Folder      string
 	MaxFileSize string
 }
-
-var downloadPageT = `
-{{if .Error}}
-<strong style="color: red">{{.Error}}</strong><br /><br />
-{{end}}
-<div style="text-align: right; min-width: 400px">
-	<small>max file size: <strong>{{.MaxFileSize}}</strong></small>
-</div>
-<form method="post">
-	<input type="url" name="url" placeholder="URL" style="width: 400px" /><br />
-	<input type="text" name="filename" placeholder="Filename (optional)" /><br />
-	<input type="text" name="tags" placeholder="Tags (space separated)" /><br />
-	<button id="submit">&#8681; Download</button>
-</form>
-<div style="float: right">
-	<a href="/x/{{.Folder}}">Go back &#10548;</a>
-</div>
-`
 
 type limitedReader struct {
 	r io.Reader
@@ -68,18 +51,18 @@ func getResponseFilename(resp *http.Response) string {
 	return govalidator.SafeFileName(path.Base(resp.Request.URL.Path))
 }
 
-func downloadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func downloadPageHandler(db *lib.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[20:] // skip /download-to-folder/
-	uri = razbox.RemoveTrailingSlash(uri)
+	uri = lib.RemoveTrailingSlash(uri)
 
-	var folder *razbox.Folder
+	var folder *lib.Folder
 	var err error
 
 	if db != nil {
 		folder, _ = db.GetCachedFolder(uri)
 	}
 	if folder == nil {
-		folder, err = razbox.GetFolder(uri)
+		folder, err = lib.GetFolder(uri)
 		if err != nil {
 			log.Println(uri, "error:", err.Error())
 			return razlink.ErrorView(r, "Not found", http.StatusNotFound)
@@ -128,13 +111,13 @@ func downloadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) 
 		if len(filename) == 0 || filename == "." {
 			filename = getResponseFilename(resp)
 			if len(filename) == 0 || filename == "." {
-				filename = razbox.Salt()
+				filename = lib.Salt()
 			}
 		}
 
-		file := &razbox.File{
+		file := &lib.File{
 			Name:     filename,
-			RelPath:  path.Join(uri, razbox.FilenameToUUID(filename)),
+			RelPath:  path.Join(uri, lib.FilenameToUUID(filename)),
 			Tags:     strings.Fields(r.FormValue("tags")),
 			Uploaded: time.Now(),
 		}
@@ -157,11 +140,11 @@ func downloadPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) 
 	return view(v, &title)
 }
 
-// GetDownloadPage returns a razlink.Page that handles file downloads from an URL to a folder
-func GetDownloadPage(db *razbox.DB) *razlink.Page {
+// Download returns a razlink.Page that handles file downloads from an URL to a folder
+func Download(db *lib.DB) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/download-to-folder/",
-		ContentTemplate: downloadPageT,
+		ContentTemplate: internal.GetContentTemplate("download"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return downloadPageHandler(db, r, view)
 		},

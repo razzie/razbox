@@ -1,51 +1,27 @@
-package main
+package page
 
 import (
 	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/web/page/internal"
 	"github.com/razzie/razlink"
 )
 
 type galleryPageView struct {
 	Folder   string
-	Entries  []*folderEntry
+	Entries  []*internal.FolderEntry
 	Redirect string
 }
 
-var galleryPageT = `
-<div class="grid" style="width: 90vw; max-width: 1200px">
-	{{$Folder := .Folder}}
-	{{range .Entries}}
-		<div class="grid-item" style="padding: 15px; text-align: center">
-			<a href="/x/{{.RelPath}}" target="_blank">
-				<img src="/thumb/{{.RelPath}}" style="max-width: 250px; border-radius: 15px" />
-			</a>
-		</div>
-	{{end}}
-</div>
-<div style="text-align: right">
-	<a href="{{.Redirect}}">Go back &#10548;</a>
-</div>
-<script>
-imagesLoaded('.grid', function() {
-	var msnry = new Masonry('.grid', {
-		itemSelector: '.grid-item',
-		columnWidth: 280,
-		fitWidth: true
-	});
-});
-</script>
-`
-
-func galleryPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func galleryPageHandler(db *lib.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[9:] // skip /gallery/
-	uri = razbox.RemoveTrailingSlash(uri)
+	uri = lib.RemoveTrailingSlash(uri)
 	tag := r.URL.Query().Get("tag")
 
-	var folder *razbox.Folder
+	var folder *lib.Folder
 	var err error
 	cached := true
 
@@ -54,7 +30,7 @@ func galleryPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) r
 	}
 	if folder == nil {
 		cached = false
-		folder, err = razbox.GetFolder(uri)
+		folder, err = lib.GetFolder(uri)
 		if err != nil {
 			log.Println(uri, "error:", err.Error())
 			return razlink.ErrorView(r, "Folder not found", http.StatusNotFound)
@@ -71,9 +47,9 @@ func galleryPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) r
 	}
 
 	files := folder.GetFiles()
-	entries := make([]*folderEntry, 0, len(files))
+	entries := make([]*internal.FolderEntry, 0, len(files))
 	for _, file := range files {
-		entry := newFileEntry(uri, file)
+		entry := internal.NewFileEntry(uri, file)
 		if !entry.HasThumbnail {
 			continue
 		}
@@ -95,11 +71,11 @@ func galleryPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) r
 	return view(v, &uri)
 }
 
-// GetGalleryPage returns a razlink.Page that handles galleries
-func GetGalleryPage(db *razbox.DB) *razlink.Page {
+// Gallery returns a razlink.Page that handles galleries
+func Gallery(db *lib.DB) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/gallery/",
-		ContentTemplate: galleryPageT,
+		ContentTemplate: internal.GetContentTemplate("gallery"),
 		Scripts: []string{
 			"/static/masonry.min.js",
 			"/static/imagesloaded.min.js",

@@ -1,11 +1,12 @@
-package main
+package page
 
 import (
 	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/web/page/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -16,40 +17,11 @@ type passwordPageView struct {
 	WriteAccess   bool
 }
 
-var passwordPageT = `
-{{if .Error}}
-<strong style="color: red">{{.Error}}</strong><br /><br />
-{{end}}
-<form method="post">
-	&#128273; Change password for <select name="access_type">
-		{{if .WriteAccess}}
-			<option value="read">read</option>
-			<option value="write" selected>write</option>
-		{{else}}
-			<option value="read" selected>read</option>
-			<option value="write">write</option>
-		{{end}}
-	</select> access:
-	<p>
-		<input type="password" name="{{.PwFieldPrefix}}-password" placeholder="Password" /><br />
-		<input type="password" name="{{.PwFieldPrefix}}-password-confirm" placeholder="Password confirm" /><br />
-		<div style="clear: both">
-			<button>Save</button>
-			<a href="/x/{{.Folder}}" style="float: right">Go back &#10548;</a>
-		</div>
-	</p>
-</form>
-<div>
-	<small>read password can be empty to allow public access</small><br />
-	<small>write password must score at least 3/4 on <a href="https://lowe.github.io/tryzxcvbn/">zxcvbn</a> test</small>
-</div>
-`
-
-func passwordPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func passwordPageHandler(db *lib.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[17:] // skip /change-password/
-	uri = razbox.RemoveTrailingSlash(uri)
+	uri = lib.RemoveTrailingSlash(uri)
 
-	var folder *razbox.Folder
+	var folder *lib.Folder
 	var err error
 	cached := true
 
@@ -58,7 +30,7 @@ func passwordPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) 
 	}
 	if folder == nil {
 		cached = false
-		folder, err = razbox.GetFolder(uri)
+		folder, err = lib.GetFolder(uri)
 		if err != nil {
 			log.Println(uri, "error:", err.Error())
 			return razlink.ErrorView(r, "Folder not found", http.StatusNotFound)
@@ -82,7 +54,7 @@ func passwordPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) 
 	title := "Change password for " + uri
 	v := passwordPageView{
 		Folder:        uri,
-		PwFieldPrefix: razbox.FilenameToUUID(uri),
+		PwFieldPrefix: lib.FilenameToUUID(uri),
 	}
 
 	if r.Method == "POST" {
@@ -118,11 +90,11 @@ func passwordPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) 
 	return view(v, &title)
 }
 
-// GetPasswordPage returns a razlink.Page that handles password change for folders
-func GetPasswordPage(db *razbox.DB) *razlink.Page {
+// Password returns a razlink.Page that handles password change for folders
+func Password(db *lib.DB) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/change-password/",
-		ContentTemplate: passwordPageT,
+		ContentTemplate: internal.GetContentTemplate("password"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return passwordPageHandler(db, r, view)
 		},

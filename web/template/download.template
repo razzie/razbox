@@ -1,0 +1,15 @@
+{{if .Error}}
+<strong style="color: red">{{.Error}}</strong><br /><br />
+{{end}}
+<div style="text-align: right; min-width: 400px">
+	<small>max file size: <strong>{{.MaxFileSize}}</strong></small>
+</div>
+<form method="post">
+	<input type="url" name="url" placeholder="URL" style="width: 400px" /><br />
+	<input type="text" name="filename" placeholder="Filename (optional)" /><br />
+	<input type="text" name="tags" placeholder="Tags (space separated)" /><br />
+	<button id="submit">&#8681; Download</button>
+</form>
+<div style="float: right">
+	<a href="/x/{{.Folder}}">Go back &#10548;</a>
+</div>

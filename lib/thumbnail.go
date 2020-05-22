@@ -1,4 +1,4 @@
-package razbox
+package lib
 
 import (
 	"bytes"

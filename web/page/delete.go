@@ -1,4 +1,4 @@
-package main
+package page
 
 import (
 	"fmt"
@@ -7,20 +7,20 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/lib"
 	"github.com/razzie/razlink"
 )
 
-func deletePageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func deletePageHandler(db *lib.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	filename := r.URL.Path[8:] // skip /delete/
-	filename = razbox.RemoveTrailingSlash(filename)
+	filename = lib.RemoveTrailingSlash(filename)
 	dir := path.Dir(filename)
 	redirect := r.URL.Query().Get("r")
 	if len(redirect) == 0 {
 		redirect = "/x/" + dir
 	}
 
-	var folder *razbox.Folder
+	var folder *lib.Folder
 	var err error
 	cached := true
 
@@ -29,7 +29,7 @@ func deletePageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 	}
 	if folder == nil {
 		cached = false
-		folder, err = razbox.GetFolder(dir)
+		folder, err = lib.GetFolder(dir)
 		if err != nil {
 			log.Println(dir, "error:", err.Error())
 			return razlink.ErrorView(r, "Folder not found", http.StatusNotFound)
@@ -66,8 +66,8 @@ func deletePageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) ra
 	return razlink.RedirectView(r, redirect)
 }
 
-// GetDeletePage returns a razlink.Page that handles deletes
-func GetDeletePage(db *razbox.DB) *razlink.Page {
+// Delete returns a razlink.Page that handles deletes
+func Delete(db *lib.DB) *razlink.Page {
 	return &razlink.Page{
 		Path: "/delete/",
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {

@@ -7,7 +7,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/lib"
 )
 
 var (
@@ -22,27 +22,27 @@ var (
 )
 
 func main() {
-	flag.StringVar(&razbox.Root, "root", "./uploads", "Root directory of folders")
+	flag.StringVar(&lib.Root, "root", "./uploads", "Root directory of folders")
 	flag.StringVar(&ReadPassword, "readpw", "", "Password for read access to the folder (optional)")
 	flag.StringVar(&WritePassword, "writepw", "", "Password for write access to the folder")
 	flag.Int64Var(&MaxFileSizeMB, "max-file-size", 10, "File size limit for uploads in MiB for this folder")
 	flag.StringVar(&Folder, "folder", "", "Folder name (relative path)")
 	flag.Parse()
 
-	if !filepath.IsAbs(razbox.Root) {
+	if !filepath.IsAbs(lib.Root) {
 		var err error
-		razbox.Root, err = filepath.Abs(razbox.Root)
+		lib.Root, err = filepath.Abs(lib.Root)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	err := os.MkdirAll(path.Join(razbox.Root, Folder), 0755)
+	err := os.MkdirAll(path.Join(lib.Root, Folder), 0755)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	folder := &razbox.Folder{
+	folder := &lib.Folder{
 		RelPath:       Folder,
 		MaxFileSizeMB: MaxFileSizeMB,
 	}

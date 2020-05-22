@@ -1,4 +1,4 @@
-package main
+package page
 
 import (
 	"fmt"
@@ -7,16 +7,16 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/lib"
 	"github.com/razzie/razlink"
 )
 
-func thumbnailPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func thumbnailPageHandler(db *lib.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	filename := r.URL.Path[7:] // skip /thumb/
-	filename = razbox.RemoveTrailingSlash(filename)
+	filename = lib.RemoveTrailingSlash(filename)
 	dir := path.Dir(filename)
 
-	var folder *razbox.Folder
+	var folder *lib.Folder
 	var err error
 	folderCached := true
 
@@ -25,7 +25,7 @@ func thumbnailPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc)
 	}
 	if folder == nil {
 		folderCached = false
-		folder, err = razbox.GetFolder(dir)
+		folder, err = lib.GetFolder(dir)
 		if err != nil {
 			log.Println(dir, "error:", err.Error())
 			return razlink.ErrorView(r, "Folder not found", http.StatusNotFound)
@@ -48,11 +48,11 @@ func thumbnailPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc)
 		return razlink.ErrorView(r, "File not found", http.StatusNotFound)
 	}
 
-	if !razbox.IsThumbnailSupported(file.MIME) {
+	if !lib.IsThumbnailSupported(file.MIME) {
 		return razlink.ErrorView(r, "Unsupported format: "+file.MIME, http.StatusInternalServerError)
 	}
 
-	var thumb *razbox.Thumbnail
+	var thumb *lib.Thumbnail
 	thumbCached := true
 
 	if db != nil {
@@ -66,7 +66,7 @@ func thumbnailPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc)
 			return razlink.ErrorView(r, "Could not open file", http.StatusInternalServerError)
 		}
 		defer reader.Close()
-		thumb, err = razbox.GetThumbnail(reader, file.MIME)
+		thumb, err = lib.GetThumbnail(reader, file.MIME)
 		if err != nil {
 			log.Println(filename, "error:", err.Error())
 			return razlink.RedirectView(r, "/x/"+filename)
@@ -82,8 +82,8 @@ func thumbnailPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc)
 	}
 }
 
-// GetThumbnailPage returns a razlink.Page that handles image file thumbnails
-func GetThumbnailPage(db *razbox.DB) *razlink.Page {
+// Thumbnail returns a razlink.Page that handles image file thumbnails
+func Thumbnail(db *lib.DB) *razlink.Page {
 	return &razlink.Page{
 		Path: "/thumb/",
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {

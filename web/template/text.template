@@ -1,0 +1,15 @@
+<div style="clear: both">
+	<div style="float: right">
+		<a href="/text/{{.Folder}}/{{.Filename}}?download">&#8681; Download raw</a> |
+		<a href="/x/{{.Folder}}">Go back &#10548;</a>
+	</div>
+</div>
+<div style="max-width: 90vw">
+	<pre><code>{{.Text}}</code></pre>
+</div>
+<script>
+document.querySelectorAll('pre code').forEach((block) => {
+	hljs.highlightBlock(block);
+	hljs.lineNumbersBlock(block);
+});
+</script>

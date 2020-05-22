@@ -1,0 +1,81 @@
+{{if .Search}}
+	<div>
+		<span style="float: left">&#128269; Search results for tag: <strong>{{.Search}}</strong></span>
+		<span style="float: right">&#128194; <a href="/x/{{.Folder}}">View folder content</a></span>
+	</div>
+	<div style="clear: both; margin-bottom: 1rem"></div>
+{{end}}
+<table>
+	<tr>
+		<td>
+			Name
+			<a href="{{.SortRedirect}}&sort=name_asc" style="text-decoration: none; color: lightgrey">&#11014;</a>
+			<a href="{{.SortRedirect}}&sort=name_desc" style="text-decoration: none; color: lightgrey">&#11015;</a>
+		</td>
+		<td>
+			Type
+			<a href="{{.SortRedirect}}&sort=type_asc" style="text-decoration: none; color: lightgrey">&#11014;</a>
+			<a href="{{.SortRedirect}}&sort=type_desc" style="text-decoration: none; color: lightgrey">&#11015;</a>
+		</td>
+		<td>
+			Tags
+			<a href="{{.SortRedirect}}&sort=tags_asc" style="text-decoration: none; color: lightgrey">&#11014;</a>
+			<a href="{{.SortRedirect}}&sort=tags_desc" style="text-decoration: none; color: lightgrey">&#11015;</a>
+		</td>
+		<td>
+			Size
+			<a href="{{.SortRedirect}}&sort=size_asc" style="text-decoration: none; color: lightgrey">&#11014;</a>
+			<a href="{{.SortRedirect}}&sort=size_desc" style="text-decoration: none; color: lightgrey">&#11015;</a>
+		</td>
+		<td>
+			Uploaded
+			<a href="{{.SortRedirect}}&sort=uploaded_asc" style="text-decoration: none; color: lightgrey">&#11014;</a>
+			<a href="{{.SortRedirect}}&sort=uploaded_desc" style="text-decoration: none; color: lightgrey">&#11015;</a>
+		</td>
+		<td></td>
+	</tr>
+	{{$Folder := .Folder}}
+	{{$Redirect := .Redirect}}
+	{{range .Entries}}
+		<tr>
+			<td>
+				{{.Prefix}}<a href="/x/{{.RelPath}}">{{.Name}}</a>
+				{{if .Public}}[public]{{end}}
+			</td>
+			<td>{{.MIME}}</td>
+			<td>
+				{{range .Tags}}
+					<a href="/x/{{$Folder}}/?tag={{.}}">{{.}}</a>
+				{{end}}
+			</td>
+			<td>{{.SizeStr}}</td>
+			<td>{{.UploadedStr}}</td>
+			<td>
+				{{if .EditMode}}
+					<a href="/edit/{{.RelPath}}/?r={{$Redirect}}">&#9998;</a>
+					<a href="/delete/{{.RelPath}}/?r={{$Redirect}}" onclick="return confirm('Are you sure?')">&#10008;</a>
+				{{end}}
+			</td>
+		</tr>
+	{{end}}
+	{{if not .Entries}}
+		<tr><td colspan="6">No entries</td></tr>
+	{{end}}
+</table>
+<div style="text-align: center">
+	<form method="get">
+		{{if .Search}}
+			<input type="hidden" name="tag" value="{{.Search}}" />
+			<button formaction="/gallery/{{.Folder}}/"{{if not .Gallery}} disabled{{end}}>Gallery</button>
+		{{else}}
+			{{if .EditMode}}
+				<button formaction="/upload/{{.Folder}}">Upload file</button>
+				<button formaction="/download-to-folder/{{.Folder}}">Download file to folder</button>
+				<button formaction="/change-password/{{.Folder}}"{{if not .Configurable}} disabled{{end}}>Change password</button>
+			{{else if .Editable}}
+				<button formaction="/write-auth/{{.Folder}}">Edit mode</button>
+			{{end}}
+			<button formaction="/gallery/{{.Folder}}"{{if not .Gallery}} disabled{{end}}>Gallery</button>
+		{{end}}
+	</form>
+</div>

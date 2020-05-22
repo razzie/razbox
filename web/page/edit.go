@@ -1,4 +1,4 @@
-package main
+package page
 
 import (
 	"fmt"
@@ -9,7 +9,8 @@ import (
 	"strings"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/web/page/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -23,38 +24,16 @@ type editPageView struct {
 	Thumb    bool
 }
 
-var editPageT = `
-{{if .Error}}
-<strong style="color: red">{{.Error}}</strong><br /><br />
-{{end}}
-<div style="float: left; margin: 1rem">
-	<form method="post">
-		<input type="text" name="filename" value="{{.Filename}}" placeholder="Filename" /><br />
-		<input type="text" name="tags" value="{{.Tags}}" placeholder="Tags (space separated)" /><br />
-		<input type="checkbox" name="public" value="public"{{if .Public}} checked{{end}}>
-		<label for="public">Public</label><br />
-		<button>Save</button>
-	</form>
-</div>
-<div style="float: right; margin: 1rem; text-align: right">
-	{{if .Thumb}}
-		<img src="/thumb/{{.Folder}}/{{.Filename}}" style="max-width: 250px; max-height: 500px; border-radius: 15px" />
-		<br />
-	{{end}}
-	<a href="{{.Redirect}}">Go back &#10548;</a>
-</div>
-`
-
-func editPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func editPageHandler(db *lib.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	filename := r.URL.Path[6:] // skip /edit/
-	filename = razbox.RemoveTrailingSlash(filename)
+	filename = lib.RemoveTrailingSlash(filename)
 	dir := path.Dir(filename)
 	redirect := r.URL.Query().Get("r")
 	if len(redirect) == 0 {
 		redirect = "/x/" + dir
 	}
 
-	var folder *razbox.Folder
+	var folder *lib.Folder
 	var err error
 	cached := true
 
@@ -63,7 +42,7 @@ func editPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razl
 	}
 	if folder == nil {
 		cached = false
-		folder, err = razbox.GetFolder(dir)
+		folder, err = lib.GetFolder(dir)
 		if err != nil {
 			log.Println(dir, "error:", err.Error())
 			return razlink.ErrorView(r, "Folder not found", http.StatusNotFound)
@@ -138,11 +117,11 @@ func editPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razl
 	return view(v, &title)
 }
 
-// GetEditPage returns a razlink.Page that handles edits
-func GetEditPage(db *razbox.DB) *razlink.Page {
+// Edit returns a razlink.Page that handles edits
+func Edit(db *lib.DB) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/edit/",
-		ContentTemplate: editPageT,
+		ContentTemplate: internal.GetContentTemplate("edit"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return editPageHandler(db, r, view)
 		},

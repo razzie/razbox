@@ -1,4 +1,4 @@
-package main
+package page
 
 import (
 	"fmt"
@@ -9,7 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/web/page/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -19,30 +20,12 @@ type textPageView struct {
 	Text     string
 }
 
-var textPageT = `
-<div style="clear: both">
-	<div style="float: right">
-		<a href="/text/{{.Folder}}/{{.Filename}}?download">&#8681; Download raw</a> |
-		<a href="/x/{{.Folder}}">Go back &#10548;</a>
-	</div>
-</div>
-<div style="max-width: 90vw">
-	<pre><code>{{.Text}}</code></pre>
-</div>
-<script>
-document.querySelectorAll('pre code').forEach((block) => {
-	hljs.highlightBlock(block);
-	hljs.lineNumbersBlock(block);
-});
-</script>
-`
-
-func textPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func textPageHandler(db *lib.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	filename := r.URL.Path[6:] // skip /text/
-	filename = razbox.RemoveTrailingSlash(filename)
+	filename = lib.RemoveTrailingSlash(filename)
 	dir := path.Dir(filename)
 
-	var folder *razbox.Folder
+	var folder *lib.Folder
 	var err error
 	folderCached := true
 
@@ -51,7 +34,7 @@ func textPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razl
 	}
 	if folder == nil {
 		folderCached = false
-		folder, err = razbox.GetFolder(dir)
+		folder, err = lib.GetFolder(dir)
 		if err != nil {
 			log.Println(dir, "error:", err.Error())
 			return razlink.ErrorView(r, "Folder not found", http.StatusNotFound)
@@ -110,11 +93,11 @@ func textPageHandler(db *razbox.DB, r *http.Request, view razlink.ViewFunc) razl
 	return view(v, &filename)
 }
 
-// GetTextPage returns a razlink.Page that visualizes text files
-func GetTextPage(db *razbox.DB) *razlink.Page {
+// Text returns a razlink.Page that visualizes text files
+func Text(db *lib.DB) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/text/",
-		ContentTemplate: textPageT,
+		ContentTemplate: internal.GetContentTemplate("text"),
 		Stylesheets: []string{
 			"/static/highlight.tomorrow.min.css",
 			"/static/highlightjs-line-numbers.css",

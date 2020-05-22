@@ -1,11 +1,12 @@
-package main
+package page
 
 import (
 	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/web/page/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -17,29 +18,11 @@ type authPageView struct {
 	Redirect      string
 }
 
-var authPageT = `
-{{if .Error}}
-<strong style="color: red">{{.Error}}</strong><br /><br />
-{{end}}
-<p>
-	<strong>{{.Folder}}</strong><br />
-	Enter password for <strong>{{.AccessType}}</strong> access:
-</p>
-<form method="post">
-	<input type="password" name="{{.PwFieldPrefix}}-password" placeholder="Password" /><br />
-	<input type="hidden" name="redirect" value="{{.Redirect}}" />
-	<button>Enter</button>
-</form>
-<div style="float: right">
-	<a href="{{.Redirect}}">Go back &#10548;</a>
-</div>
-`
-
-func authPageHandler(db *razbox.DB, accessType string, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func authPageHandler(db *lib.DB, accessType string, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[7+len(accessType):] // skip /[accessType]-auth/
-	uri = razbox.RemoveTrailingSlash(uri)
+	uri = lib.RemoveTrailingSlash(uri)
 
-	pwPrefix := fmt.Sprintf("%s-%s", accessType, razbox.FilenameToUUID(uri))
+	pwPrefix := fmt.Sprintf("%s-%s", accessType, lib.FilenameToUUID(uri))
 	v := &authPageView{
 		Folder:        uri,
 		PwFieldPrefix: pwPrefix,
@@ -51,7 +34,7 @@ func authPageHandler(db *razbox.DB, accessType string, r *http.Request, view raz
 	}
 
 	if r.Method == "POST" {
-		var folder *razbox.Folder
+		var folder *lib.Folder
 		var err error
 		cached := true
 
@@ -60,7 +43,7 @@ func authPageHandler(db *razbox.DB, accessType string, r *http.Request, view raz
 		}
 		if folder == nil {
 			cached = false
-			folder, err = razbox.GetFolder(uri)
+			folder, err = lib.GetFolder(uri)
 			if err != nil {
 				log.Println(uri, "error:", err.Error())
 				return razlink.ErrorView(r, "Folder not found", http.StatusNotFound)
@@ -86,22 +69,22 @@ func authPageHandler(db *razbox.DB, accessType string, r *http.Request, view raz
 	return view(v, &uri)
 }
 
-// GetReadAuthPage returns a razlink.Page that handles authentication for read access
-func GetReadAuthPage(db *razbox.DB) *razlink.Page {
+// ReadAuth returns a razlink.Page that handles authentication for read access
+func ReadAuth(db *lib.DB) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/read-auth/",
-		ContentTemplate: authPageT,
+		ContentTemplate: internal.GetContentTemplate("auth"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return authPageHandler(db, "read", r, view)
 		},
 	}
 }
 
-// GetWriteAuthPage returns a razlink.Page that handles authentication for read access
-func GetWriteAuthPage(db *razbox.DB) *razlink.Page {
+// WriteAuth returns a razlink.Page that handles authentication for read access
+func WriteAuth(db *lib.DB) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/write-auth/",
-		ContentTemplate: authPageT,
+		ContentTemplate: internal.GetContentTemplate("auth"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return authPageHandler(db, "write", r, view)
 		},
