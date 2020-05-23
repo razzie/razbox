@@ -7,7 +7,7 @@ services:
       - "8080"
     volumes:
       - .:/app
-	    - ./uploads:/uploads
+      - ./uploads:/uploads
     working_dir: /app
     environment:
       - VIRTUAL_HOST=download.gorzsony.com
