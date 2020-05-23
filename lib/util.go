@@ -73,8 +73,8 @@ func ByteCountIEC(b int64) string {
 }
 
 // IsFolder returns whether a relative path is a folder
-func IsFolder(dir string) bool {
-	fi, err := os.Stat(path.Join(Root, dir))
+func IsFolder(root, relPath string) bool {
+	fi, err := os.Stat(path.Join(root, relPath))
 	if err != nil {
 		return false
 	}

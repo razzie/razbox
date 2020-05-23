@@ -4,90 +4,41 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"path"
-	"path/filepath"
 
-	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/api"
+	"github.com/razzie/razbox/web/page/internal"
 	"github.com/razzie/razlink"
 )
 
-func thumbnailPageHandler(db *lib.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func thumbnailPageHandler(a *api.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	filename := r.URL.Path[7:] // skip /thumb/
-	filename = lib.RemoveTrailingSlash(filename)
-	dir := path.Dir(filename)
+	filename = internal.RemoveTrailingSlash(filename)
 
-	var folder *lib.Folder
-	var err error
-	folderCached := true
-
-	if db != nil {
-		folder, _ = db.GetCachedFolder(dir)
-	}
-	if folder == nil {
-		folderCached = false
-		folder, err = lib.GetFolder(dir)
-		if err != nil {
-			log.Println(dir, "error:", err.Error())
-			return razlink.ErrorView(r, "Folder not found", http.StatusNotFound)
-		}
-	}
-
-	if db != nil && !folderCached {
-		defer db.CacheFolder(folder)
-	}
-
-	err = folder.EnsureReadAccess(r)
+	token := a.AccessTokenFromCookies(r.Cookies())
+	thumb, err := a.GetFileThumbnail(token, filename)
 	if err != nil {
-		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", dir, r.URL.RequestURI()))
-	}
-
-	basename := filepath.Base(filename)
-	file, err := folder.GetFile(basename)
-	if err != nil {
-		log.Println(filename, "error:", err.Error())
-		return razlink.ErrorView(r, "File not found", http.StatusNotFound)
-	}
-
-	if !lib.IsThumbnailSupported(file.MIME) {
-		return razlink.ErrorView(r, "Unsupported format: "+file.MIME, http.StatusInternalServerError)
-	}
-
-	var thumb *lib.Thumbnail
-	thumbCached := true
-
-	if db != nil {
-		thumb, _ = db.GetCachedThumbnail(filename)
-	}
-	if thumb == nil {
-		thumbCached = false
-		reader, err := file.Open()
-		if err != nil {
-			log.Println(filename, "error:", err.Error())
-			return razlink.ErrorView(r, "Could not open file", http.StatusInternalServerError)
-		}
-		defer reader.Close()
-		thumb, err = lib.GetThumbnail(reader, file.MIME)
-		if err != nil {
-			log.Println(filename, "error:", err.Error())
-			return razlink.RedirectView(r, "/x/"+filename)
+		//return internal.HandleError(r, err)
+		switch err := err.(type) {
+		case *api.ErrNoReadAccess:
+			return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", err.Folder, r.URL.RequestURI()))
+		default:
+			log.Println(filename, ":", err)
 		}
 	}
 
-	if db != nil && !thumbCached {
-		defer db.CacheThumbnail(filename, thumb)
+	if thumb == nil || len(thumb.Data) == 0 {
+		return razlink.RedirectView(r, "/x/"+filename)
 	}
 
-	return func(w http.ResponseWriter) {
-		thumb.ServeHTTP(w, r)
-	}
+	return internal.ServeThumbnail(thumb)
 }
 
 // Thumbnail returns a razlink.Page that handles image file thumbnails
-func Thumbnail(db *lib.DB) *razlink.Page {
+func Thumbnail(api *api.API) *razlink.Page {
 	return &razlink.Page{
 		Path: "/thumb/",
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return thumbnailPageHandler(db, r, view)
+			return thumbnailPageHandler(api, r, view)
 		},
 	}
 }

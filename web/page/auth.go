@@ -2,9 +2,9 @@ package page
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
+	"github.com/razzie/razbox/api"
 	"github.com/razzie/razbox/lib"
 	"github.com/razzie/razbox/web/page/internal"
 	"github.com/razzie/razlink"
@@ -18,7 +18,7 @@ type authPageView struct {
 	Redirect      string
 }
 
-func authPageHandler(db *lib.DB, accessType string, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func authPageHandler(api *api.API, accessType string, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[7+len(accessType):] // skip /[accessType]-auth/
 	uri = lib.RemoveTrailingSlash(uri)
 
@@ -34,59 +34,40 @@ func authPageHandler(db *lib.DB, accessType string, r *http.Request, view razlin
 	}
 
 	if r.Method == "POST" {
-		var folder *lib.Folder
-		var err error
-		cached := true
-
-		if db != nil {
-			folder, _ = db.GetCachedFolder(uri)
-		}
-		if folder == nil {
-			cached = false
-			folder, err = lib.GetFolder(uri)
-			if err != nil {
-				log.Println(uri, "error:", err.Error())
-				return razlink.ErrorView(r, "Folder not found", http.StatusNotFound)
-			}
-		}
-
-		if db != nil && !cached {
-			defer db.CacheFolder(folder)
-		}
-
 		r.ParseForm()
 		pw := r.FormValue(pwPrefix + "-password")
 		v.Redirect = r.FormValue("redirect")
 
-		if folder.TestPassword(accessType, pw) {
-			cookie := folder.GetCookie(accessType)
-			return razlink.CookieAndRedirectView(r, cookie, v.Redirect)
+		a, err := api.Auth(uri, accessType, pw)
+		if err != nil {
+			v.Error = err.Error()
+			return view(v, &uri)
 		}
 
-		v.Error = "Wrong password!"
+		return razlink.CookieAndRedirectView(r, a.ToCookie(), v.Redirect)
 	}
 
 	return view(v, &uri)
 }
 
 // ReadAuth returns a razlink.Page that handles authentication for read access
-func ReadAuth(db *lib.DB) *razlink.Page {
+func ReadAuth(api *api.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/read-auth/",
 		ContentTemplate: internal.GetContentTemplate("auth"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return authPageHandler(db, "read", r, view)
+			return authPageHandler(api, "read", r, view)
 		},
 	}
 }
 
 // WriteAuth returns a razlink.Page that handles authentication for read access
-func WriteAuth(db *lib.DB) *razlink.Page {
+func WriteAuth(api *api.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/write-auth/",
 		ContentTemplate: internal.GetContentTemplate("auth"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return authPageHandler(db, "write", r, view)
+			return authPageHandler(api, "write", r, view)
 		},
 	}
 }

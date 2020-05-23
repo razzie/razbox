@@ -2,16 +2,10 @@ package page
 
 import (
 	"fmt"
-	"io"
-	"log"
-	"mime"
 	"net/http"
-	"path"
 	"strings"
-	"time"
 
-	"github.com/asaskevich/govalidator"
-	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/api"
 	"github.com/razzie/razbox/web/page/internal"
 	"github.com/razzie/razlink"
 )
@@ -22,118 +16,41 @@ type downloadPageView struct {
 	MaxFileSize string
 }
 
-type limitedReader struct {
-	r io.Reader
-	n int64
-}
-
-func (r *limitedReader) Read(p []byte) (n int, err error) {
-	if int64(len(p)) > r.n {
-		p = p[:r.n]
-	}
-	n, err = r.r.Read(p)
-	r.n -= int64(n)
-	if r.n == 0 && err == nil {
-		err = fmt.Errorf("limit exceeded")
-	}
-	return
-}
-
-func getResponseFilename(resp *http.Response) string {
-	contentDisposition := resp.Header.Get("Content-Disposition")
-	if len(contentDisposition) > 0 {
-		_, params, _ := mime.ParseMediaType(contentDisposition)
-		filename := govalidator.SafeFileName(params["filename"])
-		if len(filename) > 0 && filename != "." {
-			return filename
-		}
-	}
-	return govalidator.SafeFileName(path.Base(resp.Request.URL.Path))
-}
-
-func downloadPageHandler(db *lib.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func downloadPageHandler(a *api.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[20:] // skip /download-to-folder/
-	uri = lib.RemoveTrailingSlash(uri)
+	uri = internal.RemoveTrailingSlash(uri)
 
-	var folder *lib.Folder
-	var err error
-
-	if db != nil {
-		folder, _ = db.GetCachedFolder(uri)
-	}
-	if folder == nil {
-		folder, err = lib.GetFolder(uri)
-		if err != nil {
-			log.Println(uri, "error:", err.Error())
-			return razlink.ErrorView(r, "Not found", http.StatusNotFound)
-		}
-	}
-
-	err = folder.EnsureWriteAccess(r)
+	token := a.AccessTokenFromCookies(r.Cookies())
+	flags, err := a.GetFolderFlags(token, uri)
 	if err != nil {
+		return internal.HandleError(r, err)
+	}
+
+	if !flags.EditMode {
 		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", uri, r.URL.RequestURI()))
 	}
 
 	title := "Download file to " + uri
 	v := &uploadPageView{
 		Folder:      uri,
-		MaxFileSize: fmt.Sprintf("%dMB", folder.MaxFileSizeMB),
+		MaxFileSize: fmt.Sprintf("%dMB", flags.MaxFileSizeMB),
 	}
 
 	if r.Method == "POST" {
 		r.ParseForm()
-		url := r.FormValue("url")
 
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			v.Error = err.Error()
-			return view(v, &title)
-		}
-		resp, err := http.DefaultClient.Do(req.WithContext(r.Context()))
-		if err != nil {
-			v.Error = err.Error()
-			return view(v, &title)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-			v.Error = "bad response status code: " + http.StatusText(resp.StatusCode)
-			return view(v, &title)
-		}
-
-		limit := folder.MaxFileSizeMB << 20
-		data := &limitedReader{
-			r: resp.Body,
-			n: limit,
-		}
-
-		filename := govalidator.SafeFileName(r.FormValue("filename"))
-		if len(filename) == 0 || filename == "." {
-			filename = getResponseFilename(resp)
-			if len(filename) == 0 || filename == "." {
-				filename = lib.Salt()
-			}
-		}
-
-		file := &lib.File{
-			Name:     filename,
-			RelPath:  path.Join(uri, lib.FilenameToUUID(filename)),
+		o := &api.DownloadFileToFolderOptions{
+			Folder:   uri,
+			URL:      r.FormValue("url"),
+			Filename: r.FormValue("filename"),
 			Tags:     strings.Fields(r.FormValue("tags")),
-			Uploaded: time.Now(),
 		}
-		err = file.Create(data, false)
+		err := a.DownloadFileToFolder(token, o)
 		if err != nil {
-			file.Delete()
-
 			v.Error = err.Error()
 			return view(v, &title)
 		}
-		file.FixMimeAndSize()
 
-		if db != nil {
-			folder.CachedFiles = nil
-			db.CacheFolder(folder)
-		}
 		return razlink.RedirectView(r, "/x/"+uri)
 	}
 
@@ -141,12 +58,12 @@ func downloadPageHandler(db *lib.DB, r *http.Request, view razlink.ViewFunc) raz
 }
 
 // Download returns a razlink.Page that handles file downloads from an URL to a folder
-func Download(db *lib.DB) *razlink.Page {
+func Download(api *api.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/download-to-folder/",
 		ContentTemplate: internal.GetContentTemplate("download"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return downloadPageHandler(db, r, view)
+			return downloadPageHandler(api, r, view)
 		},
 	}
 }

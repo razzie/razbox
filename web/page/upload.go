@@ -2,16 +2,10 @@ package page
 
 import (
 	"fmt"
-	"io"
-	"log"
 	"net/http"
-	"path"
 	"strings"
-	"time"
 
-	"github.com/asaskevich/govalidator"
-	"github.com/gabriel-vasile/mimetype"
-	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/api"
 	"github.com/razzie/razbox/web/page/internal"
 	"github.com/razzie/razlink"
 )
@@ -28,43 +22,29 @@ func ajaxErr(err string) razlink.PageView {
 	}
 }
 
-func uploadPageHandler(db *lib.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func uploadPageHandler(a *api.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[8:] // skip /upload/
-	uri = lib.RemoveTrailingSlash(uri)
+	uri = internal.RemoveTrailingSlash(uri)
 	ajax := r.URL.Query().Get("u") == "ajax"
 
-	var folder *lib.Folder
-	var err error
-
-	if db != nil {
-		folder, _ = db.GetCachedFolder(uri)
-	}
-	if folder == nil {
-		folder, err = lib.GetFolder(uri)
-		if err != nil {
-			log.Println(uri, "error:", err.Error())
-			return razlink.ErrorView(r, "Not found", http.StatusNotFound)
-		}
-	}
-
-	err = folder.EnsureReadAccess(r)
+	token := a.AccessTokenFromCookies(r.Cookies())
+	flags, err := a.GetFolderFlags(token, uri)
 	if err != nil {
-		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", uri, r.URL.RequestURI()))
+		return internal.HandleError(r, err)
 	}
 
-	err = folder.EnsureWriteAccess(r)
-	if err != nil {
+	if !flags.EditMode {
 		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", uri, r.URL.RequestURI()))
 	}
 
 	title := "Upload file to " + uri
 	v := &uploadPageView{
 		Folder:      uri,
-		MaxFileSize: fmt.Sprintf("%dMB", folder.MaxFileSizeMB),
+		MaxFileSize: fmt.Sprintf("%dMB", flags.MaxFileSizeMB),
 	}
 
 	if r.Method == "POST" {
-		limit := folder.MaxFileSizeMB << 20
+		limit := flags.MaxFileSizeMB << 20
 		r.ParseMultipartForm(limit)
 		data, handler, err := r.FormFile("file")
 		if err != nil {
@@ -76,38 +56,16 @@ func uploadPageHandler(db *lib.DB, r *http.Request, view razlink.ViewFunc) razli
 		}
 		defer data.Close()
 
-		if handler.Size > limit {
-			if ajax {
-				return ajaxErr("limit exceeded")
-			}
-			v.Error = "limit exceeded"
-			return view(v, &title)
+		o := &api.UploadFileOptions{
+			Folder:    uri,
+			File:      data,
+			Header:    handler,
+			Filename:  r.FormValue("filename"),
+			Tags:      strings.Fields(r.FormValue("tags")),
+			Overwrite: r.FormValue("overwrite") == "overwrite",
 		}
-
-		filename := govalidator.SafeFileName(r.FormValue("filename"))
-		if len(filename) == 0 || filename == "." {
-			filename = govalidator.SafeFileName(handler.Filename)
-			if len(filename) == 0 || filename == "." {
-				filename = lib.Salt()
-			}
-		}
-
-		mime, _ := mimetype.DetectReader(data)
-		data.Seek(0, io.SeekStart)
-
-		overwrite := r.FormValue("overwrite") == "overwrite"
-		file := &lib.File{
-			Name:     filename,
-			RelPath:  path.Join(uri, lib.FilenameToUUID(filename)),
-			Tags:     strings.Fields(r.FormValue("tags")),
-			MIME:     mime.String(),
-			Size:     handler.Size,
-			Uploaded: time.Now(),
-		}
-		err = file.Create(data, overwrite)
+		err = a.UploadFile(token, o)
 		if err != nil {
-			file.Delete()
-
 			if ajax {
 				return ajaxErr(err.Error())
 			}
@@ -115,10 +73,6 @@ func uploadPageHandler(db *lib.DB, r *http.Request, view razlink.ViewFunc) razli
 			return view(v, &title)
 		}
 
-		if db != nil {
-			folder.CachedFiles = nil
-			db.CacheFolder(folder)
-		}
 		return razlink.RedirectView(r, "/x/"+uri)
 	}
 
@@ -126,12 +80,12 @@ func uploadPageHandler(db *lib.DB, r *http.Request, view razlink.ViewFunc) razli
 }
 
 // Upload returns a razlink.Page that handles file uploads
-func Upload(db *lib.DB) *razlink.Page {
+func Upload(api *api.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/upload/",
 		ContentTemplate: internal.GetContentTemplate("upload"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return uploadPageHandler(db, r, view)
+			return uploadPageHandler(api, r, view)
 		},
 	}
 }

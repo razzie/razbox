@@ -5,17 +5,16 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"path"
 	"path/filepath"
-	"time"
 
 	"github.com/nbutton23/zxcvbn-go"
 )
 
 // Folder ...
 type Folder struct {
-	RelPath          string   `json:"rel_path,omitempty"`
+	Root             string   `json:"root"`
+	RelPath          string   `json:"rel_path"`
 	Salt             string   `json:"salt"`
 	ReadPassword     string   `json:"read_pw"`
 	WritePassword    string   `json:"write_pw"`
@@ -26,14 +25,14 @@ type Folder struct {
 }
 
 // GetFolder returns a new Folder from a handle to a .razbox file
-func GetFolder(relPath string) (*Folder, error) {
+func GetFolder(root, relPath string) (*Folder, error) {
 	relPath = RemoveTrailingSlash(relPath)
-	searchPath := filepath.Join(Root, relPath)
+	searchPath := filepath.Join(root, relPath)
 	var data []byte
 	var configInherited bool
 	var configFound bool
 
-	for len(searchPath) >= len(Root) {
+	for len(searchPath) >= len(root) {
 		data, _ = ioutil.ReadFile(filepath.Join(searchPath, ".razbox"))
 		if data != nil {
 			configFound = true
@@ -54,11 +53,12 @@ func GetFolder(relPath string) (*Folder, error) {
 			return nil, err
 		}
 	}
+	folder.Root = root
 	folder.RelPath = relPath
 	folder.ConfigInherited = configInherited
 
-	if folder.MaxFileSizeMB == 0 {
-		folder.MaxFileSizeMB = DefaultMaxFileSizeMB
+	if folder.MaxFileSizeMB < 1 {
+		folder.MaxFileSizeMB = 1
 	}
 
 	return &folder, nil
@@ -74,7 +74,26 @@ func (f *Folder) GetFile(basename string) (*File, error) {
 
 	internalName := FilenameToUUID(basename)
 	filename := path.Join(f.RelPath, internalName)
-	return getFile(filename)
+	return getFile(f.Root, filename)
+}
+
+// CacheFile adds a file to the list of cached files
+func (f *Folder) CacheFile(file *File) {
+	if f.CachedFiles != nil {
+		f.CachedFiles = append(f.CachedFiles, file)
+	}
+}
+
+// UncacheFile removes a file from the list of cached files
+func (f *Folder) UncacheFile(filename string) {
+	for i, cached := range f.CachedFiles {
+		if cached.Name == filename {
+			//f.CachedFiles = append(f.CachedFiles[:i], f.CachedFiles[i+i:]...)
+			f.CachedFiles[len(f.CachedFiles)-1], f.CachedFiles[i] = f.CachedFiles[i], f.CachedFiles[len(f.CachedFiles)-1]
+			f.CachedFiles = f.CachedFiles[:len(f.CachedFiles)-1]
+			return
+		}
+	}
 }
 
 // GetFiles returns the files in the folder
@@ -83,10 +102,10 @@ func (f *Folder) GetFiles() []*File {
 		return f.CachedFiles
 	}
 
-	filenames, _ := filepath.Glob(path.Join(Root, f.RelPath, "????????-????-????-????-????????????.json"))
+	filenames, _ := filepath.Glob(path.Join(f.Root, f.RelPath, "????????-????-????-????-????????????.json"))
 	for _, filename := range filenames {
-		filename = filename[len(Root)+1:]
-		file, err := getFile(filename[:len(filename)-5]) // - .json
+		filename = filename[len(f.Root)+1:]
+		file, err := getFile(f.Root, filename[:len(filename)-5]) // - .json
 		if err != nil {
 			log.Print("GetFile error:", err)
 			continue
@@ -107,7 +126,7 @@ func (f *Folder) GetSubfolders() []string {
 		return f.CachedSubfolders
 	}
 
-	files, _ := ioutil.ReadDir(path.Join(Root, f.RelPath))
+	files, _ := ioutil.ReadDir(path.Join(f.Root, f.RelPath))
 	for _, fi := range files {
 		if fi.IsDir() {
 			f.CachedSubfolders = append(f.CachedSubfolders, fi.Name())
@@ -196,51 +215,44 @@ func (f *Folder) save() error {
 		MaxFileSizeMB: f.MaxFileSizeMB,
 	}
 	data, _ := json.MarshalIndent(&tmp, "", "  ")
-	return ioutil.WriteFile(path.Join(Root, f.RelPath, ".razbox"), data, 0755)
+	return ioutil.WriteFile(path.Join(f.Root, f.RelPath, ".razbox"), data, 0755)
 }
 
-// EnsureReadAccess returns an error if the request doesn't contain a cookie with valid read access
-func (f *Folder) EnsureReadAccess(r *http.Request) error {
+// EnsureReadAccess returns an error if the access token doesn't permit read access
+func (f *Folder) EnsureReadAccess(token *AccessToken) error {
 	if len(f.ReadPassword) == 0 {
 		return nil
 	}
 
-	cookieName := "read-" + FilenameToUUID(f.RelPath)
-	cookie, err := r.Cookie(cookieName)
-	if err != nil {
-		return err
-	}
-
-	if cookie.Value != f.ReadPassword {
-		fmt.Println(cookie.Value, f.ReadPassword)
+	pw, _ := token.Read[FilenameToUUID(f.RelPath)]
+	if pw != f.ReadPassword {
 		return fmt.Errorf("incorrect read password")
 	}
 
 	return nil
 }
 
-// EnsureWriteAccess returns an error if the request doesn't contain a cookie with valid write access
-func (f *Folder) EnsureWriteAccess(r *http.Request) error {
-	cookieName := "write-" + FilenameToUUID(f.RelPath)
-	cookie, err := r.Cookie(cookieName)
-	if err != nil {
-		return err
+// EnsureWriteAccess returns an error if the access token doesn't permit write access
+func (f *Folder) EnsureWriteAccess(token *AccessToken) error {
+	if len(f.WritePassword) == 0 {
+		return fmt.Errorf("folder not writable")
 	}
 
-	if cookie.Value != f.WritePassword {
+	pw, _ := token.Write[FilenameToUUID(f.RelPath)]
+	if pw != f.WritePassword {
 		return fmt.Errorf("incorrect write password")
 	}
 
 	return nil
 }
 
-// EnsureAccess returns an error if the request doesn't contain a valid cookie for the given access type
-func (f *Folder) EnsureAccess(accessType string, r *http.Request) error {
+// EnsureAccess returns an error if the access token doesn't permit access for the given access type
+func (f *Folder) EnsureAccess(accessType string, token *AccessToken) error {
 	switch accessType {
 	case "read":
-		return f.EnsureReadAccess(r)
+		return f.EnsureReadAccess(token)
 	case "write":
-		return f.EnsureWriteAccess(r)
+		return f.EnsureWriteAccess(token)
 	default:
 		return fmt.Errorf("invalid access type: %s", accessType)
 	}
@@ -273,27 +285,37 @@ func (f *Folder) TestPassword(accessType, pw string) bool {
 }
 
 // GetPasswordHash returns the password hash of the given access type
-func (f *Folder) GetPasswordHash(accessType string) string {
+func (f *Folder) GetPasswordHash(accessType string) (string, error) {
 	switch accessType {
 	case "read":
-		return f.ReadPassword
+		return f.ReadPassword, nil
 	case "write":
-		return f.WritePassword
+		return f.WritePassword, nil
 	default:
-		log.Print("invalid access type:", accessType)
-		return ""
+		return "", fmt.Errorf("invalid access type: %s", accessType)
 	}
 }
 
-// GetCookie returns a cookie that permits access of the given access type
-func (f *Folder) GetCookie(accessType string) *http.Cookie {
-	cookie := &http.Cookie{
-		Name:  fmt.Sprintf("%s-%s", accessType, FilenameToUUID(f.RelPath)),
-		Value: f.GetPasswordHash(accessType),
-		Path:  "/",
+// GetAccessToken returns an access token that permits access of the given access type
+func (f *Folder) GetAccessToken(accessType string) (*AccessToken, error) {
+	switch accessType {
+	case "read":
+		pw, _ := f.GetPasswordHash(accessType)
+		return &AccessToken{
+			Read: map[string]string{
+				FilenameToUUID(f.RelPath): pw,
+			},
+		}, nil
+
+	case "write":
+		pw, _ := f.GetPasswordHash(accessType)
+		return &AccessToken{
+			Write: map[string]string{
+				FilenameToUUID(f.RelPath): pw,
+			},
+		}, nil
+
+	default:
+		return nil, fmt.Errorf("invalid access type: %s", accessType)
 	}
-	if accessType == "read" {
-		cookie.Expires = time.Now().Add(time.Hour * 24 * 7)
-	}
-	return cookie
 }

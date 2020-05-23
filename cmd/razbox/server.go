@@ -3,29 +3,29 @@ package main
 import (
 	"encoding/base64"
 
-	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/api"
 	"github.com/razzie/razbox/web/page"
 	"github.com/razzie/razlink"
 )
 
 // NewServer ...
-func NewServer(db *lib.DB) *razlink.Server {
+func NewServer(api *api.API, defaultFolder string) *razlink.Server {
 	srv := razlink.NewServer()
 	srv.FaviconPNG = favicon
 	srv.AddPages(
 		page.Static(),
-		page.Welcome(DefaultFolder),
-		page.Folder(db),
-		page.ReadAuth(db),
-		page.WriteAuth(db),
-		page.Upload(db),
-		page.Download(db),
-		page.Edit(db),
-		page.Delete(db),
-		page.Password(db),
-		page.Gallery(db),
-		page.Thumbnail(db),
-		page.Text(db),
+		page.Welcome(defaultFolder),
+		page.Folder(api),
+		page.ReadAuth(api),
+		page.WriteAuth(api),
+		page.Upload(api),
+		page.Download(api),
+		page.Edit(api),
+		page.Delete(api),
+		page.Password(api),
+		page.Gallery(api),
+		page.Thumbnail(api),
+		page.Text(api),
 	)
 	return srv
 }

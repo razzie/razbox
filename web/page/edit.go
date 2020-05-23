@@ -2,14 +2,11 @@ package page
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"path"
-	"path/filepath"
 	"strings"
 
-	"github.com/asaskevich/govalidator"
-	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/api"
 	"github.com/razzie/razbox/web/page/internal"
 	"github.com/razzie/razlink"
 )
@@ -24,93 +21,51 @@ type editPageView struct {
 	Thumb    bool
 }
 
-func editPageHandler(db *lib.DB, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func editPageHandler(a *api.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	filename := r.URL.Path[6:] // skip /edit/
-	filename = lib.RemoveTrailingSlash(filename)
+	filename = internal.RemoveTrailingSlash(filename)
 	dir := path.Dir(filename)
 	redirect := r.URL.Query().Get("r")
 	if len(redirect) == 0 {
 		redirect = "/x/" + dir
 	}
 
-	var folder *lib.Folder
-	var err error
-	cached := true
-
-	if db != nil {
-		folder, _ = db.GetCachedFolder(dir)
-	}
-	if folder == nil {
-		cached = false
-		folder, err = lib.GetFolder(dir)
-		if err != nil {
-			log.Println(dir, "error:", err.Error())
-			return razlink.ErrorView(r, "Folder not found", http.StatusNotFound)
-		}
-	}
-
-	if db != nil && !cached {
-		defer db.CacheFolder(folder)
-	}
-
-	err = folder.EnsureReadAccess(r)
+	token := a.AccessTokenFromCookies(r.Cookies())
+	entry, _, err := a.GetFolderEntries(token, filename)
 	if err != nil {
-		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", dir, r.URL.RequestURI()))
+		return internal.HandleError(r, err)
 	}
 
-	err = folder.EnsureWriteAccess(r)
-	if err != nil {
+	if !entry[0].EditMode {
 		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()))
-	}
-
-	basename := filepath.Base(filename)
-	file, err := folder.GetFile(basename)
-	if err != nil {
-		log.Println(filename, "error:", err.Error())
-		return razlink.ErrorView(r, "File not found", http.StatusNotFound)
 	}
 
 	v := &editPageView{
 		Folder:   dir,
-		Filename: basename,
-		Tags:     strings.Join(file.Tags, " "),
-		Public:   file.Public,
+		Filename: entry[0].Name,
+		Tags:     strings.Join(entry[0].Tags, " "),
+		Public:   entry[0].Public,
 		Redirect: redirect,
-		Thumb:    strings.HasPrefix(file.MIME, "image/"),
+		Thumb:    strings.HasPrefix(entry[0].MIME, "image/"),
 	}
 	title := "Edit " + filename
 
 	if r.Method == "POST" {
 		r.ParseForm()
-		newName := govalidator.SafeFileName(r.FormValue("filename"))
-		newTags := r.FormValue("tags")
-		public := r.FormValue("public") == "public"
 
-		if newTags != v.Tags || public != file.Public {
-			file.Tags = strings.Fields(newTags)
-			file.Public = public
-			err := file.Save()
-			if err != nil {
-				v.Error = err.Error()
-				return view(v, &title)
-			}
+		o := &api.EditFileOptions{
+			Folder:           dir,
+			OriginalFilename: entry[0].Name,
+			NewFilename:      r.FormValue("filename"),
+			Tags:             strings.Fields(r.FormValue("tags")),
+			Public:           r.FormValue("public") == "public",
 		}
-
-		if newName == "." {
-			v.Error = "Invalid filename"
+		err := a.EditFile(token, o)
+		if err != nil {
+			v.Error = err.Error()
 			return view(v, &title)
 		}
 
-		if newName != basename {
-			newPath := path.Join(dir, newName)
-			err := file.Move(newPath)
-			if err != nil {
-				v.Error = err.Error()
-				return view(v, &title)
-			}
-		}
-
-		folder.CachedFiles = nil
 		return razlink.RedirectView(r, redirect)
 	}
 
@@ -118,12 +73,12 @@ func editPageHandler(db *lib.DB, r *http.Request, view razlink.ViewFunc) razlink
 }
 
 // Edit returns a razlink.Page that handles edits
-func Edit(db *lib.DB) *razlink.Page {
+func Edit(api *api.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/edit/",
 		ContentTemplate: internal.GetContentTemplate("edit"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return editPageHandler(db, r, view)
+			return editPageHandler(api, r, view)
 		},
 	}
 }

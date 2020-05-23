@@ -15,6 +15,8 @@ import (
 )
 
 var (
+	// Root is the root directory of folders
+	Root string
 	// SourceFiles marks the source file(s) to be copied to the target folder
 	SourceFiles string
 	// TargetFolder is the target/destination folder for the file
@@ -25,12 +27,15 @@ var (
 	Move bool
 )
 
-func main() {
-	flag.StringVar(&lib.Root, "root", "./uploads", "Root directory of folders")
+func init() {
+	flag.StringVar(&Root, "root", "./uploads", "Root directory of folders")
 	flag.StringVar(&SourceFiles, "file", "", "Source file(s) to be copied to the target folder - supports patterns")
 	flag.StringVar(&TargetFolder, "folder", "", "Relative path of target/destination folder for the file")
 	flag.StringVar(&Tags, "tags", "", "Search tags for the file (space separated)")
 	flag.BoolVar(&Move, "move", false, "Remove original file(s)")
+}
+
+func main() {
 	flag.Parse()
 
 	if len(SourceFiles) == 0 {

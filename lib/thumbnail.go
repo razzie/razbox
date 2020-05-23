@@ -8,9 +8,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
-	"net/http"
 	"os/exec"
-	"strconv"
 	"strings"
 
 	"github.com/nfnt/resize"
@@ -34,12 +32,6 @@ type Thumbnail struct {
 	Data   []byte          `json:"data"`
 	MIME   string          `json:"mime"`
 	Bounds image.Rectangle `json:"bounds"`
-}
-
-func (t Thumbnail) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", t.MIME)
-	w.Header().Set("Content-Length", strconv.Itoa(len(t.Data)))
-	w.Write(t.Data)
 }
 
 // IsThumbnailSupported returns whether thumbnails can be created for the specified mime type

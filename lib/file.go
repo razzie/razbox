@@ -5,27 +5,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gabriel-vasile/mimetype"
 )
-
-// File ...
-type File struct {
-	Name     string    `json:"name"`
-	RelPath  string    `json:"rel_path,omitempty"`
-	Tags     []string  `json:"tags"`
-	MIME     string    `json:"mime"`
-	Size     int64     `json:"size"`
-	Uploaded time.Time `json:"uploaded"`
-	Public   bool      `json:"public"`
-}
 
 // FileReader ...
 type FileReader interface {
@@ -35,12 +21,25 @@ type FileReader interface {
 	Stat() (os.FileInfo, error)
 }
 
-func getFile(relPath string) (*File, error) {
+// File ...
+type File struct {
+	Name     string    `json:"name"`
+	Root     string    `json:"root"`
+	RelPath  string    `json:"rel_path"`
+	Tags     []string  `json:"tags"`
+	MIME     string    `json:"mime"`
+	Size     int64     `json:"size"`
+	Uploaded time.Time `json:"uploaded"`
+	Public   bool      `json:"public"`
+}
+
+func getFile(root, relPath string) (*File, error) {
 	file := &File{
+		Root:    root,
 		RelPath: relPath,
 	}
 
-	data, err := ioutil.ReadFile(path.Join(Root, relPath+".json"))
+	data, err := ioutil.ReadFile(path.Join(root, relPath+".json"))
 	if err != nil {
 		return nil, err
 	}
@@ -50,18 +49,18 @@ func getFile(relPath string) (*File, error) {
 
 // Open ...
 func (f *File) Open() (FileReader, error) {
-	return os.Open(path.Join(Root, f.RelPath+".bin"))
+	return os.Open(path.Join(f.Root, f.RelPath+".bin"))
 }
 
 // Save ...
 func (f *File) Save() error {
 	data, _ := json.MarshalIndent(f, "", "  ")
-	return ioutil.WriteFile(path.Join(Root, f.RelPath+".json"), data, 0755)
+	return ioutil.WriteFile(path.Join(f.Root, f.RelPath+".json"), data, 0755)
 }
 
 // Create ...
 func (f *File) Create(content io.Reader, overwrite bool) error {
-	jsonFilename := path.Join(Root, f.RelPath+".json")
+	jsonFilename := path.Join(f.Root, f.RelPath+".json")
 	if _, err := os.Stat(jsonFilename); os.IsNotExist(err) || overwrite {
 		data, _ := json.MarshalIndent(f, "", "  ")
 		err := ioutil.WriteFile(jsonFilename, data, 0755)
@@ -73,7 +72,7 @@ func (f *File) Create(content io.Reader, overwrite bool) error {
 	}
 
 	if content != nil {
-		file, err := os.Create(path.Join(Root, f.RelPath+".bin"))
+		file, err := os.Create(path.Join(f.Root, f.RelPath+".bin"))
 		if err != nil {
 			return err
 		}
@@ -104,24 +103,24 @@ func (f *File) Move(relPath string) error {
 	}
 
 	err = os.Rename(
-		path.Join(Root, oldRelPath+".bin"),
-		path.Join(Root, f.RelPath+".bin"),
+		path.Join(f.Root, oldRelPath+".bin"),
+		path.Join(f.Root, f.RelPath+".bin"),
 	)
 	if err != nil {
-		_ = os.Remove(path.Join(Root, f.RelPath+".json"))
+		_ = os.Remove(path.Join(f.Root, f.RelPath+".json"))
 		f.Name = oldName
 		f.RelPath = oldRelPath
 		return err
 	}
 
-	_ = os.Remove(path.Join(Root, oldRelPath+".json"))
+	_ = os.Remove(path.Join(f.Root, oldRelPath+".json"))
 	return nil
 }
 
 // Delete ...
 func (f *File) Delete() error {
-	_ = os.Remove(path.Join(Root, f.RelPath+".json"))
-	return os.Remove(path.Join(Root, f.RelPath+".bin"))
+	_ = os.Remove(path.Join(f.Root, f.RelPath+".json"))
+	return os.Remove(path.Join(f.Root, f.RelPath+".bin"))
 }
 
 // HasTag ...
@@ -152,113 +151,4 @@ func (f *File) FixMimeAndSize() error {
 	f.MIME = mime.String()
 
 	return f.Save()
-}
-
-// credit: https://github.com/rb-de0/go-mp4-stream/
-func (f *File) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	const BUFSIZE = 1024 * 8
-
-	file, err := os.Open(path.Join(Root, f.RelPath+".bin"))
-	if err != nil {
-		w.WriteHeader(500)
-		return
-	}
-	defer file.Close()
-
-	fi, err := file.Stat()
-	if err != nil {
-		w.WriteHeader(500)
-		return
-	}
-
-	fileSize := int(fi.Size())
-
-	if len(r.Header.Get("Range")) == 0 {
-		contentLength := strconv.Itoa(fileSize)
-		contentEnd := strconv.Itoa(fileSize - 1)
-
-		w.Header().Set("Content-Type", f.MIME)
-		w.Header().Set("Accept-Ranges", "bytes")
-		w.Header().Set("Content-Length", contentLength)
-		w.Header().Set("Content-Range", "bytes 0-"+contentEnd+"/"+contentLength)
-		w.WriteHeader(200)
-
-		buffer := make([]byte, BUFSIZE)
-
-		for {
-			n, err := file.Read(buffer)
-			if n == 0 {
-				break
-			}
-			if err != nil {
-				break
-			}
-
-			data := buffer[:n]
-			w.Write(data)
-			w.(http.Flusher).Flush()
-		}
-	} else {
-		rangeParam := strings.Split(r.Header.Get("Range"), "=")[1]
-		splitParams := strings.Split(rangeParam, "-")
-
-		// response values
-		contentStartValue := 0
-		contentStart := strconv.Itoa(contentStartValue)
-		contentEndValue := fileSize - 1
-		contentEnd := strconv.Itoa(contentEndValue)
-		contentSize := strconv.Itoa(fileSize)
-
-		if len(splitParams) > 0 {
-			contentStartValue, err = strconv.Atoi(splitParams[0])
-			if err != nil {
-				contentStartValue = 0
-			}
-			contentStart = strconv.Itoa(contentStartValue)
-		}
-
-		if len(splitParams) > 1 {
-			contentEndValue, err = strconv.Atoi(splitParams[1])
-			if err != nil {
-				contentEndValue = fileSize - 1
-			}
-			contentEnd = strconv.Itoa(contentEndValue)
-		}
-
-		contentLength := strconv.Itoa(contentEndValue - contentStartValue + 1)
-
-		w.Header().Set("Content-Type", f.MIME)
-		w.Header().Set("Accept-Ranges", "bytes")
-		w.Header().Set("Content-Length", contentLength)
-		w.Header().Set("Content-Range", "bytes "+contentStart+"-"+contentEnd+"/"+contentSize)
-		w.WriteHeader(206)
-
-		buffer := make([]byte, BUFSIZE)
-
-		file.Seek(int64(contentStartValue), 0)
-
-		writeBytes := 0
-
-		for {
-			n, err := file.Read(buffer)
-			writeBytes += n
-			if n == 0 {
-				break
-			}
-			if err != nil {
-				break
-			}
-
-			if writeBytes >= contentEndValue {
-				data := buffer[:BUFSIZE-writeBytes+contentEndValue+1]
-				w.Write(data)
-				w.(http.Flusher).Flush()
-				break
-			}
-
-			data := buffer[:n]
-			w.Write(data)
-			w.(http.Flusher).Flush()
-		}
-	}
 }
