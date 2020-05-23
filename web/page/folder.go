@@ -4,15 +4,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/razzie/razbox/api"
-	"github.com/razzie/razbox/web/page/internal"
+	"github.com/razzie/razbox"
 	"github.com/razzie/razlink"
 )
 
 type folderPageView struct {
 	Folder       string
 	Search       string
-	Entries      []*api.FolderEntry
+	Entries      []*razbox.FolderEntry
 	EditMode     bool
 	Editable     bool
 	Configurable bool
@@ -21,7 +20,7 @@ type folderPageView struct {
 	SortRedirect string
 }
 
-func folderPageHandler(api *api.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func folderPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	folderOrFilename := r.URL.Path[3:] // skip /x/
 	tag := r.URL.Query().Get("tag")
 	sortOrder := r.URL.Query().Get("sort")
@@ -29,7 +28,7 @@ func folderPageHandler(api *api.API, r *http.Request, view razlink.ViewFunc) raz
 	token := api.AccessTokenFromCookies(r.Cookies())
 	entries, flags, err := api.GetFolderEntries(token, folderOrFilename)
 	if err != nil {
-		return internal.HandleError(r, err)
+		return HandleError(r, err)
 	}
 
 	// this is a file
@@ -40,9 +39,9 @@ func folderPageHandler(api *api.API, r *http.Request, view razlink.ViewFunc) raz
 
 		reader, err := api.OpenFile(token, folderOrFilename)
 		if err != nil {
-			return internal.HandleError(r, err)
+			return HandleError(r, err)
 		}
-		return internal.ServeFile(r, reader)
+		return ServeFile(r, reader)
 	}
 
 	v := &folderPageView{
@@ -70,10 +69,10 @@ func folderPageHandler(api *api.API, r *http.Request, view razlink.ViewFunc) raz
 }
 
 // Folder returns a razlink.Page that handles folders
-func Folder(api *api.API) *razlink.Page {
+func Folder(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/x/",
-		ContentTemplate: internal.GetContentTemplate("folder"),
+		ContentTemplate: GetContentTemplate("folder"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return folderPageHandler(api, r, view)
 		},

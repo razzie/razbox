@@ -4,7 +4,7 @@ import "math"
 
 /*
 NChoseK http://blog.plover.com/math/choose.html
-I am surprised that I have to define these. . . Maybe i just didn't look hard enough for a lib.
+I am surprised that I have to define these. . . Maybe i just didn't look hard enough for a internal.
 */
 func NChoseK(n, k float64) float64 {
 	if k > n {

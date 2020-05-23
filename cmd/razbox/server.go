@@ -3,13 +3,13 @@ package main
 import (
 	"encoding/base64"
 
-	"github.com/razzie/razbox/api"
+	"github.com/razzie/razbox"
 	"github.com/razzie/razbox/web/page"
 	"github.com/razzie/razlink"
 )
 
 // NewServer ...
-func NewServer(api *api.API, defaultFolder string) *razlink.Server {
+func NewServer(api *razbox.API, defaultFolder string) *razlink.Server {
 	srv := razlink.NewServer()
 	srv.FaviconPNG = favicon
 	srv.AddPages(

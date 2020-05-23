@@ -6,8 +6,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/razzie/razbox/api"
-	"github.com/razzie/razbox/web/page/internal"
+	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -21,7 +21,7 @@ type editPageView struct {
 	Thumb    bool
 }
 
-func editPageHandler(a *api.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func editPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	filename := r.URL.Path[6:] // skip /edit/
 	filename = internal.RemoveTrailingSlash(filename)
 	dir := path.Dir(filename)
@@ -30,10 +30,10 @@ func editPageHandler(a *api.API, r *http.Request, view razlink.ViewFunc) razlink
 		redirect = "/x/" + dir
 	}
 
-	token := a.AccessTokenFromCookies(r.Cookies())
-	entry, _, err := a.GetFolderEntries(token, filename)
+	token := api.AccessTokenFromCookies(r.Cookies())
+	entry, _, err := api.GetFolderEntries(token, filename)
 	if err != nil {
-		return internal.HandleError(r, err)
+		return HandleError(r, err)
 	}
 
 	if !entry[0].EditMode {
@@ -53,14 +53,14 @@ func editPageHandler(a *api.API, r *http.Request, view razlink.ViewFunc) razlink
 	if r.Method == "POST" {
 		r.ParseForm()
 
-		o := &api.EditFileOptions{
+		o := &razbox.EditFileOptions{
 			Folder:           dir,
 			OriginalFilename: entry[0].Name,
 			NewFilename:      r.FormValue("filename"),
 			Tags:             strings.Fields(r.FormValue("tags")),
 			Public:           r.FormValue("public") == "public",
 		}
-		err := a.EditFile(token, o)
+		err := api.EditFile(token, o)
 		if err != nil {
 			v.Error = err.Error()
 			return view(v, &title)
@@ -73,10 +73,10 @@ func editPageHandler(a *api.API, r *http.Request, view razlink.ViewFunc) razlink
 }
 
 // Edit returns a razlink.Page that handles edits
-func Edit(api *api.API) *razlink.Page {
+func Edit(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/edit/",
-		ContentTemplate: internal.GetContentTemplate("edit"),
+		ContentTemplate: GetContentTemplate("edit"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return editPageHandler(api, r, view)
 		},

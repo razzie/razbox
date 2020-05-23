@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/razzie/razbox/api"
-	"github.com/razzie/razbox/lib"
-	"github.com/razzie/razbox/web/page/internal"
+	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -18,11 +17,11 @@ type authPageView struct {
 	Redirect      string
 }
 
-func authPageHandler(api *api.API, accessType string, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func authPageHandler(api *razbox.API, accessType string, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[7+len(accessType):] // skip /[accessType]-auth/
-	uri = lib.RemoveTrailingSlash(uri)
+	uri = internal.RemoveTrailingSlash(uri)
 
-	pwPrefix := fmt.Sprintf("%s-%s", accessType, lib.FilenameToUUID(uri))
+	pwPrefix := fmt.Sprintf("%s-%s", accessType, internal.FilenameToUUID(uri))
 	v := &authPageView{
 		Folder:        uri,
 		PwFieldPrefix: pwPrefix,
@@ -51,10 +50,10 @@ func authPageHandler(api *api.API, accessType string, r *http.Request, view razl
 }
 
 // ReadAuth returns a razlink.Page that handles authentication for read access
-func ReadAuth(api *api.API) *razlink.Page {
+func ReadAuth(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/read-auth/",
-		ContentTemplate: internal.GetContentTemplate("auth"),
+		ContentTemplate: GetContentTemplate("auth"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return authPageHandler(api, "read", r, view)
 		},
@@ -62,10 +61,10 @@ func ReadAuth(api *api.API) *razlink.Page {
 }
 
 // WriteAuth returns a razlink.Page that handles authentication for read access
-func WriteAuth(api *api.API) *razlink.Page {
+func WriteAuth(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/write-auth/",
-		ContentTemplate: internal.GetContentTemplate("auth"),
+		ContentTemplate: GetContentTemplate("auth"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return authPageHandler(api, "write", r, view)
 		},

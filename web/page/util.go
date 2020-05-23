@@ -1,8 +1,6 @@
-package internal
+package page
 
 import (
-	"crypto/sha1"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,24 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/razzie/razbox/api"
+	"github.com/razzie/razbox"
 	"github.com/razzie/razlink"
 )
-
-// RemoveTrailingSlash removes the trailing slash from a path
-func RemoveTrailingSlash(path string) string {
-	if len(path) > 0 && path[len(path)-1] == '/' {
-		path = path[:len(path)-1]
-	}
-	return path
-}
-
-// Hash returns the SHA1 hash of a string
-func Hash(s string) string {
-	algorithm := sha1.New()
-	algorithm.Write([]byte(s))
-	return hex.EncodeToString(algorithm.Sum(nil))
-}
 
 // GetContentTemplate returns the content template for a page
 func GetContentTemplate(page string) string {
@@ -41,9 +24,9 @@ func GetContentTemplate(page string) string {
 // HandleError ...
 func HandleError(r *http.Request, err error) razlink.PageView {
 	switch err := err.(type) {
-	case *api.ErrNoReadAccess:
+	case *razbox.ErrNoReadAccess:
 		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", err.Folder, r.URL.RequestURI()))
-	case *api.ErrNoWriteAccess:
+	case *razbox.ErrNoWriteAccess:
 		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", err.Folder, r.URL.RequestURI()))
 	default:
 		return razlink.ErrorView(r, err.Error(), http.StatusInternalServerError)
@@ -51,14 +34,14 @@ func HandleError(r *http.Request, err error) razlink.PageView {
 }
 
 // ServeFile ...
-func ServeFile(r *http.Request, file *api.FileReader) razlink.PageView {
+func ServeFile(r *http.Request, file *razbox.FileReader) razlink.PageView {
 	return func(w http.ResponseWriter) {
 		serveFile(w, r, file)
 	}
 }
 
 // ServeFileAttachment ...
-func ServeFileAttachment(r *http.Request, file *api.FileReader) razlink.PageView {
+func ServeFileAttachment(r *http.Request, file *razbox.FileReader) razlink.PageView {
 	return func(w http.ResponseWriter) {
 		defer file.Close()
 		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", file.Name))
@@ -72,7 +55,7 @@ func ServeFileAttachment(r *http.Request, file *api.FileReader) razlink.PageView
 }
 
 // ServeThumbnail ...
-func ServeThumbnail(thumb *api.Thumbnail) razlink.PageView {
+func ServeThumbnail(thumb *razbox.Thumbnail) razlink.PageView {
 	return func(w http.ResponseWriter) {
 		w.Header().Set("Content-Type", thumb.MIME)
 		w.Header().Set("Content-Length", strconv.Itoa(len(thumb.Data)))
@@ -81,7 +64,7 @@ func ServeThumbnail(thumb *api.Thumbnail) razlink.PageView {
 }
 
 // credit: https://github.com/rb-de0/go-mp4-stream/
-func serveFile(w http.ResponseWriter, r *http.Request, file *api.FileReader) {
+func serveFile(w http.ResponseWriter, r *http.Request, file *razbox.FileReader) {
 	const BUFSIZE = 1024 * 8
 	defer file.Close()
 

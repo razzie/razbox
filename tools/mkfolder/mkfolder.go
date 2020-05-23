@@ -7,7 +7,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/internal"
 )
 
 var (
@@ -47,7 +47,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	folder := &lib.Folder{
+	folder := &internal.Folder{
+		Root:          Root,
 		RelPath:       Folder,
 		MaxFileSizeMB: MaxFileSizeMB,
 	}

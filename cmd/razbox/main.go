@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/razzie/razbox/api"
+	"github.com/razzie/razbox"
 )
 
 // Command-line args
@@ -31,16 +31,16 @@ func init() {
 func main() {
 	flag.Parse()
 
-	a, err := api.New(Root)
+	api, err := razbox.NewAPI(Root)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = a.ConnectDB(RedisAddr, RedisPw, RedisDb)
+	err = api.ConnectDB(RedisAddr, RedisPw, RedisDb)
 	if err != nil {
 		log.Print("failed to connect to database:", err)
 	}
 
-	srv := NewServer(a, DefaultFolder)
+	srv := NewServer(api, DefaultFolder)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(Port), srv))
 }

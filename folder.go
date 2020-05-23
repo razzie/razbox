@@ -1,9 +1,9 @@
-package api
+package razbox
 
 import (
 	"fmt"
 
-	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/internal"
 )
 
 // FolderFlags ...
@@ -14,9 +14,9 @@ type FolderFlags struct {
 	MaxFileSizeMB int64
 }
 
-func getFolderFlags(a *AccessToken, folder *lib.Folder) *FolderFlags {
+func getFolderFlags(token *AccessToken, folder *internal.Folder) *FolderFlags {
 	return &FolderFlags{
-		EditMode:      folder.EnsureWriteAccess(a.toLib()) == nil,
+		EditMode:      folder.EnsureWriteAccess(token.toLib()) == nil,
 		Editable:      len(folder.WritePassword) > 0,
 		Configurable:  !folder.ConfigInherited,
 		MaxFileSizeMB: folder.MaxFileSizeMB,

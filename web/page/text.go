@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/razzie/razbox/api"
-	"github.com/razzie/razbox/web/page/internal"
+	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -18,7 +18,7 @@ type textPageView struct {
 	Text     string
 }
 
-func textPageHandler(api *api.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func textPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	filename := r.URL.Path[6:] // skip /text/
 	filename = internal.RemoveTrailingSlash(filename)
 	dir := path.Dir(filename)
@@ -26,13 +26,13 @@ func textPageHandler(api *api.API, r *http.Request, view razlink.ViewFunc) razli
 	token := api.AccessTokenFromCookies(r.Cookies())
 	file, err := api.OpenFile(token, filename)
 	if err != nil {
-		return internal.HandleError(r, err)
+		return HandleError(r, err)
 	}
 	//defer file.Close()
 
 	_, download := r.URL.Query()["download"]
 	if download {
-		return internal.ServeFileAttachment(r, file)
+		return ServeFileAttachment(r, file)
 	}
 	defer file.Close()
 
@@ -54,10 +54,10 @@ func textPageHandler(api *api.API, r *http.Request, view razlink.ViewFunc) razli
 }
 
 // Text returns a razlink.Page that visualizes text files
-func Text(api *api.API) *razlink.Page {
+func Text(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/text/",
-		ContentTemplate: internal.GetContentTemplate("text"),
+		ContentTemplate: GetContentTemplate("text"),
 		Stylesheets: []string{
 			"/static/highlight.tomorrow.min.css",
 			"/static/highlightjs-line-numbers.css",

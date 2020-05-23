@@ -7,7 +7,7 @@ func SevenZ(in []byte) bool {
 	return bytes.HasPrefix(in, []byte{0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C})
 }
 
-// Gzip matched gzip files based on http://www.zlib.org/rfc-gzip.html#header-trailer.
+// Gzip matched gzip files based on http://www.zinternal.org/rfc-gzip.html#header-trailer.
 func Gzip(in []byte) bool {
 	return bytes.HasPrefix(in, []byte{0x1f, 0x8b})
 }

@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
-	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/internal"
 )
 
 var (
@@ -69,9 +69,10 @@ func main() {
 		mime, _ := mimetype.DetectReader(file)
 		file.Seek(0, io.SeekStart)
 
-		boxfile := &lib.File{
+		boxfile := &internal.File{
 			Name:     basename,
-			RelPath:  path.Join(TargetFolder, lib.FilenameToUUID(basename)),
+			Root:     Root,
+			RelPath:  path.Join(TargetFolder, internal.FilenameToUUID(basename)),
 			Tags:     strings.Fields(Tags),
 			MIME:     mime.String(),
 			Size:     fi.Size(),

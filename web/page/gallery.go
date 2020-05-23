@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/razzie/razbox/api"
-	"github.com/razzie/razbox/web/page/internal"
+	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/internal"
 	"github.com/razzie/razlink"
 )
 
 type galleryPageView struct {
 	Folder   string
-	Entries  []*api.FolderEntry
+	Entries  []*razbox.FolderEntry
 	Redirect string
 }
 
-func galleryPageHandler(api *api.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func galleryPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[9:] // skip /gallery/
 	uri = internal.RemoveTrailingSlash(uri)
 	tag := r.URL.Query().Get("tag")
@@ -31,7 +31,7 @@ func galleryPageHandler(api *api.API, r *http.Request, view razlink.ViewFunc) ra
 	token := api.AccessTokenFromCookies(r.Cookies())
 	entries, _, err := api.GetFolderEntries(token, uri)
 	if err != nil {
-		return internal.HandleError(r, err)
+		return HandleError(r, err)
 	}
 
 	for _, entry := range entries {
@@ -48,10 +48,10 @@ func galleryPageHandler(api *api.API, r *http.Request, view razlink.ViewFunc) ra
 }
 
 // Gallery returns a razlink.Page that handles galleries
-func Gallery(api *api.API) *razlink.Page {
+func Gallery(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/gallery/",
-		ContentTemplate: internal.GetContentTemplate("gallery"),
+		ContentTemplate: GetContentTemplate("gallery"),
 		Scripts: []string{
 			"/static/masonry.min.js",
 			"/static/imagesloaded.min.js",

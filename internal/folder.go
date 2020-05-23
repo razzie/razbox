@@ -1,4 +1,4 @@
-package lib
+package internal
 
 import (
 	"encoding/json"
@@ -112,10 +112,6 @@ func (f *Folder) GetFiles() []*File {
 		}
 		f.CachedFiles = append(f.CachedFiles, file)
 	}
-
-	/*sort.SliceStable(f.CachedFiles, func(i, j int) bool {
-		return f.CachedFiles[i].Uploaded.After(f.CachedFiles[j].Uploaded)
-	})*/
 
 	return f.CachedFiles
 }

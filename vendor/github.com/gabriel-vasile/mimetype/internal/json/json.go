@@ -27,7 +27,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // Package json provides a JSON value parser state machine.
-// This package is almost entirely copied from the Go stdlib.
+// This package is almost entirely copied from the Go stdinternal.
 // Changes made to it permit users of the package to tell
 // if some slice of bytes is a valid beginning of a json string.
 package json

@@ -1,4 +1,4 @@
-package api
+package razbox
 
 import (
 	"html/template"
@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/internal"
 )
 
 // FolderEntry ...
@@ -37,19 +37,19 @@ func newSubfolderEntry(uri, subfolder string) *FolderEntry {
 	}
 }
 
-func newFileEntry(uri string, file *lib.File) *FolderEntry {
+func newFileEntry(uri string, file *internal.File) *FolderEntry {
 	return &FolderEntry{
-		Prefix:       lib.MIMEtoSymbol(file.MIME),
+		Prefix:       internal.MIMEtoSymbol(file.MIME),
 		Name:         file.Name,
 		RelPath:      path.Join(uri, file.Name),
 		MIME:         file.MIME,
 		Tags:         file.Tags,
 		Size:         file.Size,
-		SizeStr:      lib.ByteCountSI(file.Size),
+		SizeStr:      internal.ByteCountSI(file.Size),
 		Uploaded:     file.Uploaded,
 		UploadedStr:  file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
 		Public:       file.Public,
-		HasThumbnail: lib.IsThumbnailSupported(file.MIME),
+		HasThumbnail: internal.IsThumbnailSupported(file.MIME),
 	}
 }
 
@@ -65,11 +65,11 @@ func (f *FolderEntry) HasTag(tag string) bool {
 
 // GetFolderEntries ...
 func (api API) GetFolderEntries(token *AccessToken, folderOrFilename string) ([]*FolderEntry, *FolderFlags, error) {
-	folderOrFilename = lib.RemoveTrailingSlash(folderOrFilename)
+	folderOrFilename = internal.RemoveTrailingSlash(folderOrFilename)
 
 	var filename string
 	dir := folderOrFilename
-	if !lib.IsFolder(api.root, folderOrFilename) {
+	if !internal.IsFolder(api.root, folderOrFilename) {
 		dir = path.Dir(folderOrFilename)
 		filename = folderOrFilename
 	}

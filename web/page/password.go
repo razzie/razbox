@@ -3,8 +3,8 @@ package page
 import (
 	"net/http"
 
-	"github.com/razzie/razbox/api"
-	"github.com/razzie/razbox/web/page/internal"
+	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -15,14 +15,14 @@ type passwordPageView struct {
 	WriteAccess   bool
 }
 
-func passwordPageHandler(api *api.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func passwordPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[17:] // skip /change-password/
 	uri = internal.RemoveTrailingSlash(uri)
 
 	title := "Change password for " + uri
 	v := passwordPageView{
 		Folder:        uri,
-		PwFieldPrefix: internal.Hash(uri),
+		PwFieldPrefix: internal.FilenameToUUID(uri),
 	}
 
 	if r.Method == "POST" {
@@ -55,10 +55,10 @@ func passwordPageHandler(api *api.API, r *http.Request, view razlink.ViewFunc) r
 }
 
 // Password returns a razlink.Page that handles password change for folders
-func Password(api *api.API) *razlink.Page {
+func Password(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/change-password/",
-		ContentTemplate: internal.GetContentTemplate("password"),
+		ContentTemplate: GetContentTemplate("password"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return passwordPageHandler(api, r, view)
 		},

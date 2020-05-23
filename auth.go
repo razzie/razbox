@@ -1,4 +1,4 @@
-package api
+package razbox
 
 // ErrWrongPassword ...
 type ErrWrongPassword struct{}

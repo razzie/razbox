@@ -1,4 +1,4 @@
-package api
+package razbox
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gabriel-vasile/mimetype"
-	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/internal"
 )
 
 // ErrSizeLimitExceeded ...
@@ -26,7 +26,7 @@ func (err ErrSizeLimitExceeded) Error() string {
 
 // FileReader ...
 type FileReader struct {
-	r    lib.FileReader
+	r    internal.FileReader
 	Name string
 	MIME string
 }
@@ -51,7 +51,7 @@ func (r FileReader) Stat() (os.FileInfo, error) {
 	return r.r.Stat()
 }
 
-func newFileReader(file *lib.File) (*FileReader, error) {
+func newFileReader(file *internal.File) (*FileReader, error) {
 	r, err := file.Open()
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func newFileReader(file *lib.File) (*FileReader, error) {
 
 // OpenFile ...
 func (api API) OpenFile(token *AccessToken, filePath string) (*FileReader, error) {
-	filePath = lib.RemoveTrailingSlash(filePath)
+	filePath = internal.RemoveTrailingSlash(filePath)
 	dir := path.Dir(filePath)
 	folder, cached, err := api.getFolder(dir)
 	if err != nil {
@@ -132,16 +132,17 @@ func (api API) UploadFile(token *AccessToken, o *UploadFileOptions) error {
 	if len(filename) == 0 || filename == "." {
 		filename = govalidator.SafeFileName(o.Header.Filename)
 		if len(filename) == 0 || filename == "." {
-			filename = lib.Salt()
+			filename = internal.Salt()
 		}
 	}
 
 	mime, _ := mimetype.DetectReader(o.File)
 	o.File.Seek(0, io.SeekStart)
 
-	file := &lib.File{
+	file := &internal.File{
 		Name:     filename,
-		RelPath:  path.Join(o.Folder, lib.FilenameToUUID(filename)),
+		Root:     api.root,
+		RelPath:  path.Join(o.Folder, internal.FilenameToUUID(filename)),
 		Tags:     o.Tags,
 		MIME:     mime.String(),
 		Size:     o.Header.Size,
@@ -154,6 +155,9 @@ func (api API) UploadFile(token *AccessToken, o *UploadFileOptions) error {
 	}
 
 	folder.CacheFile(file)
+	if cached { // force cache after change
+		defer api.goCacheFolder(folder)
+	}
 	return nil
 }
 
@@ -209,13 +213,14 @@ func (api API) DownloadFileToFolder(token *AccessToken, o *DownloadFileToFolderO
 	if len(filename) == 0 || filename == "." {
 		filename = getResponseFilename(resp)
 		if len(filename) == 0 || filename == "." {
-			filename = lib.Salt()
+			filename = internal.Salt()
 		}
 	}
 
-	file := &lib.File{
+	file := &internal.File{
 		Name:     filename,
-		RelPath:  path.Join(o.Folder, lib.FilenameToUUID(filename)),
+		Root:     api.root,
+		RelPath:  path.Join(o.Folder, internal.FilenameToUUID(filename)),
 		Tags:     o.Tags,
 		Uploaded: time.Now(),
 	}
@@ -227,6 +232,9 @@ func (api API) DownloadFileToFolder(token *AccessToken, o *DownloadFileToFolderO
 	file.FixMimeAndSize()
 
 	folder.CacheFile(file)
+	if cached { // force cache after change
+		defer api.goCacheFolder(folder)
+	}
 	return nil
 }
 
@@ -289,6 +297,9 @@ func (api API) EditFile(token *AccessToken, o *EditFileOptions) error {
 		}
 		folder.UncacheFile(o.OriginalFilename)
 		folder.CacheFile(file)
+		if cached { // force cache after change
+			defer api.goCacheFolder(folder)
+		}
 	}
 
 	return nil
@@ -296,7 +307,7 @@ func (api API) EditFile(token *AccessToken, o *EditFileOptions) error {
 
 // DeleteFile ...
 func (api API) DeleteFile(token *AccessToken, filePath string) error {
-	filePath = lib.RemoveTrailingSlash(filePath)
+	filePath = internal.RemoveTrailingSlash(filePath)
 	dir := path.Dir(filePath)
 	folder, cached, err := api.getFolder(dir)
 	if err != nil {
@@ -325,6 +336,9 @@ func (api API) DeleteFile(token *AccessToken, filePath string) error {
 	err = file.Delete()
 	if err == nil {
 		folder.UncacheFile(file.Name)
+		if cached { // force cache after change
+			defer api.goCacheFolder(folder)
+		}
 	}
 	return err
 }
@@ -338,7 +352,7 @@ type Thumbnail struct {
 
 // GetFileThumbnail ...
 func (api API) GetFileThumbnail(token *AccessToken, filePath string) (*Thumbnail, error) {
-	filePath = lib.RemoveTrailingSlash(filePath)
+	filePath = internal.RemoveTrailingSlash(filePath)
 	dir := path.Dir(filePath)
 	folder, cached, err := api.getFolder(dir)
 	if err != nil {
@@ -359,7 +373,7 @@ func (api API) GetFileThumbnail(token *AccessToken, filePath string) (*Thumbnail
 		return nil, err
 	}
 
-	if !lib.IsThumbnailSupported(file.MIME) {
+	if !internal.IsThumbnailSupported(file.MIME) {
 		return nil, fmt.Errorf("unsupported format: %s", file.MIME)
 	}
 

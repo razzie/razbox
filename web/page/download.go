@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/razzie/razbox/api"
-	"github.com/razzie/razbox/web/page/internal"
+	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -16,14 +16,14 @@ type downloadPageView struct {
 	MaxFileSize string
 }
 
-func downloadPageHandler(a *api.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func downloadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[20:] // skip /download-to-folder/
 	uri = internal.RemoveTrailingSlash(uri)
 
-	token := a.AccessTokenFromCookies(r.Cookies())
-	flags, err := a.GetFolderFlags(token, uri)
+	token := api.AccessTokenFromCookies(r.Cookies())
+	flags, err := api.GetFolderFlags(token, uri)
 	if err != nil {
-		return internal.HandleError(r, err)
+		return HandleError(r, err)
 	}
 
 	if !flags.EditMode {
@@ -39,13 +39,13 @@ func downloadPageHandler(a *api.API, r *http.Request, view razlink.ViewFunc) raz
 	if r.Method == "POST" {
 		r.ParseForm()
 
-		o := &api.DownloadFileToFolderOptions{
+		o := &razbox.DownloadFileToFolderOptions{
 			Folder:   uri,
 			URL:      r.FormValue("url"),
 			Filename: r.FormValue("filename"),
 			Tags:     strings.Fields(r.FormValue("tags")),
 		}
-		err := a.DownloadFileToFolder(token, o)
+		err := api.DownloadFileToFolder(token, o)
 		if err != nil {
 			v.Error = err.Error()
 			return view(v, &title)
@@ -58,10 +58,10 @@ func downloadPageHandler(a *api.API, r *http.Request, view razlink.ViewFunc) raz
 }
 
 // Download returns a razlink.Page that handles file downloads from an URL to a folder
-func Download(api *api.API) *razlink.Page {
+func Download(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/download-to-folder/",
-		ContentTemplate: internal.GetContentTemplate("download"),
+		ContentTemplate: GetContentTemplate("download"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return downloadPageHandler(api, r, view)
 		},

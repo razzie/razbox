@@ -1,4 +1,4 @@
-package api
+package razbox
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/razzie/razbox/lib"
+	"github.com/razzie/razbox/internal"
 )
 
 // ErrNoReadAccess ...
@@ -80,8 +80,8 @@ func (api API) AccessTokenFromCookies(cookies []*http.Cookie) *AccessToken {
 	return accessToken
 }
 
-func (token *AccessToken) toLib() *lib.AccessToken {
-	return &lib.AccessToken{
+func (token *AccessToken) toLib() *internal.AccessToken {
+	return &internal.AccessToken{
 		Read:  token.Read,
 		Write: token.Write,
 	}

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/razzie/razbox/api"
-	"github.com/razzie/razbox/web/page/internal"
+	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -22,15 +22,15 @@ func ajaxErr(err string) razlink.PageView {
 	}
 }
 
-func uploadPageHandler(a *api.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+func uploadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	uri := r.URL.Path[8:] // skip /upload/
 	uri = internal.RemoveTrailingSlash(uri)
 	ajax := r.URL.Query().Get("u") == "ajax"
 
-	token := a.AccessTokenFromCookies(r.Cookies())
-	flags, err := a.GetFolderFlags(token, uri)
+	token := api.AccessTokenFromCookies(r.Cookies())
+	flags, err := api.GetFolderFlags(token, uri)
 	if err != nil {
-		return internal.HandleError(r, err)
+		return HandleError(r, err)
 	}
 
 	if !flags.EditMode {
@@ -56,7 +56,7 @@ func uploadPageHandler(a *api.API, r *http.Request, view razlink.ViewFunc) razli
 		}
 		defer data.Close()
 
-		o := &api.UploadFileOptions{
+		o := &razbox.UploadFileOptions{
 			Folder:    uri,
 			File:      data,
 			Header:    handler,
@@ -64,7 +64,7 @@ func uploadPageHandler(a *api.API, r *http.Request, view razlink.ViewFunc) razli
 			Tags:      strings.Fields(r.FormValue("tags")),
 			Overwrite: r.FormValue("overwrite") == "overwrite",
 		}
-		err = a.UploadFile(token, o)
+		err = api.UploadFile(token, o)
 		if err != nil {
 			if ajax {
 				return ajaxErr(err.Error())
@@ -80,10 +80,10 @@ func uploadPageHandler(a *api.API, r *http.Request, view razlink.ViewFunc) razli
 }
 
 // Upload returns a razlink.Page that handles file uploads
-func Upload(api *api.API) *razlink.Page {
+func Upload(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/upload/",
-		ContentTemplate: internal.GetContentTemplate("upload"),
+		ContentTemplate: GetContentTemplate("upload"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return uploadPageHandler(api, r, view)
 		},
