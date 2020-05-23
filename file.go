@@ -105,13 +105,16 @@ type UploadFileOptions struct {
 
 // UploadFile ...
 func (api API) UploadFile(token *AccessToken, o *UploadFileOptions) error {
+	changed := false
 	folder, cached, err := api.getFolder(o.Folder)
 	if err != nil {
 		return err
 	}
-	if !cached {
-		defer api.goCacheFolder(folder)
-	}
+	defer func() {
+		if !cached || changed {
+			api.goCacheFolder(folder)
+		}
+	}()
 
 	err = folder.EnsureReadAccess(token.toLib())
 	if err != nil {
@@ -155,9 +158,7 @@ func (api API) UploadFile(token *AccessToken, o *UploadFileOptions) error {
 	}
 
 	folder.CacheFile(file)
-	if cached { // force cache after change
-		defer api.goCacheFolder(folder)
-	}
+	changed = true
 	return nil
 }
 
@@ -171,13 +172,16 @@ type DownloadFileToFolderOptions struct {
 
 // DownloadFileToFolder ...
 func (api API) DownloadFileToFolder(token *AccessToken, o *DownloadFileToFolderOptions) error {
+	changed := false
 	folder, cached, err := api.getFolder(o.Folder)
 	if err != nil {
 		return err
 	}
-	if !cached {
-		defer api.goCacheFolder(folder)
-	}
+	defer func() {
+		if !cached || changed {
+			api.goCacheFolder(folder)
+		}
+	}()
 
 	err = folder.EnsureReadAccess(token.toLib())
 	if err != nil {
@@ -232,9 +236,7 @@ func (api API) DownloadFileToFolder(token *AccessToken, o *DownloadFileToFolderO
 	file.FixMimeAndSize()
 
 	folder.CacheFile(file)
-	if cached { // force cache after change
-		defer api.goCacheFolder(folder)
-	}
+	changed = true
 	return nil
 }
 
@@ -249,13 +251,16 @@ type EditFileOptions struct {
 
 // EditFile ...
 func (api API) EditFile(token *AccessToken, o *EditFileOptions) error {
+	changed := false
 	folder, cached, err := api.getFolder(o.Folder)
 	if err != nil {
 		return err
 	}
-	if !cached {
-		defer api.goCacheFolder(folder)
-	}
+	defer func() {
+		if !cached || changed {
+			api.goCacheFolder(folder)
+		}
+	}()
 
 	err = folder.EnsureReadAccess(token.toLib())
 	if err != nil {
@@ -282,6 +287,7 @@ func (api API) EditFile(token *AccessToken, o *EditFileOptions) error {
 		if err != nil {
 			return err
 		}
+		changed = true
 	}
 
 	newName := govalidator.SafeFileName(o.NewFilename)
@@ -295,11 +301,7 @@ func (api API) EditFile(token *AccessToken, o *EditFileOptions) error {
 		if err != nil {
 			return err
 		}
-		folder.UncacheFile(o.OriginalFilename)
-		folder.CacheFile(file)
-		if cached { // force cache after change
-			defer api.goCacheFolder(folder)
-		}
+		changed = true
 	}
 
 	return nil
@@ -309,13 +311,16 @@ func (api API) EditFile(token *AccessToken, o *EditFileOptions) error {
 func (api API) DeleteFile(token *AccessToken, filePath string) error {
 	filePath = internal.RemoveTrailingSlash(filePath)
 	dir := path.Dir(filePath)
+	changed := false
 	folder, cached, err := api.getFolder(dir)
 	if err != nil {
 		return err
 	}
-	if !cached {
-		defer api.goCacheFolder(folder)
-	}
+	defer func() {
+		if !cached || changed {
+			api.goCacheFolder(folder)
+		}
+	}()
 
 	err = folder.EnsureReadAccess(token.toLib())
 	if err != nil {
@@ -336,9 +341,7 @@ func (api API) DeleteFile(token *AccessToken, filePath string) error {
 	err = file.Delete()
 	if err == nil {
 		folder.UncacheFile(file.Name)
-		if cached { // force cache after change
-			defer api.goCacheFolder(folder)
-		}
+		changed = true
 	}
 	return err
 }
