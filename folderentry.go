@@ -76,7 +76,7 @@ func (api API) GetFolderEntries(token *AccessToken, folderOrFilename string) ([]
 
 	folder, cached, err := api.getFolder(dir)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, &ErrNotFound{}
 	}
 	if !cached {
 		defer api.goCacheFolder(folder)
@@ -91,7 +91,7 @@ func (api API) GetFolderEntries(token *AccessToken, folderOrFilename string) ([]
 			if !hasViewAccess {
 				return nil, nil, &ErrNoReadAccess{Folder: dir}
 			}
-			return nil, nil, err
+			return nil, nil, &ErrNotFound{}
 		}
 
 		if hasViewAccess || file.Public {

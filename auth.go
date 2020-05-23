@@ -1,17 +1,10 @@
 package razbox
 
-// ErrWrongPassword ...
-type ErrWrongPassword struct{}
-
-func (err ErrWrongPassword) Error() string {
-	return "wrong password"
-}
-
 // Auth ...
 func (api API) Auth(folderName, accessType, password string) (*AccessToken, error) {
 	folder, cached, err := api.getFolder(folderName)
 	if err != nil {
-		return nil, err
+		return nil, &ErrNotFound{}
 	}
 	if !cached {
 		defer api.goCacheFolder(folder)

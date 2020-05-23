@@ -9,24 +9,6 @@ import (
 	"github.com/razzie/razbox/internal"
 )
 
-// ErrNoReadAccess ...
-type ErrNoReadAccess struct {
-	Folder string
-}
-
-func (err ErrNoReadAccess) Error() string {
-	return err.Folder + ": no read access"
-}
-
-// ErrNoWriteAccess ...
-type ErrNoWriteAccess struct {
-	Folder string
-}
-
-func (err ErrNoWriteAccess) Error() string {
-	return err.Folder + ": no write access"
-}
-
 // AccessToken ...
 type AccessToken struct {
 	Read  map[string]string

@@ -17,13 +17,6 @@ import (
 	"github.com/razzie/razbox/internal"
 )
 
-// ErrSizeLimitExceeded ...
-type ErrSizeLimitExceeded struct{}
-
-func (err ErrSizeLimitExceeded) Error() string {
-	return "size limit exceeded"
-}
-
 // FileReader ...
 type FileReader struct {
 	r    internal.FileReader
@@ -69,7 +62,7 @@ func (api API) OpenFile(token *AccessToken, filePath string) (*FileReader, error
 	dir := path.Dir(filePath)
 	folder, cached, err := api.getFolder(dir)
 	if err != nil {
-		return nil, err
+		return nil, &ErrNotFound{}
 	}
 	if !cached {
 		defer api.goCacheFolder(folder)
@@ -83,7 +76,7 @@ func (api API) OpenFile(token *AccessToken, filePath string) (*FileReader, error
 		if !hasViewAccess {
 			return nil, &ErrNoReadAccess{Folder: dir}
 		}
-		return nil, err
+		return nil, &ErrNotFound{}
 	}
 
 	if !hasViewAccess && !file.Public {
@@ -108,7 +101,7 @@ func (api API) UploadFile(token *AccessToken, o *UploadFileOptions) error {
 	changed := false
 	folder, cached, err := api.getFolder(o.Folder)
 	if err != nil {
-		return err
+		return &ErrNotFound{}
 	}
 	defer func() {
 		if !cached || changed {
@@ -175,7 +168,7 @@ func (api API) DownloadFileToFolder(token *AccessToken, o *DownloadFileToFolderO
 	changed := false
 	folder, cached, err := api.getFolder(o.Folder)
 	if err != nil {
-		return err
+		return &ErrNotFound{}
 	}
 	defer func() {
 		if !cached || changed {
@@ -254,7 +247,7 @@ func (api API) EditFile(token *AccessToken, o *EditFileOptions) error {
 	changed := false
 	folder, cached, err := api.getFolder(o.Folder)
 	if err != nil {
-		return err
+		return &ErrNotFound{}
 	}
 	defer func() {
 		if !cached || changed {
@@ -274,7 +267,7 @@ func (api API) EditFile(token *AccessToken, o *EditFileOptions) error {
 
 	file, err := folder.GetFile(o.OriginalFilename)
 	if err != nil {
-		return err
+		return &ErrNotFound{}
 	}
 
 	oldTags := strings.Join(file.Tags, " ")
@@ -314,7 +307,7 @@ func (api API) DeleteFile(token *AccessToken, filePath string) error {
 	changed := false
 	folder, cached, err := api.getFolder(dir)
 	if err != nil {
-		return err
+		return &ErrNotFound{}
 	}
 	defer func() {
 		if !cached || changed {
@@ -335,7 +328,7 @@ func (api API) DeleteFile(token *AccessToken, filePath string) error {
 	basename := filepath.Base(filePath)
 	file, err := folder.GetFile(basename)
 	if err != nil {
-		return err
+		return &ErrNotFound{}
 	}
 
 	err = file.Delete()
@@ -359,7 +352,7 @@ func (api API) GetFileThumbnail(token *AccessToken, filePath string) (*Thumbnail
 	dir := path.Dir(filePath)
 	folder, cached, err := api.getFolder(dir)
 	if err != nil {
-		return nil, err
+		return nil, &ErrNotFound{}
 	}
 	if !cached {
 		defer api.goCacheFolder(folder)
@@ -373,7 +366,7 @@ func (api API) GetFileThumbnail(token *AccessToken, filePath string) (*Thumbnail
 	basename := filepath.Base(filePath)
 	file, err := folder.GetFile(basename)
 	if err != nil {
-		return nil, err
+		return nil, &ErrNotFound{}
 	}
 
 	if !internal.IsThumbnailSupported(file.MIME) {

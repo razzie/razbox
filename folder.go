@@ -27,7 +27,7 @@ func getFolderFlags(token *AccessToken, folder *internal.Folder) *FolderFlags {
 func (api API) GetFolderFlags(token *AccessToken, folderName string) (*FolderFlags, error) {
 	folder, cached, err := api.getFolder(folderName)
 	if err != nil {
-		return nil, err
+		return nil, &ErrNotFound{}
 	}
 	if !cached {
 		defer api.goCacheFolder(folder)
@@ -45,7 +45,7 @@ func (api API) GetFolderFlags(token *AccessToken, folderName string) (*FolderFla
 func (api API) ChangeFolderPassword(token *AccessToken, folderName, accessType, password string) (*AccessToken, error) {
 	folder, cached, err := api.getFolder(folderName)
 	if err != nil {
-		return nil, err
+		return nil, &ErrNotFound{}
 	}
 	if !cached {
 		defer api.goCacheFolder(folder)
