@@ -1,6 +1,7 @@
 package page
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/razzie/razbox"
@@ -49,6 +50,16 @@ func passwordPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc
 
 		cookie := newToken.ToCookie()
 		return razlink.CookieAndRedirectView(r, cookie, "/x/"+uri)
+	}
+
+	token := api.AccessTokenFromCookies(r.Cookies())
+	flags, err := api.GetFolderFlags(token, uri)
+	if err != nil {
+		return HandleError(r, err)
+	}
+
+	if !flags.EditMode {
+		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", uri, r.URL.RequestURI()))
 	}
 
 	return view(v, &title)
