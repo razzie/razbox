@@ -28,8 +28,6 @@ func textPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) ra
 	if err != nil {
 		return HandleError(r, err)
 	}
-	//defer file.Close()
-
 	_, download := r.URL.Query()["download"]
 	if download {
 		return ServeFileAttachment(r, file)

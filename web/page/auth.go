@@ -37,13 +37,13 @@ func authPageHandler(api *razbox.API, accessType string, r *http.Request, view r
 		pw := r.FormValue(pwPrefix + "-password")
 		v.Redirect = r.FormValue("redirect")
 
-		a, err := api.Auth(uri, accessType, pw)
+		token, err := api.Auth(uri, accessType, pw)
 		if err != nil {
 			v.Error = err.Error()
 			return view(v, &uri)
 		}
 
-		return razlink.CookieAndRedirectView(r, a.ToCookie(), v.Redirect)
+		return razlink.CookieAndRedirectView(r, token.ToCookie(), v.Redirect)
 	}
 
 	return view(v, &uri)

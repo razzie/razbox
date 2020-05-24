@@ -61,7 +61,7 @@ func (api API) GetFileThumbnail(token *AccessToken, filePath string) (*Thumbnail
 	}
 
 	thumb := file.Thumbnail
-	if thumb == nil || (thumb.Data == nil && thumb.Timestamp.Add(time.Hour).Before(time.Now())) {
+	if thumb == nil || (len(thumb.Data) == 0 && thumb.Timestamp.Add(time.Hour).Before(time.Now())) {
 		data, err := file.Open()
 		if err != nil {
 			return nil, err
