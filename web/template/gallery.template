@@ -3,7 +3,7 @@
 	{{range .Entries}}
 		<div class="grid-item" style="padding: 15px; text-align: center">
 			<a href="/x/{{.RelPath}}" target="_blank">
-				<img src="/thumb/{{.RelPath}}" style="max-width: 250px; border-radius: 15px" />
+				<img src="/thumb/{{.RelPath}}" onload="msnry.layout()" style="max-width: 250px; border-radius: 15px" />
 			</a>
 		</div>
 	{{end}}
@@ -12,11 +12,9 @@
 	<a href="{{.Redirect}}">Go back &#10548;</a>
 </div>
 <script>
-imagesLoaded('.grid', function() {
-	var msnry = new Masonry('.grid', {
-		itemSelector: '.grid-item',
-		columnWidth: 280,
-		fitWidth: true
-	});
+var msnry = new Masonry('.grid', {
+	itemSelector: '.grid-item',
+	columnWidth: 280,
+	fitWidth: true
 });
 </script>

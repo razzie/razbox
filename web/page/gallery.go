@@ -54,7 +54,6 @@ func Gallery(api *razbox.API) *razlink.Page {
 		ContentTemplate: GetContentTemplate("gallery"),
 		Scripts: []string{
 			"/static/masonry.min.js",
-			"/static/imagesloaded.min.js",
 		},
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return galleryPageHandler(api, r, view)
