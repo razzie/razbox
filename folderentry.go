@@ -51,9 +51,13 @@ func newFileEntry(uri string, file *internal.File) *FolderEntry {
 		HasThumbnail: internal.IsThumbnailSupported(file.MIME),
 	}
 	if file.Thumbnail != nil {
-		entry.ThumbBounds = &ThumbnailBounds{
-			Width:  file.Thumbnail.Bounds.Dx(),
-			Height: file.Thumbnail.Bounds.Dy(),
+		w := file.Thumbnail.Bounds.Dx()
+		h := file.Thumbnail.Bounds.Dy()
+		if w > 0 && h > 0 {
+			entry.ThumbBounds = &ThumbnailBounds{
+				Width:  w,
+				Height: h,
+			}
 		}
 	}
 	return entry
