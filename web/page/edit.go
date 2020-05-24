@@ -46,7 +46,7 @@ func editPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) ra
 		Tags:     strings.Join(entry[0].Tags, " "),
 		Public:   entry[0].Public,
 		Redirect: redirect,
-		Thumb:    strings.HasPrefix(entry[0].MIME, "image/"),
+		Thumb:    internal.IsThumbnailSupported(entry[0].MIME),
 	}
 	title := "Edit " + filename
 
