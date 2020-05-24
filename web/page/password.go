@@ -59,6 +59,9 @@ func Password(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/change-password/",
 		ContentTemplate: GetContentTemplate("password"),
+		Scripts: []string{
+			"/static/zxcvbn.min.js",
+		},
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return passwordPageHandler(api, r, view)
 		},
