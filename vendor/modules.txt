@@ -33,7 +33,7 @@ github.com/nfnt/resize
 # github.com/razzie/geoip-server v0.0.0-20200422034045-b8cbea961993
 github.com/razzie/geoip-server/client
 github.com/razzie/geoip-server/geoip
-# github.com/razzie/razlink v0.0.0-20200519231644-a86d72002d1f
+# github.com/razzie/razlink v0.0.0-20200524102512-a7b52994827f
 github.com/razzie/razlink
 # github.com/thedevsaddam/gojsonq v2.3.0+incompatible
 github.com/thedevsaddam/gojsonq
