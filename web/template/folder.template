@@ -1,3 +1,6 @@
+<div style="text-align: center; margin-bottom: -1em">
+	<a href="{{.Redirect}}#controls" style="text-decoration: none; color: black; position: relative; top: -1.25em">&#9660;</a>
+</div>
 {{if .Search}}
 	<div>
 		<span style="float: left">&#128269; Search results for tag: <strong>{{.Search}}</strong></span>
@@ -6,31 +9,64 @@
 	<div style="clear: both; margin-bottom: 1rem"></div>
 {{end}}
 <table>
+	<style type="text/css" scoped>
+		sup, sub {
+			font-size: 50%;
+			line-height: 0;
+			position: absolute;
+			vertical-align: baseline;
+			padding-left: 1em;
+		}
+		sup > a, sub > a {
+			text-decoration: none;
+		}
+		span.sort {
+			position: relative;
+		}
+		span.sort > sup {
+			left: 0;
+			top: 0.75em;
+		}
+		span.sort > sub {
+			left: 0;
+			bottom: 0.5em;
+		}
+	</style>
 	<tr>
 		<td>
 			Name
-			<a href="{{.SortRedirect}}&sort=name_asc" style="text-decoration: none; color: lightgrey">&#11014;</a>
-			<a href="{{.SortRedirect}}&sort=name_desc" style="text-decoration: none; color: lightgrey">&#11015;</a>
+			<span class="sort">
+				<sup><a href="{{.SortRedirect}}&sort=name_asc"> &#9650;</a></sup>
+				<sub><a href="{{.SortRedirect}}&sort=name_desc"> &#9660;</a></sub>
+			</span>
 		</td>
 		<td>
 			Type
-			<a href="{{.SortRedirect}}&sort=type_asc" style="text-decoration: none; color: lightgrey">&#11014;</a>
-			<a href="{{.SortRedirect}}&sort=type_desc" style="text-decoration: none; color: lightgrey">&#11015;</a>
+			<span class="sort">
+				<sup><a href="{{.SortRedirect}}&sort=type_asc">&#9650;</a></sup>
+				<sub><a href="{{.SortRedirect}}&sort=type_desc">&#9660;</a></sub>
+			</span>
 		</td>
 		<td>
 			Tags
-			<a href="{{.SortRedirect}}&sort=tags_asc" style="text-decoration: none; color: lightgrey">&#11014;</a>
-			<a href="{{.SortRedirect}}&sort=tags_desc" style="text-decoration: none; color: lightgrey">&#11015;</a>
+			<span class="sort">
+				<sup><a href="{{.SortRedirect}}&sort=tags_asc">&#9650;</a></sup>
+				<sub><a href="{{.SortRedirect}}&sort=tags_desc">&#9660;</a></sub>
+			</span>
 		</td>
 		<td>
 			Size
-			<a href="{{.SortRedirect}}&sort=size_asc" style="text-decoration: none; color: lightgrey">&#11014;</a>
-			<a href="{{.SortRedirect}}&sort=size_desc" style="text-decoration: none; color: lightgrey">&#11015;</a>
+			<span class="sort">
+				<sup><a href="{{.SortRedirect}}&sort=size_asc">&#9650;</a></sup>
+				<sub><a href="{{.SortRedirect}}&sort=size_desc">&#9660;</a></sub>
+			</span>
 		</td>
 		<td>
 			Uploaded
-			<a href="{{.SortRedirect}}&sort=uploaded_asc" style="text-decoration: none; color: lightgrey">&#11014;</a>
-			<a href="{{.SortRedirect}}&sort=uploaded_desc" style="text-decoration: none; color: lightgrey">&#11015;</a>
+			<span class="sort">
+				<sup><a href="{{.SortRedirect}}&sort=uploaded_asc">&#9650;</a></sup>
+				<sub><a href="{{.SortRedirect}}&sort=uploaded_desc">&#9660;</a></sub>
+			</span>
 		</td>
 		<td></td>
 	</tr>
@@ -63,7 +99,7 @@
 	{{end}}
 </table>
 <div style="text-align: center">
-	<form method="get">
+	<form method="get" id="controls">
 		{{if .Search}}
 			<input type="hidden" name="tag" value="{{.Search}}" />
 			<button formaction="/gallery/{{.Folder}}/"{{if not .Gallery}} disabled{{end}}>Gallery</button>
