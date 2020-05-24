@@ -10,6 +10,7 @@ import (
 	"io"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/nfnt/resize"
 	"golang.org/x/image/webp"
@@ -29,9 +30,10 @@ func init() {
 
 // Thumbnail contains a thumbnail image in bytes + the MIME type and bounds
 type Thumbnail struct {
-	Data   []byte          `json:"data"`
-	MIME   string          `json:"mime"`
-	Bounds image.Rectangle `json:"bounds"`
+	Data      []byte          `json:"data"`
+	MIME      string          `json:"mime"`
+	Bounds    image.Rectangle `json:"bounds"`
+	Timestamp time.Time       `json:"timestamp"`
 }
 
 // IsThumbnailSupported returns whether thumbnails can be created for the specified mime type
@@ -74,9 +76,10 @@ func getThumbnailImage(img image.Image) (*Thumbnail, error) {
 	}
 
 	return &Thumbnail{
-		Data:   result.Bytes(),
-		MIME:   "image/jpeg",
-		Bounds: thumb.Bounds(),
+		Data:      result.Bytes(),
+		MIME:      "image/jpeg",
+		Bounds:    thumb.Bounds(),
+		Timestamp: time.Now(),
 	}, nil
 }
 

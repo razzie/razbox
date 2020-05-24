@@ -23,6 +23,24 @@ func getFolderFlags(token *AccessToken, folder *internal.Folder) *FolderFlags {
 	}
 }
 
+func (api API) getFolder(folderName string) (folder *internal.Folder, cached bool, err error) {
+	cached = true
+	if api.db != nil {
+		folder, _ = api.db.GetCachedFolder(folderName)
+	}
+	if folder == nil {
+		cached = false
+		folder, err = internal.GetFolder(api.root, folderName)
+	}
+	return
+}
+
+func (api API) goCacheFolder(folder *internal.Folder) {
+	if api.db != nil {
+		go api.db.CacheFolder(folder)
+	}
+}
+
 // GetFolderFlags ...
 func (api API) GetFolderFlags(token *AccessToken, folderName string) (*FolderFlags, error) {
 	folder, cached, err := api.getFolder(folderName)

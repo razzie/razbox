@@ -68,29 +68,3 @@ func (db *DB) CacheFolder(folder *Folder) error {
 
 	return db.client.Set("folder:"+RemoveTrailingSlash(folder.RelPath), string(data), time.Minute).Err()
 }
-
-// GetCachedThumbnail return a cached Thumbnail
-func (db *DB) GetCachedThumbnail(path string) (*Thumbnail, error) {
-	data, err := db.client.Get("thumb:" + RemoveTrailingSlash(path)).Result()
-	if err != nil {
-		return nil, err
-	}
-
-	var thumb Thumbnail
-	err = json.Unmarshal([]byte(data), &thumb)
-	if err != nil {
-		return nil, err
-	}
-
-	return &thumb, nil
-}
-
-// CacheThumbnail caches a Thumbnail
-func (db *DB) CacheThumbnail(path string, thumb *Thumbnail) error {
-	data, err := json.Marshal(thumb)
-	if err != nil {
-		return err
-	}
-
-	return db.client.Set("thumb:"+RemoveTrailingSlash(path), string(data), time.Hour).Err()
-}

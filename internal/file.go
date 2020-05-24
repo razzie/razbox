@@ -23,14 +23,15 @@ type FileReader interface {
 
 // File ...
 type File struct {
-	Name     string    `json:"name"`
-	Root     string    `json:"root"`
-	RelPath  string    `json:"rel_path"`
-	Tags     []string  `json:"tags"`
-	MIME     string    `json:"mime"`
-	Size     int64     `json:"size"`
-	Uploaded time.Time `json:"uploaded"`
-	Public   bool      `json:"public"`
+	Name      string     `json:"name"`
+	Root      string     `json:"root"`
+	RelPath   string     `json:"rel_path"`
+	Tags      []string   `json:"tags"`
+	MIME      string     `json:"mime"`
+	Size      int64      `json:"size"`
+	Uploaded  time.Time  `json:"uploaded"`
+	Public    bool       `json:"public"`
+	Thumbnail *Thumbnail `json:"thumbnail,omitempty"`
 }
 
 func getFile(root, relPath string) (*File, error) {

@@ -2,7 +2,6 @@ package razbox
 
 import (
 	"fmt"
-	"image"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -337,41 +336,4 @@ func (api API) DeleteFile(token *AccessToken, filePath string) error {
 		changed = true
 	}
 	return err
-}
-
-// Thumbnail ...
-type Thumbnail struct {
-	Data   []byte
-	MIME   string
-	Bounds image.Rectangle
-}
-
-// GetFileThumbnail ...
-func (api API) GetFileThumbnail(token *AccessToken, filePath string) (*Thumbnail, error) {
-	filePath = internal.RemoveTrailingSlash(filePath)
-	dir := path.Dir(filePath)
-	folder, cached, err := api.getFolder(dir)
-	if err != nil {
-		return nil, &ErrNotFound{}
-	}
-	if !cached {
-		defer api.goCacheFolder(folder)
-	}
-
-	err = folder.EnsureReadAccess(token.toLib())
-	if err != nil {
-		return nil, &ErrNoReadAccess{Folder: dir}
-	}
-
-	basename := filepath.Base(filePath)
-	file, err := folder.GetFile(basename)
-	if err != nil {
-		return nil, &ErrNotFound{}
-	}
-
-	if !internal.IsThumbnailSupported(file.MIME) {
-		return nil, fmt.Errorf("unsupported format: %s", file.MIME)
-	}
-
-	return api.getThumbnail(filePath, file)
 }
