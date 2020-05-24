@@ -24,6 +24,7 @@ type FolderEntry struct {
 	Public       bool
 	EditMode     bool
 	HasThumbnail bool
+	ThumbBounds  *ThumbnailBounds
 }
 
 func newSubfolderEntry(uri, subfolder string) *FolderEntry {
@@ -36,7 +37,7 @@ func newSubfolderEntry(uri, subfolder string) *FolderEntry {
 }
 
 func newFileEntry(uri string, file *internal.File) *FolderEntry {
-	return &FolderEntry{
+	entry := &FolderEntry{
 		Prefix:       internal.MIMEtoSymbol(file.MIME),
 		Name:         file.Name,
 		RelPath:      path.Join(uri, file.Name),
@@ -49,6 +50,13 @@ func newFileEntry(uri string, file *internal.File) *FolderEntry {
 		Public:       file.Public,
 		HasThumbnail: internal.IsThumbnailSupported(file.MIME),
 	}
+	if file.Thumbnail != nil {
+		entry.ThumbBounds = &ThumbnailBounds{
+			Width:  file.Thumbnail.Bounds.Dx(),
+			Height: file.Thumbnail.Bounds.Dy(),
+		}
+	}
+	return entry
 }
 
 // HasTag ...
