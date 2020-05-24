@@ -73,35 +73,35 @@ function sortTable(column, comparator) {
 		}
 	</style>
 	<tr>
-		<td>
+		<td style="min-width: 80px">
 			Name
 			<span class="sort">
 				<sup><a href="{{.Redirect}}#" onclick="sortTable(0, strless)">&#9650;</a></sup>
 				<sub><a href="{{.Redirect}}#" onclick="sortTable(0, strgreater)">&#9660;</a></sub>
 			</span>
 		</td>
-		<td>
+		<td style="min-width: 80px">
 			Type
 			<span class="sort">
 				<sup><a href="{{.Redirect}}#" onclick="sortTable(1, strless)">&#9650;</a></sup>
 				<sub><a href="{{.Redirect}}#" onclick="sortTable(1, strgreater)">&#9660;</a></sub>
 			</span>
 		</td>
-		<td>
+		<td style="min-width: 80px">
 			Tags
 			<span class="sort">
 				<sup><a href="{{.Redirect}}#" onclick="sortTable(2, strless)">&#9650;</a></sup>
 				<sub><a href="{{.Redirect}}#" onclick="sortTable(2, strgreater)">&#9660;</a></sub>
 			</span>
 		</td>
-		<td>
+		<td style="min-width: 80px">
 			Size
 			<span class="sort">
 				<sup><a href="{{.Redirect}}#" onclick="sortTable(3, less)">&#9650;</a></sup>
 				<sub><a href="{{.Redirect}}#" onclick="sortTable(3, greater)">&#9660;</a></sub>
 			</span>
 		</td>
-		<td>
+		<td style="min-width: 80px">
 			Uploaded
 			<span class="sort">
 				<sup><a href="{{.Redirect}}#" onclick="sortTable(4, less)">&#9650;</a></sup>
