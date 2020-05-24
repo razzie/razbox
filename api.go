@@ -2,14 +2,16 @@ package razbox
 
 import (
 	"path/filepath"
+	"time"
 
 	"github.com/razzie/razbox/internal"
 )
 
 // API ...
 type API struct {
-	root string
-	db   *internal.DB
+	root          string
+	db            *internal.DB
+	CacheDuration *time.Duration
 }
 
 // NewAPI ...
@@ -22,8 +24,10 @@ func NewAPI(root string) (*API, error) {
 		}
 	}
 
+	tmpCacheDuration := time.Hour
 	return &API{
-		root: root,
+		root:          root,
+		CacheDuration: &tmpCacheDuration,
 	}, nil
 }
 
@@ -34,6 +38,8 @@ func (api *API) ConnectDB(redisAddr, redisPw string, redisDb int) error {
 		return err
 	}
 
+	db.CacheDuration = *api.CacheDuration
 	api.db = db
+	api.CacheDuration = &db.CacheDuration
 	return nil
 }

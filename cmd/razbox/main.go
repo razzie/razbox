@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/razzie/razbox"
 )
@@ -17,6 +18,7 @@ var (
 	RedisDb       int
 	Port          int
 	DefaultFolder string
+	CacheDuration time.Duration
 )
 
 func init() {
@@ -26,6 +28,7 @@ func init() {
 	flag.StringVar(&Root, "root", "./uploads", "Root directory of folders")
 	flag.IntVar(&Port, "port", 8080, "HTTP port")
 	flag.StringVar(&DefaultFolder, "default-folder", "", "Default folder to show in case of empty URL path")
+	flag.DurationVar(&CacheDuration, "cache-duration", time.Hour, "Cache duration")
 }
 
 func main() {
@@ -39,6 +42,10 @@ func main() {
 	err = api.ConnectDB(RedisAddr, RedisPw, RedisDb)
 	if err != nil {
 		log.Print("failed to connect to database:", err)
+	}
+
+	if api.CacheDuration != nil {
+		*api.CacheDuration = CacheDuration
 	}
 
 	srv := NewServer(api, DefaultFolder)

@@ -10,7 +10,8 @@ import (
 
 // DB ...
 type DB struct {
-	client *redis.Client
+	client        *redis.Client
+	CacheDuration time.Duration
 }
 
 // NewDB returns a new DB
@@ -28,7 +29,8 @@ func NewDB(addr, password string, db int) (*DB, error) {
 	}
 
 	return &DB{
-		client: client,
+		client:        client,
+		CacheDuration: time.Hour,
 	}, nil
 }
 
@@ -66,5 +68,5 @@ func (db *DB) CacheFolder(folder *Folder) error {
 		return err
 	}
 
-	return db.client.Set("folder:"+RemoveTrailingSlash(folder.RelPath), string(data), time.Minute).Err()
+	return db.client.Set("folder:"+RemoveTrailingSlash(folder.RelPath), string(data), db.CacheDuration).Err()
 }
