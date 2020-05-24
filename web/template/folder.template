@@ -1,5 +1,45 @@
+<script>
+// credit: https://www.w3schools.com/howto/howto_js_sort_table.asp
+function strless(x,y) {
+	return x < y;
+}
+function strgreater(x,y) {
+	return x > y;
+}
+function less(x,y) {
+	return parseInt(x) < parseInt(y);
+}
+function greater(x,y) {
+	return parseInt(x) > parseInt(y);
+}
+function sortTable(column, comparator) {
+	var table, rows, switching, i, x, y, shouldSwitch;
+	table = document.getElementById("entries");
+	switching = true;
+	while (switching) {
+		switching = false;
+		rows = table.rows;
+		for (i = 1; i < (rows.length - 1); i++) {
+			shouldSwitch = false;
+			if (rows[i].dataset.isfolder != rows[i + 1].dataset.isfolder) {
+				continue
+			}
+			x = rows[i].getElementsByTagName("TD")[column];
+			y = rows[i + 1].getElementsByTagName("TD")[column];
+			if (comparator(x.dataset.sortvalue, y.dataset.sortvalue)) {
+				shouldSwitch = true;
+				break;
+			}
+		}
+		if (shouldSwitch) {
+			rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+			switching = true;
+		}
+	}
+}
+</script>
 <div style="text-align: center; margin-bottom: -1em">
-	<a href="{{.Redirect}}#controls" style="text-decoration: none; color: black; position: relative; top: -1.25em">&#9660;</a>
+	<a href="{{.Redirect}}#controls" style="text-decoration: none; position: relative; top: -1.25em">&#9660;</a>
 </div>
 {{if .Search}}
 	<div>
@@ -8,7 +48,7 @@
 	</div>
 	<div style="clear: both; margin-bottom: 1rem"></div>
 {{end}}
-<table>
+<table id="entries">
 	<style type="text/css" scoped>
 		sup, sub {
 			font-size: 50%;
@@ -36,36 +76,36 @@
 		<td>
 			Name
 			<span class="sort">
-				<sup><a href="{{.SortRedirect}}&sort=name_asc"> &#9650;</a></sup>
-				<sub><a href="{{.SortRedirect}}&sort=name_desc"> &#9660;</a></sub>
+				<sup><a href="{{.Redirect}}#" onclick="sortTable(0, strless)">&#9650;</a></sup>
+				<sub><a href="{{.Redirect}}#" onclick="sortTable(0, strgreater)">&#9660;</a></sub>
 			</span>
 		</td>
 		<td>
 			Type
 			<span class="sort">
-				<sup><a href="{{.SortRedirect}}&sort=type_asc">&#9650;</a></sup>
-				<sub><a href="{{.SortRedirect}}&sort=type_desc">&#9660;</a></sub>
+				<sup><a href="{{.Redirect}}#" onclick="sortTable(1, strless)">&#9650;</a></sup>
+				<sub><a href="{{.Redirect}}#" onclick="sortTable(1, strgreater)">&#9660;</a></sub>
 			</span>
 		</td>
 		<td>
 			Tags
 			<span class="sort">
-				<sup><a href="{{.SortRedirect}}&sort=tags_asc">&#9650;</a></sup>
-				<sub><a href="{{.SortRedirect}}&sort=tags_desc">&#9660;</a></sub>
+				<sup><a href="{{.Redirect}}#" onclick="sortTable(2, strless)">&#9650;</a></sup>
+				<sub><a href="{{.Redirect}}#" onclick="sortTable(2, strgreater)">&#9660;</a></sub>
 			</span>
 		</td>
 		<td>
 			Size
 			<span class="sort">
-				<sup><a href="{{.SortRedirect}}&sort=size_asc">&#9650;</a></sup>
-				<sub><a href="{{.SortRedirect}}&sort=size_desc">&#9660;</a></sub>
+				<sup><a href="{{.Redirect}}#" onclick="sortTable(3, less)">&#9650;</a></sup>
+				<sub><a href="{{.Redirect}}#" onclick="sortTable(3, greater)">&#9660;</a></sub>
 			</span>
 		</td>
 		<td>
 			Uploaded
 			<span class="sort">
-				<sup><a href="{{.SortRedirect}}&sort=uploaded_asc">&#9650;</a></sup>
-				<sub><a href="{{.SortRedirect}}&sort=uploaded_desc">&#9660;</a></sub>
+				<sup><a href="{{.Redirect}}#" onclick="sortTable(4, less)">&#9650;</a></sup>
+				<sub><a href="{{.Redirect}}#" onclick="sortTable(4, greater)">&#9660;</a></sub>
 			</span>
 		</td>
 		<td></td>
@@ -73,19 +113,19 @@
 	{{$Folder := .Folder}}
 	{{$Redirect := .Redirect}}
 	{{range .Entries}}
-		<tr>
-			<td>
+		<tr data-isfolder="{{.Folder}}">
+			<td data-sortvalue="{{.Name}}">
 				{{.Prefix}}<a href="/x/{{.RelPath}}">{{.Name}}</a>
 				{{if .Public}}[public]{{end}}
 			</td>
-			<td>{{.MIME}}</td>
-			<td>
+			<td data-sortvalue="{{.MIME}}">{{.MIME}}</td>
+			<td data-sortvalue="{{range .Tags}}{{.}} {{end}}">
 				{{range .Tags}}
 					<a href="/x/{{$Folder}}/?tag={{.}}">{{.}}</a>
 				{{end}}
 			</td>
-			<td>{{.SizeStr}}</td>
-			<td>{{.UploadedStr}}</td>
+			<td data-sortvalue="{{.Size}}">{{.SizeStr}}</td>
+			<td data-sortvalue="{{.Uploaded}}">{{.UploadedStr}}</td>
 			<td>
 				{{if .EditMode}}
 					<a href="/edit/{{.RelPath}}/?r={{$Redirect}}">&#9998;</a>

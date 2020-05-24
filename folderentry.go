@@ -5,8 +5,6 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
-	"strings"
-	"time"
 
 	"github.com/razzie/razbox/internal"
 )
@@ -21,7 +19,7 @@ type FolderEntry struct {
 	Tags         []string
 	Size         int64
 	SizeStr      string
-	Uploaded     time.Time
+	Uploaded     int64
 	UploadedStr  string
 	Public       bool
 	EditMode     bool
@@ -46,7 +44,7 @@ func newFileEntry(uri string, file *internal.File) *FolderEntry {
 		Tags:         file.Tags,
 		Size:         file.Size,
 		SizeStr:      internal.ByteCountSI(file.Size),
-		Uploaded:     file.Uploaded,
+		Uploaded:     file.Uploaded.Unix(),
 		UploadedStr:  file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
 		Public:       file.Public,
 		HasThumbnail: internal.IsThumbnailSupported(file.MIME),
@@ -118,69 +116,13 @@ func (api API) GetFolderEntries(token *AccessToken, folderOrFilename string) ([]
 		entry.EditMode = hasEditAccess
 		entries = append(entries, entry)
 	}
-	return entries, getFolderFlags(token, folder), nil
-}
 
-// SortFolderEntries ...
-func (api API) SortFolderEntries(files []*FolderEntry, order string) {
-	switch order {
-	case "name_asc":
-		sort.SliceStable(files, func(i, j int) bool {
-			return files[i].Name > files[j].Name
-		})
-
-	case "name_desc":
-		sort.SliceStable(files, func(i, j int) bool {
-			return files[i].Name < files[j].Name
-		})
-
-	case "type_asc":
-		sort.SliceStable(files, func(i, j int) bool {
-			return files[i].MIME > files[j].MIME
-		})
-
-	case "type_desc":
-		sort.SliceStable(files, func(i, j int) bool {
-			return files[i].MIME < files[j].MIME
-		})
-
-	case "tags_asc":
-		sort.SliceStable(files, func(i, j int) bool {
-			return strings.Join(files[i].Tags, " ") > strings.Join(files[j].Tags, " ")
-		})
-
-	case "tags_desc":
-		sort.SliceStable(files, func(i, j int) bool {
-			return strings.Join(files[i].Tags, " ") < strings.Join(files[j].Tags, " ")
-		})
-
-	case "size_asc":
-		sort.SliceStable(files, func(i, j int) bool {
-			return files[i].Size > files[j].Size
-		})
-
-	case "size_desc":
-		sort.SliceStable(files, func(i, j int) bool {
-			return files[i].Size < files[j].Size
-		})
-
-	case "uploaded_asc":
-		sort.SliceStable(files, func(i, j int) bool {
-			return files[i].Uploaded.After(files[j].Uploaded)
-		})
-
-	case "uploaded_desc":
-		sort.SliceStable(files, func(i, j int) bool {
-			return files[i].Uploaded.Before(files[j].Uploaded)
-		})
-
-	default:
-		sort.SliceStable(files, func(i, j int) bool {
-			return files[i].Uploaded.After(files[j].Uploaded)
-		})
-	}
-
-	sort.SliceStable(files, func(i, j int) bool {
-		return files[i].Folder && !files[j].Folder
+	sort.SliceStable(entries, func(i, j int) bool {
+		return entries[i].Uploaded > entries[j].Uploaded
 	})
+	sort.SliceStable(entries, func(i, j int) bool {
+		return entries[i].Folder && !entries[j].Folder
+	})
+
+	return entries, getFolderFlags(token, folder), nil
 }

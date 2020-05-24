@@ -17,13 +17,11 @@ type folderPageView struct {
 	Configurable bool
 	Gallery      bool
 	Redirect     string
-	SortRedirect string
 }
 
 func folderPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	folderOrFilename := r.URL.Path[3:] // skip /x/
 	tag := r.URL.Query().Get("tag")
-	sortOrder := r.URL.Query().Get("sort")
 
 	token := api.AccessTokenFromCookies(r.Cookies())
 	entries, flags, err := api.GetFolderEntries(token, folderOrFilename)
@@ -51,7 +49,6 @@ func folderPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 		Editable:     flags.Editable,
 		Configurable: flags.Configurable,
 		Redirect:     r.URL.RequestURI(),
-		SortRedirect: r.URL.Path + "?tag=" + tag,
 	}
 
 	for _, entry := range entries {
@@ -64,7 +61,6 @@ func folderPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 		v.Entries = append(v.Entries, entry)
 	}
 
-	api.SortFolderEntries(v.Entries, sortOrder)
 	return view(v, &folderOrFilename)
 }
 
