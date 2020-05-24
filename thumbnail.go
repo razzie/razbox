@@ -9,6 +9,8 @@ import (
 	"github.com/razzie/razbox/internal"
 )
 
+const thumbnailRetryAfter = time.Hour
+
 // Thumbnail ...
 type Thumbnail struct {
 	Data   []byte
@@ -61,7 +63,7 @@ func (api API) GetFileThumbnail(token *AccessToken, filePath string) (*Thumbnail
 	}
 
 	thumb := file.Thumbnail
-	if thumb == nil || (len(thumb.Data) == 0 && thumb.Timestamp.Add(time.Hour).Before(time.Now())) {
+	if thumb == nil || (len(thumb.Data) == 0 && thumb.Timestamp.Add(thumbnailRetryAfter).Before(time.Now())) {
 		data, err := file.Open()
 		if err != nil {
 			return nil, err

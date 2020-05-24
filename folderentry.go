@@ -5,6 +5,8 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
+	"strings"
+	"time"
 
 	"github.com/razzie/razbox/internal"
 )
@@ -50,17 +52,32 @@ func newFileEntry(uri string, file *internal.File) *FolderEntry {
 		Public:       file.Public,
 		HasThumbnail: internal.IsThumbnailSupported(file.MIME),
 	}
-	if file.Thumbnail != nil {
-		w := file.Thumbnail.Bounds.Dx()
-		h := file.Thumbnail.Bounds.Dy()
-		if w > 0 && h > 0 {
-			entry.ThumbBounds = &ThumbnailBounds{
-				Width:  w,
-				Height: h,
-			}
+	entry.updateThumbBounds(file)
+	return entry
+}
+
+func (f *FolderEntry) updateThumbBounds(file *internal.File) {
+	thumb := file.Thumbnail
+	if thumb == nil {
+		return
+	}
+
+	if !strings.HasPrefix(f.MIME, "image/") &&
+		len(thumb.Data) == 0 &&
+		thumb.Timestamp.Add(thumbnailRetryAfter).After(time.Now()) {
+
+		f.HasThumbnail = false
+		return
+	}
+
+	w := thumb.Bounds.Dx()
+	h := thumb.Bounds.Dy()
+	if w > 0 && h > 0 {
+		f.ThumbBounds = &ThumbnailBounds{
+			Width:  w,
+			Height: h,
 		}
 	}
-	return entry
 }
 
 // HasTag ...
