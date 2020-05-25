@@ -43,7 +43,7 @@ func authPageHandler(api *razbox.API, accessType string, r *http.Request, view r
 			return view(v, &uri)
 		}
 
-		return razlink.CookieAndRedirectView(r, token.ToCookie(), v.Redirect)
+		return razlink.CookieAndRedirectView(r, token.ToCookie(api.CookieExpiration), v.Redirect)
 	}
 
 	return view(v, &uri)

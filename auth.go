@@ -12,10 +12,7 @@ func (api API) Auth(folderName, accessType, password string) (*AccessToken, erro
 
 	if folder.TestPassword(accessType, password) {
 		token, err := folder.GetAccessToken(accessType)
-		return &AccessToken{
-			Read:  token.Read,
-			Write: token.Write,
-		}, err
+		return new(AccessToken).fromLib(token), err
 	}
 
 	return nil, &ErrWrongPassword{}

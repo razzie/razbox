@@ -48,7 +48,7 @@ func passwordPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc
 			return view(v, &title)
 		}
 
-		cookie := newToken.ToCookie()
+		cookie := newToken.ToCookie(api.CookieExpiration)
 		return razlink.CookieAndRedirectView(r, cookie, "/x/"+uri)
 	}
 

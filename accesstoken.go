@@ -25,23 +25,23 @@ func (token *AccessToken) FromCookies(cookies []*http.Cookie) {
 	}
 
 	for _, c := range cookies {
-		if strings.HasPrefix(c.Name, "read-") {
+		switch {
+		case strings.HasPrefix(c.Name, "read-"):
 			token.Read[c.Name[5:]] = c.Value
-		}
-		if strings.HasPrefix(c.Name, "write-") {
+		case strings.HasPrefix(c.Name, "write-"):
 			token.Write[c.Name[6:]] = c.Value
 		}
 	}
 }
 
 // ToCookie ...
-func (token *AccessToken) ToCookie() *http.Cookie {
+func (token *AccessToken) ToCookie(expiration time.Duration) *http.Cookie {
 	for read, value := range token.Read {
 		return &http.Cookie{
 			Name:    fmt.Sprintf("read-%s", read),
 			Value:   value,
 			Path:    "/",
-			Expires: time.Now().Add(time.Hour * 24 * 7),
+			Expires: time.Now().Add(expiration),
 		}
 	}
 	for write, value := range token.Write {
@@ -66,4 +66,13 @@ func (token *AccessToken) toLib() *internal.AccessToken {
 		Read:  token.Read,
 		Write: token.Write,
 	}
+}
+
+func (token *AccessToken) fromLib(libtoken *internal.AccessToken) *AccessToken {
+	if libtoken == nil {
+		return token
+	}
+	token.Read = libtoken.Read
+	token.Write = libtoken.Write
+	return token
 }
