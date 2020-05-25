@@ -16,7 +16,7 @@ type AccessToken struct {
 }
 
 // FromCookies ...
-func (token *AccessToken) FromCookies(cookies []*http.Cookie) {
+func (token *AccessToken) FromCookies(cookies []*http.Cookie) *AccessToken {
 	if token.Read == nil {
 		token.Read = make(map[string]string)
 	}
@@ -32,6 +32,8 @@ func (token *AccessToken) FromCookies(cookies []*http.Cookie) {
 			token.Write[c.Name[6:]] = c.Value
 		}
 	}
+
+	return token
 }
 
 // ToCookie ...
@@ -56,9 +58,7 @@ func (token *AccessToken) ToCookie(expiration time.Duration) *http.Cookie {
 
 // AccessTokenFromCookies ...
 func (api API) AccessTokenFromCookies(cookies []*http.Cookie) *AccessToken {
-	accessToken := &AccessToken{}
-	accessToken.FromCookies(cookies)
-	return accessToken
+	return new(AccessToken).FromCookies(cookies)
 }
 
 func (token *AccessToken) toLib() *internal.AccessToken {

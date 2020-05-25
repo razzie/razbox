@@ -30,7 +30,7 @@ func folderPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 	}
 
 	// this is a file
-	if flags == nil && len(entries) == 1 {
+	if len(entries) == 1 && !entries[0].Folder {
 		if strings.HasPrefix(entries[0].MIME, "text/") {
 			return razlink.RedirectView(r, "/text/"+folderOrFilename)
 		}
