@@ -34,7 +34,7 @@ func newThumbnail(thumb *internal.Thumbnail) *Thumbnail {
 }
 
 // GetFileThumbnail ...
-func (api API) GetFileThumbnail(token *AccessToken, filePath string) (*Thumbnail, error) {
+func (api API) GetFileThumbnail(token *AccessToken, filePath string, maxWidth uint) (*Thumbnail, error) {
 	filePath = internal.RemoveTrailingSlash(filePath)
 	dir := path.Dir(filePath)
 	folder, cached, err := api.getFolder(dir)
@@ -62,13 +62,7 @@ func (api API) GetFileThumbnail(token *AccessToken, filePath string) (*Thumbnail
 
 	thumb := file.Thumbnail
 	if thumb == nil || (len(thumb.Data) == 0 && thumb.Timestamp.Add(api.ThumbnailRetryAfter).Before(time.Now())) {
-		data, err := file.Open()
-		if err != nil {
-			return nil, err
-		}
-		defer data.Close()
-
-		thumb, err = internal.GetThumbnail(data, file.MIME)
+		thumb, err = internal.GetThumbnail(path.Join(api.root, file.RelPath+".bin"), file.MIME, maxWidth)
 		defer file.Save()
 		if err != nil {
 			file.Thumbnail = &internal.Thumbnail{Timestamp: time.Now()}

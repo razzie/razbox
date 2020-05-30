@@ -10,10 +10,11 @@ import (
 )
 
 type galleryPageView struct {
-	Folder       string
-	Entries      []*razbox.FolderEntry
-	Redirect     string
-	EditRedirect string
+	Folder        string
+	Entries       []*razbox.FolderEntry
+	Redirect      string
+	EditRedirect  string
+	MaxThumbWidth uint
 }
 
 func galleryPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
@@ -22,9 +23,10 @@ func galleryPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc)
 	tag := r.URL.Query().Get("tag")
 
 	v := &galleryPageView{
-		Folder:       uri,
-		Redirect:     "/x/" + uri,
-		EditRedirect: r.URL.RequestURI(),
+		Folder:        uri,
+		Redirect:      "/x/" + uri,
+		EditRedirect:  r.URL.RequestURI(),
+		MaxThumbWidth: maxThumbWidth,
 	}
 	if len(tag) > 0 {
 		v.Redirect = fmt.Sprintf("/x/%s/?tag=%s", uri, tag)

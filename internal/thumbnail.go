@@ -7,7 +7,7 @@ import (
 	"image/gif"
 	"image/jpeg"
 	"image/png"
-	"io"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -49,25 +49,30 @@ func IsThumbnailSupported(mime string) bool {
 	return false
 }
 
-// GetThumbnail returns a thumbnail image in bytes from an io.Reader
-func GetThumbnail(r io.ReadSeeker, mime string) (*Thumbnail, error) {
+// GetThumbnail returns the thumbnail of a media file
+func GetThumbnail(filename string, mime string, maxWidth uint) (*Thumbnail, error) {
 	if strings.HasPrefix(mime, "image/") {
-		img, _, err := image.Decode(r)
+		f, err := os.Open(filename)
 		if err != nil {
 			return nil, err
 		}
-		return getThumbnailImage(img)
+		defer f.Close()
+		img, _, err := image.Decode(f)
+		if err != nil {
+			return nil, err
+		}
+		return getThumbnailImage(img, maxWidth)
 	}
 
 	if ffmpegOK && strings.HasPrefix(mime, "video/") {
-		return getThumbnailFFMPEG(r)
+		return getThumbnailFFMPEG(filename, maxWidth)
 	}
 
 	return nil, fmt.Errorf("unsupported format: %s", mime)
 }
 
-func getThumbnailImage(img image.Image) (*Thumbnail, error) {
-	thumb := resize.Thumbnail(250, 500, img, resize.NearestNeighbor)
+func getThumbnailImage(img image.Image, maxWidth uint) (*Thumbnail, error) {
+	thumb := resize.Thumbnail(maxWidth, maxWidth*2, img, resize.NearestNeighbor)
 
 	var result bytes.Buffer
 	err := jpeg.Encode(&result, thumb, &jpeg.Options{Quality: 90})
@@ -83,19 +88,30 @@ func getThumbnailImage(img image.Image) (*Thumbnail, error) {
 	}, nil
 }
 
-func getThumbnailFFMPEG(r io.ReadSeeker) (*Thumbnail, error) {
-	var buffer bytes.Buffer
-	cmd := exec.Command("ffmpeg", "-i", "pipe:0", "-ss", "00:00:01.000", "-vframes", "1", "-f", "singlejpeg", "-")
-	cmd.Stdin = r
-	cmd.Stdout = &buffer
+func getThumbnailFFMPEG(filename string, maxWidth uint) (*Thumbnail, error) {
+	cmd := exec.Command("ffmpeg",
+		"-hide_banner",
+		"-loglevel", "error",
+		"-i", filename,
+		"-ss", "00:00:01.000",
+		"-vframes", "1",
+		"-vf", fmt.Sprintf("scale=%d:-2", maxWidth),
+		"-f", "singlejpeg", "-")
+
+	var output, stderr bytes.Buffer
+	cmd.Stdout = &output
+	cmd.Stderr = &stderr
+
 	if err := cmd.Run(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("[%s] %s", err.Error(), string(stderr.Bytes()))
 	}
 
-	img, err := jpeg.Decode(&buffer)
-	if err != nil {
-		return nil, err
-	}
+	cfg, err := jpeg.DecodeConfig(bytes.NewBuffer(output.Bytes()))
 
-	return getThumbnailImage(img)
+	return &Thumbnail{
+		Data:      output.Bytes(),
+		MIME:      "image/jpeg",
+		Bounds:    image.Rect(0, 0, cfg.Width, cfg.Height),
+		Timestamp: time.Now(),
+	}, err
 }
