@@ -35,7 +35,7 @@ func textPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) ra
 	defer file.Close()
 
 	if !strings.HasPrefix(file.MIME, "text/") {
-		return razlink.ErrorView(r, "Not a text file", http.StatusInternalServerError)
+		return razlink.RedirectView(r, "/x/"+filename)
 	}
 
 	data, err := ioutil.ReadAll(file)
