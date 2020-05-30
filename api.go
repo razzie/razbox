@@ -9,10 +9,11 @@ import (
 
 // API ...
 type API struct {
-	root             string
-	db               *internal.DB
-	CacheDuration    *time.Duration
-	CookieExpiration time.Duration
+	root                string
+	db                  *internal.DB
+	CacheDuration       *time.Duration
+	CookieExpiration    time.Duration
+	ThumbnailRetryAfter time.Duration
 }
 
 // NewAPI ...
@@ -27,9 +28,10 @@ func NewAPI(root string) (*API, error) {
 
 	tmpCacheDuration := time.Hour
 	return &API{
-		root:             root,
-		CacheDuration:    &tmpCacheDuration,
-		CookieExpiration: time.Hour * 24 * 7,
+		root:                root,
+		CacheDuration:       &tmpCacheDuration,
+		CookieExpiration:    time.Hour * 24 * 7,
+		ThumbnailRetryAfter: time.Hour,
 	}, nil
 }
 

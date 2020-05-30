@@ -12,13 +12,15 @@ import (
 
 // Command-line args
 var (
-	Root          string
-	RedisAddr     string
-	RedisPw       string
-	RedisDb       int
-	Port          int
-	DefaultFolder string
-	CacheDuration time.Duration
+	Root                string
+	RedisAddr           string
+	RedisPw             string
+	RedisDb             int
+	Port                int
+	DefaultFolder       string
+	CacheDuration       time.Duration
+	CookieExpiration    time.Duration
+	ThumbnailRetryAfter time.Duration
 )
 
 func init() {
@@ -29,6 +31,8 @@ func init() {
 	flag.IntVar(&Port, "port", 8080, "HTTP port")
 	flag.StringVar(&DefaultFolder, "default-folder", "", "Default folder to show in case of empty URL path")
 	flag.DurationVar(&CacheDuration, "cache-duration", time.Hour, "Cache duration")
+	flag.DurationVar(&CookieExpiration, "cookie-expiration", time.Hour*24*7, "Cookie expiration for read and write access (1 week by default)")
+	flag.DurationVar(&ThumbnailRetryAfter, "thumb-retry-after", time.Hour, "Duration to wait before attempting to create thumbnail again after fail")
 }
 
 func main() {
@@ -47,6 +51,8 @@ func main() {
 	if api.CacheDuration != nil {
 		*api.CacheDuration = CacheDuration
 	}
+	api.CookieExpiration = CookieExpiration
+	api.ThumbnailRetryAfter = ThumbnailRetryAfter
 
 	srv := NewServer(api, DefaultFolder)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(Port), srv))

@@ -38,7 +38,7 @@ func newSubfolderEntry(uri, subfolder string) *FolderEntry {
 	}
 }
 
-func newFileEntry(uri string, file *internal.File) *FolderEntry {
+func newFileEntry(uri string, file *internal.File, thumbnailRetryAfter time.Duration) *FolderEntry {
 	entry := &FolderEntry{
 		Prefix:       internal.MIMEtoSymbol(file.MIME),
 		Name:         file.Name,
@@ -52,11 +52,11 @@ func newFileEntry(uri string, file *internal.File) *FolderEntry {
 		Public:       file.Public,
 		HasThumbnail: internal.IsThumbnailSupported(file.MIME),
 	}
-	entry.updateThumbBounds(file)
+	entry.updateThumbBounds(file, thumbnailRetryAfter)
 	return entry
 }
 
-func (f *FolderEntry) updateThumbBounds(file *internal.File) {
+func (f *FolderEntry) updateThumbBounds(file *internal.File, thumbnailRetryAfter time.Duration) {
 	thumb := file.Thumbnail
 	if thumb == nil {
 		return
@@ -122,7 +122,7 @@ func (api API) GetFolderEntries(token *AccessToken, folderOrFilename string) ([]
 		}
 
 		if hasViewAccess || file.Public {
-			entry := newFileEntry(folderOrFilename, file)
+			entry := newFileEntry(folderOrFilename, file, api.ThumbnailRetryAfter)
 			entry.EditMode = hasEditAccess
 			return []*FolderEntry{entry}, nil, nil
 		}
@@ -141,7 +141,7 @@ func (api API) GetFolderEntries(token *AccessToken, folderOrFilename string) ([]
 		entries = append(entries, entry)
 	}
 	for _, file := range folder.GetFiles() {
-		entry := newFileEntry(folderOrFilename, file)
+		entry := newFileEntry(folderOrFilename, file, api.ThumbnailRetryAfter)
 		entry.EditMode = hasEditAccess
 		entries = append(entries, entry)
 	}
