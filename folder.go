@@ -218,7 +218,7 @@ func (api API) GetFolderEntries(token *AccessToken, folderOrFilename string) ([]
 		if hasViewAccess || file.Public {
 			entry := newFileEntry(folderOrFilename, file, api.ThumbnailRetryAfter)
 			entry.EditMode = hasEditAccess
-			return []*FolderEntry{entry}, nil, nil
+			return []*FolderEntry{entry}, getFolderFlags(token, folder), nil
 		}
 	}
 
