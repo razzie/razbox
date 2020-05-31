@@ -186,10 +186,11 @@ func getResponseFilename(resp *http.Response) string {
 
 // DownloadFileToFolderOptions ...
 type DownloadFileToFolderOptions struct {
-	Folder   string
-	URL      string
-	Filename string
-	Tags     []string
+	Folder    string
+	URL       string
+	Filename  string
+	Tags      []string
+	Overwrite bool
 }
 
 // DownloadFileToFolder ...
@@ -250,7 +251,7 @@ func (api API) DownloadFileToFolder(token *AccessToken, o *DownloadFileToFolderO
 		Tags:     o.Tags,
 		Uploaded: time.Now(),
 	}
-	err = file.Create(data, false)
+	err = file.Create(data, o.Overwrite)
 	if err != nil {
 		file.Delete()
 		return err

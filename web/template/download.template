@@ -8,6 +8,8 @@
 	<input type="url" name="url" placeholder="URL" style="width: 400px" /><br />
 	<input type="text" name="filename" placeholder="Filename (optional)" /><br />
 	<input type="text" name="tags" placeholder="Tags (space separated)" /><br />
+	<input type="checkbox" name="overwrite" value="overwrite" />
+	<label for="overwrite">Overwrite if exists</label><br />
 	<button id="submit">&#8681; Download</button>
 </form>
 <div style="float: right">

@@ -40,10 +40,11 @@ func downloadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc
 		r.ParseForm()
 
 		o := &razbox.DownloadFileToFolderOptions{
-			Folder:   uri,
-			URL:      r.FormValue("url"),
-			Filename: r.FormValue("filename"),
-			Tags:     strings.Fields(r.FormValue("tags")),
+			Folder:    uri,
+			URL:       r.FormValue("url"),
+			Filename:  r.FormValue("filename"),
+			Tags:      strings.Fields(r.FormValue("tags")),
+			Overwrite: r.FormValue("overwrite") == "overwrite",
 		}
 		err := api.DownloadFileToFolder(token, o)
 		if err != nil {
