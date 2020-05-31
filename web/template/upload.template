@@ -49,7 +49,11 @@ function abortHandler(event) {
 	onsubmit="uploadFile(); return false;"
 	id="upload_form"
 >
-	<input type="file" name="file" /><br />
+	<label>
+		<input type="file" name="file" style="display: none" onchange="_('upload_filename').value = this.value;" />
+		<span class="button">Pick file</span>
+		<input type="text" id="upload_filename" disabled />
+	</label><br />
 	<input type="text" name="filename" placeholder="Filename (optional)" /><br />
 	<input type="text" name="tags" placeholder="Tags (space separated)" /><br />
 	<input type="checkbox" name="overwrite" value="overwrite" />

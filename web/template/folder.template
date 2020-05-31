@@ -115,8 +115,8 @@ function sortTable(column, comparator) {
 	{{range .Entries}}
 		<tr data-isfolder="{{.Folder}}">
 			<td data-sortvalue="{{.Name}}">
-				{{.Prefix}}<a href="/x/{{.RelPath}}">{{.Name}}</a>
-				{{if .Public}}[public]{{end}}
+				{{.Prefix}} <a href="/x/{{.RelPath}}">{{.Name}}</a>
+				{{if .Public}}<small>[public]</small>{{end}}
 			</td>
 			<td data-sortvalue="{{.MIME}}">{{.MIME}}</td>
 			<td data-sortvalue="{{range .Tags}}{{.}} {{end}}">

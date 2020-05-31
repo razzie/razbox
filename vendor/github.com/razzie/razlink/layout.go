@@ -5,6 +5,87 @@ import (
 	"net/http"
 )
 
+var styleT = `
+body {
+	background-color: white;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%23808080' fill-opacity='0.5' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
+}
+a {
+	color: black;
+	text-decoration: underline;
+	text-decoration-color: rgb(220, 53, 69);
+	-webkit-text-decoration-color: rgb(220, 53, 69);
+}
+a:hover {
+	color: dimgrey;
+}
+div.outer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+div.inner {
+	background-color: white;
+	border: 1px solid black;
+	padding: 1rem;
+	display: inline-flex;
+	border-radius: 15px;
+}
+input[type="text"], input[type="password"] {
+	border: 0;
+	outline: 0;
+	background: transparent;
+	border-bottom: 1px solid black;
+	margin-bottom: 1rem;
+	min-width: 250px;
+}
+input[type="submit"], input[type="button"], button, .button {
+	border: 1px solid black;
+	border-radius: 5px;
+	background-color: whitesmoke;
+	padding: 5px 10px;
+	margin: 10px 0;
+	color: black;
+	text-decoration: none;
+	display: inline-block;
+	cursor: pointer;
+}
+button:hover {
+	background-color: lightsteelblue;
+}
+table {
+	border-collapse: collapse;
+	margin-bottom: 1rem;
+	border-spacing: 0;
+}
+td {
+	padding: 10px;
+	border: 1px solid transparent;
+}
+tr:nth-child(odd) > td {
+	background-color: whitesmoke;
+}
+tr:first-child > td {
+	font-weight: bold;
+	border-bottom: 1px solid black;
+	background-color: white;
+}
+tr:not(:first-child):hover > td {
+	background-color: lightsteelblue;
+}
+tr:not(:first-child) > td:first-child {
+	border-radius: 10px 0 0 10px;
+	border: 0;
+}
+tr:not(:first-child) > td:last-child {
+	border-radius: 0 10px 10px 0;
+	border: 0;
+}
+small {
+	color: dimgrey;
+}
+`
+
 var layoutT = `
 <!DOCTYPE html>
 <html>
@@ -16,52 +97,7 @@ var layoutT = `
 		{{end}}
 		<link rel="icon" href="favicon.png" type="image/png" />
 		<style>
-		body {
-			background-color: white;
-			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%23808080' fill-opacity='0.5' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
-		}
-		a {
-			color: black;
-			text-decoration: underline;
-			text-decoration-color: rgb(220, 53, 69);
-			-webkit-text-decoration-color: rgb(220, 53, 69);
-		}
-		a:hover {
-			color: dimgrey;
-		}
-		div.outer {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
-		div.inner {
-			background-color: white;
-			border: 1px solid black;
-			padding: 1rem;
-			display: inline-flex;
-		}
-		input {
-			border: 0;
-			outline: 0;
-			background: transparent;
-			border-bottom: 1px solid black;
-			margin-bottom: 1rem;
-		}
-		table {
-			border-collapse: collapse;
-			margin-bottom: 1rem;
-		}
-		tr:nth-child(odd) > td {
-			background-color: whitesmoke;
-		}
-		tr:nth-child(1) > td {
-			font-weight: bold;
-			border-bottom: 1px solid black;
-			background-color: white;
-		}
-		td {
-			padding: 10px;
-		}
+			{{template "style"}}
 		</style>
 		{{range .Stylesheets}}
 			<link rel="stylesheet" href="{{.}}" />
@@ -82,7 +118,12 @@ var layoutT = `
 </html>
 `
 
-var layout = template.Must(template.New("layout").Parse(layoutT))
+var layout = initLayout()
+
+func initLayout() *template.Template {
+	layout := template.Must(template.New("layout").Parse(layoutT))
+	return template.Must(layout.New("style").Parse(styleT))
+}
 
 // LayoutRenderer is a function that renders a html page
 type LayoutRenderer func(w http.ResponseWriter, r *http.Request, title string, data interface{})

@@ -11,6 +11,6 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-	github.com/razzie/razlink v0.0.0-20200524102512-a7b52994827f
+	github.com/razzie/razlink v0.0.0-20200531192417-b026c2574896
 	golang.org/x/image v0.0.0-20200430140353-33d19683fad8
 )
