@@ -61,7 +61,11 @@ func (f *File) Save() error {
 
 // Create ...
 func (f *File) Create(content io.Reader, overwrite bool) error {
-	jsonFilename := path.Join(f.Root, f.RelPath+".json")
+	absPath := path.Join(f.Root, f.RelPath)
+	temporaryUploadFilename := absPath + ".bin.upload"
+	dataFilename := absPath + ".bin"
+	jsonFilename := absPath + ".json"
+
 	if _, err := os.Stat(jsonFilename); os.IsNotExist(err) || overwrite {
 		data, _ := json.MarshalIndent(f, "", "  ")
 		err := ioutil.WriteFile(jsonFilename, data, 0755)
@@ -73,13 +77,21 @@ func (f *File) Create(content io.Reader, overwrite bool) error {
 	}
 
 	if content != nil {
-		file, err := os.Create(path.Join(f.Root, f.RelPath+".bin"))
+		file, err := os.Create(temporaryUploadFilename)
 		if err != nil {
 			return err
 		}
+		defer os.Remove(temporaryUploadFilename)
 		defer file.Close()
 
 		_, err = io.Copy(file, content)
+		if err != nil {
+			os.Remove(jsonFilename)
+			return err
+		}
+
+		file.Close()
+		err = os.Rename(temporaryUploadFilename, dataFilename)
 		if err != nil {
 			os.Remove(jsonFilename)
 			return err
