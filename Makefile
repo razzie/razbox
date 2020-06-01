@@ -1,14 +1,15 @@
 .DEFAULT_GOAL := razbox
+BUILDFLAGS := -mod=vendor -ldflags="-s -w" -gcflags=-trimpath=$(CURDIR)
 
 all: razbox mkfolder mkfile
 
 razbox:
-	go build -mod=vendor -ldflags="-s -w" -gcflags=-trimpath=$(CURDIR) ./cmd/razbox
+	go build $(BUILDFLAGS) ./cmd/razbox
 
 mkfolder:
-	go build -mod=vendor -ldflags="-s -w" -gcflags=-trimpath=$(CURDIR) ./tools/mkfolder
+	go build $(BUILDFLAGS) ./tools/mkfolder
 
 mkfile:
-	go build -mod=vendor -ldflags="-s -w" -gcflags=-trimpath=$(CURDIR) ./tools/mkfile
+	go build $(BUILDFLAGS) ./tools/mkfile
 
 .PHONY: all razbox mkfolder mkfile
