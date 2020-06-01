@@ -118,7 +118,7 @@ func (api API) ChangeFolderPassword(token *AccessToken, folderName, accessType, 
 
 // GetSubfolders ...
 func (api *API) GetSubfolders(token *AccessToken, folderName string) ([]string, error) {
-	subfolders, err := api.getSubfoldersRecursive(token, folderName, true)
+	subfolders, err := api.getSubfoldersRecursive(token, folderName, true, false)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (api *API) GetSubfolders(token *AccessToken, folderName string) ([]string, 
 	return relSubfolders, nil
 }
 
-func (api *API) getSubfoldersRecursive(token *AccessToken, folderName string, fromConfigRoot bool) ([]string, error) {
+func (api *API) getSubfoldersRecursive(token *AccessToken, folderName string, fromConfigRoot, inheritedOnly bool) ([]string, error) {
 	folder, cached, err := api.getFolder(folderName)
 	if err != nil {
 		return nil, &ErrNotFound{}
@@ -147,6 +147,10 @@ func (api *API) getSubfoldersRecursive(token *AccessToken, folderName string, fr
 	err = folder.EnsureReadAccess(token.toLib())
 	if err != nil {
 		return nil, &ErrNoReadAccess{Folder: folderName}
+	}
+
+	if inheritedOnly && !folder.ConfigInherited {
+		return nil, nil
 	}
 
 	if fromConfigRoot && folder.ConfigInherited {
@@ -162,7 +166,7 @@ func (api *API) getSubfoldersRecursive(token *AccessToken, folderName string, fr
 	var subfolders []string
 	subfolders = append(subfolders, folder.RelPath)
 	for _, subfolder := range folder.GetSubfolders() {
-		subsubfolders, _ := api.getSubfoldersRecursive(token, path.Join(folder.RelPath, subfolder), false)
+		subsubfolders, _ := api.getSubfoldersRecursive(token, path.Join(folder.RelPath, subfolder), false, true)
 		subfolders = append(subfolders, subsubfolders...)
 	}
 	return subfolders, nil
