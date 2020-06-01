@@ -119,7 +119,7 @@ func (api API) UploadFile(token *AccessToken, o *UploadFileOptions) error {
 		return &ErrNoWriteAccess{Folder: o.Folder}
 	}
 
-	limit := folder.MaxFileSizeMB << 20
+	limit := folder.Config.MaxFileSizeMB << 20
 	if o.Header.Size > limit {
 		return &ErrSizeLimitExceeded{}
 	}
@@ -230,7 +230,7 @@ func (api API) DownloadFileToFolder(token *AccessToken, o *DownloadFileToFolderO
 		return fmt.Errorf("bad response status code: %s", http.StatusText(resp.StatusCode))
 	}
 
-	limit := folder.MaxFileSizeMB << 20
+	limit := folder.Config.MaxFileSizeMB << 20
 	data := &limitedReader{
 		r: resp.Body,
 		n: limit,

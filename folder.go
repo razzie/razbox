@@ -23,9 +23,9 @@ type FolderFlags struct {
 func getFolderFlags(token *AccessToken, folder *internal.Folder) *FolderFlags {
 	return &FolderFlags{
 		EditMode:      folder.EnsureWriteAccess(token.toLib()) == nil,
-		Editable:      len(folder.WritePassword) > 0,
+		Editable:      len(folder.Config.WritePassword) > 0,
 		Configurable:  !folder.ConfigInherited,
-		MaxFileSizeMB: folder.MaxFileSizeMB,
+		MaxFileSizeMB: folder.Config.MaxFileSizeMB,
 	}
 }
 

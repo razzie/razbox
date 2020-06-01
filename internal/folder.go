@@ -11,17 +11,23 @@ import (
 	"github.com/nbutton23/zxcvbn-go"
 )
 
+// FolderConfig stores the folder's passwords and other congfiguration
+type FolderConfig struct {
+	Salt          string `json:"salt"`
+	ReadPassword  string `json:"read_pw"`
+	WritePassword string `json:"write_pw"`
+	MaxFileSizeMB int64  `json:"max_file_size"`
+}
+
 // Folder ...
 type Folder struct {
-	Root             string   `json:"root"`
-	RelPath          string   `json:"rel_path"`
-	Salt             string   `json:"salt"`
-	ReadPassword     string   `json:"read_pw"`
-	WritePassword    string   `json:"write_pw"`
-	MaxFileSizeMB    int64    `json:"max_file_size"`
-	CachedSubfolders []string `json:"cached_subfolders,omitempty"`
-	CachedFiles      []*File  `json:"cached_files,omitempty"`
-	ConfigInherited  bool     `json:"config_inherited,omitempty"`
+	Root             string       `json:"root"`
+	RelPath          string       `json:"rel_path"`
+	Config           FolderConfig `json:"config"`
+	ConfigInherited  bool         `json:"config_inherited"`
+	ConfigRootFolder string       `json:"config_root"`
+	CachedSubfolders []string     `json:"cached_subfolders"`
+	CachedFiles      []*File      `json:"cached_files"`
 }
 
 // GetFolder returns a new Folder from a handle to a .razbox file
@@ -46,22 +52,25 @@ func GetFolder(root, relPath string) (*Folder, error) {
 		return nil, fmt.Errorf("config file not found for folder: %s", relPath)
 	}
 
-	var folder Folder
+	folder := &Folder{
+		Root:             root,
+		RelPath:          relPath,
+		ConfigInherited:  configInherited,
+		ConfigRootFolder: searchPath[len(root):],
+	}
+
 	if len(data) > 0 {
-		err := json.Unmarshal(data, &folder)
+		err := json.Unmarshal(data, &folder.Config)
 		if err != nil {
 			return nil, err
 		}
 	}
-	folder.Root = root
-	folder.RelPath = relPath
-	folder.ConfigInherited = configInherited
 
-	if folder.MaxFileSizeMB < 1 {
-		folder.MaxFileSizeMB = 1
+	if folder.Config.MaxFileSizeMB < 1 {
+		folder.Config.MaxFileSizeMB = 1
 	}
 
-	return &folder, nil
+	return folder, nil
 }
 
 // GetFile returns the file in the folder with the given basename
@@ -148,16 +157,16 @@ func (f *Folder) SetPasswords(readPw, writePw string) error {
 	if readPw == writePw && len(readPw) > 0 {
 		return fmt.Errorf("read and write passwords cannot match")
 	}
-	f.Salt = Salt()
+	f.Config.Salt = Salt()
 	if len(readPw) == 0 {
-		f.ReadPassword = ""
+		f.Config.ReadPassword = ""
 	} else {
-		f.ReadPassword = Hash(f.Salt + readPw)
+		f.Config.ReadPassword = Hash(f.Config.Salt + readPw)
 	}
 	if len(writePw) == 0 {
-		f.WritePassword = ""
+		f.Config.WritePassword = ""
 	} else {
-		f.WritePassword = Hash(f.Salt + writePw)
+		f.Config.WritePassword = Hash(f.Config.Salt + writePw)
 	}
 	return f.save()
 }
@@ -165,13 +174,13 @@ func (f *Folder) SetPasswords(readPw, writePw string) error {
 // SetReadPassword sets the read password
 func (f *Folder) SetReadPassword(readPw string) error {
 	if len(readPw) == 0 {
-		f.ReadPassword = ""
+		f.Config.ReadPassword = ""
 	} else {
-		hash := Hash(f.Salt + readPw)
-		if hash == f.WritePassword {
+		hash := Hash(f.Config.Salt + readPw)
+		if hash == f.Config.WritePassword {
 			return fmt.Errorf("read and write passwords cannot match")
 		}
-		f.ReadPassword = hash
+		f.Config.ReadPassword = hash
 	}
 	return f.save()
 }
@@ -183,11 +192,11 @@ func (f *Folder) SetWritePassword(writePw string) error {
 		return fmt.Errorf("password scored too low (%d) on zxcvbn test", pwtest.Score)
 	}
 
-	hash := Hash(f.Salt + writePw)
-	if hash == f.ReadPassword {
+	hash := Hash(f.Config.Salt + writePw)
+	if hash == f.Config.ReadPassword {
 		return fmt.Errorf("read and write passwords cannot match")
 	}
-	f.WritePassword = hash
+	f.Config.WritePassword = hash
 	return f.save()
 }
 
@@ -204,24 +213,18 @@ func (f *Folder) SetPassword(accessType, pw string) error {
 }
 
 func (f *Folder) save() error {
-	tmp := Folder{
-		Salt:          f.Salt,
-		ReadPassword:  f.ReadPassword,
-		WritePassword: f.WritePassword,
-		MaxFileSizeMB: f.MaxFileSizeMB,
-	}
-	data, _ := json.MarshalIndent(&tmp, "", "  ")
+	data, _ := json.MarshalIndent(&f.Config, "", "  ")
 	return ioutil.WriteFile(path.Join(f.Root, f.RelPath, ".razbox"), data, 0755)
 }
 
 // EnsureReadAccess returns an error if the access token doesn't permit read access
 func (f *Folder) EnsureReadAccess(token *AccessToken) error {
-	if len(f.ReadPassword) == 0 {
+	if len(f.Config.ReadPassword) == 0 {
 		return nil
 	}
 
 	pw, _ := token.Read[FilenameToUUID(f.RelPath)]
-	if pw != f.ReadPassword {
+	if pw != f.Config.ReadPassword {
 		return fmt.Errorf("incorrect read password")
 	}
 
@@ -230,12 +233,12 @@ func (f *Folder) EnsureReadAccess(token *AccessToken) error {
 
 // EnsureWriteAccess returns an error if the access token doesn't permit write access
 func (f *Folder) EnsureWriteAccess(token *AccessToken) error {
-	if len(f.WritePassword) == 0 {
+	if len(f.Config.WritePassword) == 0 {
 		return fmt.Errorf("folder not writable")
 	}
 
 	pw, _ := token.Write[FilenameToUUID(f.RelPath)]
-	if pw != f.WritePassword {
+	if pw != f.Config.WritePassword {
 		return fmt.Errorf("incorrect write password")
 	}
 
@@ -256,15 +259,15 @@ func (f *Folder) EnsureAccess(accessType string, token *AccessToken) error {
 
 // TestReadPassword returns true if the given password matches the read password
 func (f *Folder) TestReadPassword(readPw string) bool {
-	if len(f.ReadPassword) == 0 && len(readPw) == 0 {
+	if len(f.Config.ReadPassword) == 0 && len(readPw) == 0 {
 		return true
 	}
-	return Hash(f.Salt+readPw) == f.ReadPassword
+	return Hash(f.Config.Salt+readPw) == f.Config.ReadPassword
 }
 
 // TestWritePassword returns true if the given password matches the write password
 func (f *Folder) TestWritePassword(writePw string) bool {
-	return Hash(f.Salt+writePw) == f.WritePassword
+	return Hash(f.Config.Salt+writePw) == f.Config.WritePassword
 }
 
 // TestPassword returns true if the given password matches the password for the given access type
@@ -284,9 +287,9 @@ func (f *Folder) TestPassword(accessType, pw string) bool {
 func (f *Folder) GetPasswordHash(accessType string) (string, error) {
 	switch accessType {
 	case "read":
-		return f.ReadPassword, nil
+		return f.Config.ReadPassword, nil
 	case "write":
-		return f.WritePassword, nil
+		return f.Config.WritePassword, nil
 	default:
 		return "", fmt.Errorf("invalid access type: %s", accessType)
 	}
