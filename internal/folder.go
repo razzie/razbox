@@ -125,6 +125,26 @@ func (f *Folder) GetFiles() []*File {
 	return f.CachedFiles
 }
 
+// CacheSubfolder adds a subfolder to the list of cached subfolders
+func (f *Folder) CacheSubfolder(subfolder string) {
+	if f.CachedSubfolders != nil {
+		f.CachedSubfolders = append(f.CachedSubfolders, subfolder)
+	}
+}
+
+// UncacheSubfolder removes a subfolder from the list of cached subfolders
+func (f *Folder) UncacheSubfolder(subfolder string) {
+	for i, cached := range f.CachedSubfolders {
+		if cached == subfolder {
+			//f.CachedSubfolders = append(f.CachedSubfolders[:i], f.CachedSubfolders[i+i:]...)
+			f.CachedSubfolders[len(f.CachedSubfolders)-1], f.CachedSubfolders[i] =
+				f.CachedSubfolders[i], f.CachedSubfolders[len(f.CachedSubfolders)-1]
+			f.CachedSubfolders = f.CachedSubfolders[:len(f.CachedSubfolders)-1]
+			return
+		}
+	}
+}
+
 // GetSubfolders returns the subfolders
 func (f *Folder) GetSubfolders() []string {
 	if f.CachedSubfolders != nil {
