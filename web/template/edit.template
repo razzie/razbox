@@ -7,6 +7,12 @@
 		<input type="text" name="tags" value="{{.Tags}}" placeholder="Tags (space separated)" /><br />
 		<input type="checkbox" name="public" value="public"{{if .Public}} checked{{end}}>
 		<label for="public">Public</label><br />
+		{{if .Subfolders}}
+			<select name="move" style="min-width: 250px; margin: 10px 0">
+				<option value="">Move to subfolder..</option>
+				{{range .Subfolders}}<option value="{{.}}">{{.}}</option>{{end}}
+			</select><br />
+		{{end}}
 		<button>Save</button>
 	</form>
 </div>

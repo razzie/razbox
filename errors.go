@@ -70,6 +70,15 @@ func (err ErrInvalidName) Error() string {
 	return "Invalid name: " + err.Name
 }
 
+// ErrInvalidMoveLocation ...
+type ErrInvalidMoveLocation struct {
+	Location string
+}
+
+func (err ErrInvalidMoveLocation) Error() string {
+	return "Invalid move location: " + err.Location
+}
+
 // ErrNotDeletable ...
 type ErrNotDeletable struct {
 	Name string

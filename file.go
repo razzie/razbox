@@ -269,6 +269,7 @@ type EditFileOptions struct {
 	NewFilename      string
 	Tags             []string
 	Public           bool
+	MoveTo           string
 }
 
 // EditFile ...
@@ -317,11 +318,39 @@ func (api API) EditFile(token *AccessToken, o *EditFileOptions) error {
 		return err
 	}
 
-	if newName != o.OriginalFilename && len(newName) > 0 {
-		newPath := path.Join(o.Folder, newName)
+	if len(newName) == 0 {
+		newName = file.Name
+	}
+
+	newFolderName := o.Folder
+	if len(o.MoveTo) > 0 {
+		valid := false
+		subfolders, _ := api.GetSubfolders(token, o.Folder)
+		for _, subfolder := range subfolders {
+			if subfolder == o.MoveTo {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			return &ErrInvalidMoveLocation{Location: o.MoveTo}
+		}
+		newFolderName = path.Join(o.Folder, o.MoveTo)
+	}
+
+	if newName != o.OriginalFilename || len(o.MoveTo) > 0 {
+		newPath := path.Join(newFolderName, newName)
 		err := file.Move(newPath)
 		if err != nil {
 			return err
+		}
+		if newFolderName != o.Folder {
+			folder.UncacheFile(o.OriginalFilename)
+			newFolder, _, _ := api.getFolder(newFolderName)
+			if newFolder != nil {
+				newFolder.CacheFile(file)
+				api.goCacheFolder(newFolder)
+			}
 		}
 		changed = true
 	}

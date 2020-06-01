@@ -116,6 +116,58 @@ func (api API) ChangeFolderPassword(token *AccessToken, folderName, accessType, 
 	}, nil
 }
 
+// GetSubfolders ...
+func (api *API) GetSubfolders(token *AccessToken, folderName string) ([]string, error) {
+	subfolders, err := api.getSubfoldersRecursive(token, folderName, true)
+	if err != nil {
+		return nil, err
+	}
+
+	relSubfolders := make([]string, 0, len(subfolders))
+	for _, subfolder := range subfolders {
+		relSubfolder, _ := filepath.Rel(folderName, subfolder)
+		if len(relSubfolder) == 0 || relSubfolder == "." {
+			continue
+		}
+		relSubfolders = append(relSubfolders, relSubfolder)
+	}
+	return relSubfolders, nil
+}
+
+func (api *API) getSubfoldersRecursive(token *AccessToken, folderName string, fromConfigRoot bool) ([]string, error) {
+	folder, cached, err := api.getFolder(folderName)
+	if err != nil {
+		return nil, &ErrNotFound{}
+	}
+	if !cached {
+		tmpFolder := folder
+		defer api.goCacheFolder(tmpFolder)
+	}
+
+	err = folder.EnsureReadAccess(token.toLib())
+	if err != nil {
+		return nil, &ErrNoReadAccess{Folder: folderName}
+	}
+
+	if fromConfigRoot && folder.ConfigInherited {
+		folder, cached, err = api.getFolder(folder.ConfigRootFolder)
+		if err != nil {
+			return nil, &ErrNotFound{}
+		}
+		if !cached {
+			defer api.goCacheFolder(folder)
+		}
+	}
+
+	var subfolders []string
+	subfolders = append(subfolders, folder.RelPath)
+	for _, subfolder := range folder.GetSubfolders() {
+		subsubfolders, _ := api.getSubfoldersRecursive(token, path.Join(folder.RelPath, subfolder), false)
+		subfolders = append(subfolders, subsubfolders...)
+	}
+	return subfolders, nil
+}
+
 // CreateSubfolder ...
 func (api *API) CreateSubfolder(token *AccessToken, folderName, subfolder string) (string, error) {
 	changed := false

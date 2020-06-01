@@ -11,13 +11,14 @@ import (
 )
 
 type editPageView struct {
-	Error    string
-	Folder   string
-	Filename string
-	Tags     string
-	Public   bool
-	Redirect string
-	Thumb    bool
+	Error      string
+	Folder     string
+	Filename   string
+	Tags       string
+	Public     bool
+	Redirect   string
+	Thumb      bool
+	Subfolders []string
 }
 
 func editPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
@@ -38,15 +39,17 @@ func editPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) ra
 		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()))
 	}
 
-	v := &editPageView{
-		Folder:   dir,
-		Filename: entry[0].Name,
-		Tags:     strings.Join(entry[0].Tags, " "),
-		Public:   entry[0].Public,
-		Redirect: redirect,
-		Thumb:    entry[0].HasThumbnail,
-	}
 	title := "Edit " + filename
+	subfolders, _ := api.GetSubfolders(token, dir)
+	v := &editPageView{
+		Folder:     dir,
+		Filename:   entry[0].Name,
+		Tags:       strings.Join(entry[0].Tags, " "),
+		Public:     entry[0].Public,
+		Redirect:   redirect,
+		Thumb:      entry[0].HasThumbnail,
+		Subfolders: subfolders,
+	}
 
 	if r.Method == "POST" {
 		r.ParseForm()
@@ -57,6 +60,7 @@ func editPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) ra
 			NewFilename:      r.FormValue("filename"),
 			Tags:             strings.Fields(r.FormValue("tags")),
 			Public:           r.FormValue("public") == "public",
+			MoveTo:           r.FormValue("move"),
 		}
 		err := api.EditFile(token, o)
 		if err != nil {
