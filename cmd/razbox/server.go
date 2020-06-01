@@ -26,6 +26,7 @@ func NewServer(api *razbox.API, defaultFolder string) *razlink.Server {
 		page.Gallery(api),
 		page.Thumbnail(api),
 		page.Text(api),
+		page.CreateSubfolder(api),
 	)
 	return srv
 }

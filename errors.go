@@ -60,3 +60,12 @@ type ErrBadHTTPResponseStatus struct {
 func (err ErrBadHTTPResponseStatus) Error() string {
 	return "bad response status code: " + http.StatusText(err.StatusCode)
 }
+
+// ErrInvalidName ...
+type ErrInvalidName struct {
+	Name string
+}
+
+func (err ErrInvalidName) Error() string {
+	return "Invalid name: " + err.Name
+}

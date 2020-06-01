@@ -2,12 +2,14 @@ package razbox
 
 import (
 	"html/template"
+	"os"
 	"path"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/razzie/razbox/internal"
 )
 
@@ -102,6 +104,44 @@ func (api API) ChangeFolderPassword(token *AccessToken, folderName, accessType, 
 		Read:  newToken.Read,
 		Write: newToken.Write,
 	}, nil
+}
+
+// CreateSubfolder ...
+func (api *API) CreateSubfolder(token *AccessToken, folderName, subfolder string) (string, error) {
+	changed := false
+	folder, cached, err := api.getFolder(folderName)
+	if err != nil {
+		return "", &ErrNotFound{}
+	}
+	defer func() {
+		if !cached || changed {
+			api.goCacheFolder(folder)
+		}
+	}()
+
+	err = folder.EnsureReadAccess(token.toLib())
+	if err != nil {
+		return "", &ErrNoReadAccess{Folder: folderName}
+	}
+
+	err = folder.EnsureWriteAccess(token.toLib())
+	if err != nil {
+		return "", &ErrNoWriteAccess{Folder: folderName}
+	}
+
+	safeName := govalidator.SafeFileName(subfolder)
+	if len(safeName) == 0 || safeName == "." {
+		return "", &ErrInvalidName{subfolder}
+	}
+
+	err = os.Mkdir(path.Join(api.root, folder.RelPath, safeName), 0755)
+	if err != nil {
+		return "", err
+	}
+
+	folder.CacheSubfolder(safeName)
+	changed = true
+	return path.Join(folder.RelPath, safeName), nil
 }
 
 // FolderEntry ...

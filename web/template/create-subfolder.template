@@ -1,0 +1,14 @@
+{{if .Error}}
+<strong style="color: red">{{.Error}}</strong><br /><br />
+{{end}}
+<p>
+	<strong>{{.Folder}}</strong><br />
+	Create a subfolder with the following name:
+</p>
+<form method="post">
+	<input type="text" name="subfolder" placeholder="Subfolder name" /><br />
+	<button>Create</button>
+</form>
+<div style="float: right">
+	<a href="{{.Redirect}}">Go back &#10548;</a>
+</div>
