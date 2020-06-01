@@ -124,9 +124,9 @@ func (api API) UploadFile(token *AccessToken, o *UploadFileOptions) error {
 	}
 
 	filename := govalidator.SafeFileName(o.Filename)
-	if len(filename) == 0 || filename == "." {
+	if len(filename) == 0 || filename == "." || filename == ".." {
 		filename = govalidator.SafeFileName(o.Header.Filename)
-		if len(filename) == 0 || filename == "." {
+		if len(filename) == 0 || filename == "." || filename == ".." {
 			filename = internal.Salt()
 		}
 	}
@@ -236,9 +236,9 @@ func (api API) DownloadFileToFolder(token *AccessToken, o *DownloadFileToFolderO
 	}
 
 	filename := govalidator.SafeFileName(o.Filename)
-	if len(filename) == 0 || filename == "." {
+	if len(filename) == 0 || filename == "." || filename == ".." {
 		filename = getResponseFilename(resp)
-		if len(filename) == 0 || filename == "." {
+		if len(filename) == 0 || filename == "." || filename == ".." {
 			filename = internal.Salt()
 		}
 	}
@@ -313,11 +313,11 @@ func (api API) EditFile(token *AccessToken, o *EditFileOptions) error {
 	}
 
 	newName := govalidator.SafeFileName(o.NewFilename)
-	if newName == "." {
+	if newName == "." || newName == ".." {
 		return err
 	}
 
-	if newName != o.OriginalFilename {
+	if newName != o.OriginalFilename && len(newName) > 0 {
 		newPath := path.Join(o.Folder, newName)
 		err := file.Move(newPath)
 		if err != nil {

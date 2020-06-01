@@ -140,7 +140,7 @@ func (api *API) CreateSubfolder(token *AccessToken, folderName, subfolder string
 	}
 
 	safeName := govalidator.SafeFileName(subfolder)
-	if len(safeName) == 0 || safeName == "." {
+	if len(safeName) == 0 || safeName == "." || safeName == ".." {
 		return "", &ErrInvalidName{subfolder}
 	}
 
