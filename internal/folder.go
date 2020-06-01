@@ -32,30 +32,37 @@ type Folder struct {
 // GetFolder returns a new Folder from a handle to a .razbox file
 func GetFolder(root, relPath string) (*Folder, error) {
 	relPath = path.Clean(relPath)
-	searchPath := filepath.Join(root, relPath)
+	searchPath := path.Join(root, relPath)
 	var data []byte
 	var configInherited bool
 	var configFound bool
+	var configRoot string
 
 	for len(searchPath) >= len(root) {
-		data, _ = ioutil.ReadFile(filepath.Join(searchPath, ".razbox"))
+		data, _ = ioutil.ReadFile(path.Join(searchPath, ".razbox"))
 		if data != nil {
 			configFound = true
 			break
 		}
 		configInherited = true
-		searchPath = filepath.Join(searchPath, "..")
+		searchPath = path.Join(searchPath, "..")
 	}
 
 	if !configFound {
 		return nil, &ErrFolderConfigNotFound{Folder: relPath}
 	}
 
+	if len(searchPath) > len(root) {
+		configRoot = searchPath[len(root)+1:]
+	} else {
+		configRoot = relPath
+	}
+
 	folder := &Folder{
 		Root:             root,
 		RelPath:          relPath,
 		ConfigInherited:  configInherited,
-		ConfigRootFolder: searchPath[len(root):],
+		ConfigRootFolder: configRoot,
 	}
 
 	if len(data) > 0 {
