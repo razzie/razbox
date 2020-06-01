@@ -1,32 +1,31 @@
-{{define "style"}}{{end}}
-<style type="text/css" scoped>
-	a {
-		color: black;
-		text-decoration: underline;
-		text-decoration-color: rgb(220, 53, 69);
-		-webkit-text-decoration-color: rgb(220, 53, 69);
-	}
-	a:hover {
-		color: dimgrey;
-	}
-	.hljs-ln-numbers {
-		-webkit-touch-callout: none;
-		-webkit-user-select: none;
-		-khtml-user-select: none;
-		-moz-user-select: none;
-		-ms-user-select: none;
-		user-select: none;
+{{define "style"}}
+a {
+	color: black;
+	text-decoration: underline;
+	text-decoration-color: rgb(220, 53, 69);
+	-webkit-text-decoration-color: rgb(220, 53, 69);
+}
+a:hover {
+	color: dimgrey;
+}
+.hljs-ln-numbers {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 
-		text-align: center;
-		color: #ccc;
-		border-right: 1px solid #CCC;
-		vertical-align: top;
-		padding-right: 5px !important;
-	}
-	pre, code {
-		width: 100%;
-	}
-</style>
+	text-align: center;
+	color: #ccc;
+	border-right: 1px solid #CCC;
+	vertical-align: top;
+	padding-right: 5px !important;
+}
+pre, code {
+	width: 100%;
+}
+{{end}}
 <div style="clear: both">
 	<div style="float: right">
 		<a href="/text/{{.Folder}}/{{.Filename}}?download">&#8681; Download raw</a> |
