@@ -34,7 +34,11 @@ input[type="submit"], input[type="button"], button, .button {
 	display: inline-block;
 	cursor: pointer;
 }
-button:hover {
+input[type="submit"]:disabled, input[type="button"]:disabled, button:disabled, .button:disabled {
+	color: grey;
+}
+input[type="submit"]:not(:disabled):hover, input[type="button"]:not(:disabled):hover,
+button:not(:disabled):hover, .button:not(:disabled):hover {
 	background-color: lightsteelblue;
 }
 table {
