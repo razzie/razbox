@@ -262,7 +262,7 @@ func (f *Folder) EnsureReadAccess(token *AccessToken) error {
 		return nil
 	}
 
-	pw, _ := token.Read[FilenameToUUID(f.RelPath)]
+	pw, _ := token.Read[FilenameToUUID(f.ConfigRootFolder)]
 	if pw != f.Config.ReadPassword {
 		return &ErrWrongPassword{}
 	}
@@ -276,7 +276,7 @@ func (f *Folder) EnsureWriteAccess(token *AccessToken) error {
 		return &ErrFolderNotWritable{}
 	}
 
-	pw, _ := token.Write[FilenameToUUID(f.RelPath)]
+	pw, _ := token.Write[FilenameToUUID(f.ConfigRootFolder)]
 	if pw != f.Config.WritePassword {
 		return &ErrWrongPassword{}
 	}
@@ -341,7 +341,7 @@ func (f *Folder) GetAccessToken(accessType string) (*AccessToken, error) {
 		pw, _ := f.GetPasswordHash(accessType)
 		return &AccessToken{
 			Read: map[string]string{
-				FilenameToUUID(f.RelPath): pw,
+				FilenameToUUID(f.ConfigRootFolder): pw,
 			},
 		}, nil
 
@@ -349,7 +349,7 @@ func (f *Folder) GetAccessToken(accessType string) (*AccessToken, error) {
 		pw, _ := f.GetPasswordHash(accessType)
 		return &AccessToken{
 			Write: map[string]string{
-				FilenameToUUID(f.RelPath): pw,
+				FilenameToUUID(f.ConfigRootFolder): pw,
 			},
 		}, nil
 
