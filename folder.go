@@ -67,13 +67,16 @@ func (api API) GetFolderFlags(token *AccessToken, folderName string) (*FolderFla
 
 // ChangeFolderPassword ...
 func (api API) ChangeFolderPassword(token *AccessToken, folderName, accessType, password string) (*AccessToken, error) {
+	changed := false
 	folder, cached, err := api.getFolder(folderName)
 	if err != nil {
 		return nil, &ErrNotFound{}
 	}
-	if !cached {
-		defer api.goCacheFolder(folder)
-	}
+	defer func() {
+		if !cached || changed {
+			api.goCacheFolder(folder)
+		}
+	}()
 
 	err = folder.EnsureReadAccess(token.toLib())
 	if err != nil {
@@ -93,6 +96,7 @@ func (api API) ChangeFolderPassword(token *AccessToken, folderName, accessType, 
 	if err != nil {
 		return nil, err
 	}
+	changed = true
 
 	newToken, err := folder.GetAccessToken(accessType)
 	if err != nil {
