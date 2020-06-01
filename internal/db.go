@@ -3,6 +3,7 @@ package internal
 import (
 	"encoding/json"
 	"fmt"
+	"path"
 	"time"
 
 	"github.com/go-redis/redis/v7"
@@ -35,8 +36,8 @@ func NewDB(addr, password string, db int) (*DB, error) {
 }
 
 // GetCachedFolder returns a cached Folder
-func (db *DB) GetCachedFolder(path string) (*Folder, error) {
-	data, err := db.client.Get("folder:" + RemoveTrailingSlash(path)).Result()
+func (db *DB) GetCachedFolder(folderName string) (*Folder, error) {
+	data, err := db.client.Get("folder:" + path.Clean(folderName)).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -68,5 +69,5 @@ func (db *DB) CacheFolder(folder *Folder) error {
 		return err
 	}
 
-	return db.client.Set("folder:"+RemoveTrailingSlash(folder.RelPath), string(data), db.CacheDuration).Err()
+	return db.client.Set("folder:"+path.Clean(folder.RelPath), string(data), db.CacheDuration).Err()
 }

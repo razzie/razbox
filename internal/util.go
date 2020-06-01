@@ -35,7 +35,7 @@ func Hash(s string) string {
 // FilenameToUUID returns an UUID from a filename
 func FilenameToUUID(filename string) string {
 	algorithm := md5.New()
-	algorithm.Write([]byte(filename))
+	algorithm.Write([]byte(path.Clean(filename)))
 	bytes := algorithm.Sum(nil)
 	bytes[6] = (bytes[6] & 0x0f) | 0x40 // Version 4
 	bytes[8] = (bytes[8] & 0x3f) | 0x80 // Variant is 10
@@ -80,14 +80,6 @@ func IsFolder(root, relPath string) bool {
 	}
 
 	return fi.IsDir()
-}
-
-// RemoveTrailingSlash removes the trailing slash from a path
-func RemoveTrailingSlash(path string) string {
-	if len(path) > 0 && path[len(path)-1] == '/' {
-		path = path[:len(path)-1]
-	}
-	return path
 }
 
 // MIMEtoSymbol returns a symbol that represents the MIME type

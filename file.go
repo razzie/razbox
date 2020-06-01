@@ -58,7 +58,7 @@ func newFileReader(file *internal.File) (*FileReader, error) {
 
 // OpenFile ...
 func (api API) OpenFile(token *AccessToken, filePath string) (*FileReader, error) {
-	filePath = internal.RemoveTrailingSlash(filePath)
+	filePath = path.Clean(filePath)
 	dir := path.Dir(filePath)
 	folder, cached, err := api.getFolder(dir)
 	if err != nil {
@@ -332,7 +332,7 @@ func (api API) EditFile(token *AccessToken, o *EditFileOptions) error {
 
 // DeleteFile ...
 func (api API) DeleteFile(token *AccessToken, filePath string) error {
-	filePath = internal.RemoveTrailingSlash(filePath)
+	filePath = path.Clean(filePath)
 	dir := path.Dir(filePath)
 	changed := false
 	folder, cached, err := api.getFolder(dir)

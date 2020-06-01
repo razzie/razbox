@@ -26,7 +26,7 @@ type Folder struct {
 
 // GetFolder returns a new Folder from a handle to a .razbox file
 func GetFolder(root, relPath string) (*Folder, error) {
-	relPath = RemoveTrailingSlash(relPath)
+	relPath = path.Clean(relPath)
 	searchPath := filepath.Join(root, relPath)
 	var data []byte
 	var configInherited bool

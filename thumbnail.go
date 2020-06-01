@@ -35,7 +35,7 @@ func newThumbnail(thumb *internal.Thumbnail) *Thumbnail {
 
 // GetFileThumbnail ...
 func (api API) GetFileThumbnail(token *AccessToken, filePath string, maxWidth uint) (*Thumbnail, error) {
-	filePath = internal.RemoveTrailingSlash(filePath)
+	filePath = path.Clean(filePath)
 	dir := path.Dir(filePath)
 	folder, cached, err := api.getFolder(dir)
 	if err != nil {

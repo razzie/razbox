@@ -186,7 +186,7 @@ func (f *FolderEntry) HasTag(tag string) bool {
 
 // GetFolderEntries ...
 func (api API) GetFolderEntries(token *AccessToken, folderOrFilename string) ([]*FolderEntry, *FolderFlags, error) {
-	folderOrFilename = internal.RemoveTrailingSlash(folderOrFilename)
+	folderOrFilename = path.Clean(folderOrFilename)
 
 	var filename string
 	dir := folderOrFilename
