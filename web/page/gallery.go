@@ -3,9 +3,9 @@ package page
 import (
 	"fmt"
 	"net/http"
+	"path"
 
 	"github.com/razzie/razbox"
-	"github.com/razzie/razbox/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -18,10 +18,8 @@ type galleryPageView struct {
 }
 
 func galleryPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	uri := r.URL.Path[9:] // skip /gallery/
-	uri = internal.RemoveTrailingSlash(uri)
+	uri := path.Clean(r.URL.Path[9:]) // skip /gallery/
 	tag := r.URL.Query().Get("tag")
-
 	v := &galleryPageView{
 		Folder:        uri,
 		Redirect:      "/x/" + uri,

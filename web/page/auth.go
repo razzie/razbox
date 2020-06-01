@@ -1,11 +1,12 @@
 package page
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
+	"path"
 
 	"github.com/razzie/razbox"
-	"github.com/razzie/razbox/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -18,18 +19,16 @@ type authPageView struct {
 }
 
 func authPageHandler(api *razbox.API, accessType string, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	uri := r.URL.Path[7+len(accessType):] // skip /[accessType]-auth/
-	uri = internal.RemoveTrailingSlash(uri)
-
-	pwPrefix := fmt.Sprintf("%s-%s", accessType, internal.FilenameToUUID(uri))
+	dir := path.Clean(r.URL.Path[7+len(accessType):]) // skip /[accessType]-auth/
+	pwPrefix := fmt.Sprintf("%s-%s", accessType, base64.StdEncoding.EncodeToString([]byte(dir)))
 	v := &authPageView{
-		Folder:        uri,
+		Folder:        dir,
 		PwFieldPrefix: pwPrefix,
 		AccessType:    accessType,
 		Redirect:      r.URL.Query().Get("r"),
 	}
 	if len(v.Redirect) == 0 {
-		v.Redirect = "/x/" + uri
+		v.Redirect = "/x/" + dir
 	}
 
 	if r.Method == "POST" {
@@ -37,16 +36,16 @@ func authPageHandler(api *razbox.API, accessType string, r *http.Request, view r
 		pw := r.FormValue(pwPrefix + "-password")
 		v.Redirect = r.FormValue("redirect")
 
-		token, err := api.Auth(uri, accessType, pw)
+		token, err := api.Auth(dir, accessType, pw)
 		if err != nil {
 			v.Error = err.Error()
-			return view(v, &uri)
+			return view(v, &dir)
 		}
 
 		return razlink.CookieAndRedirectView(r, token.ToCookie(api.CookieExpiration), v.Redirect)
 	}
 
-	return view(v, &uri)
+	return view(v, &dir)
 }
 
 // ReadAuth returns a razlink.Page that handles authentication for read access

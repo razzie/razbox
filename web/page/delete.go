@@ -5,13 +5,11 @@ import (
 	"path"
 
 	"github.com/razzie/razbox"
-	"github.com/razzie/razbox/internal"
 	"github.com/razzie/razlink"
 )
 
 func deletePageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	filename := r.URL.Path[8:] // skip /delete/
-	filename = internal.RemoveTrailingSlash(filename)
+	filename := path.Clean(r.URL.Path[8:]) // skip /delete/
 	dir := path.Dir(filename)
 	redirect := r.URL.Query().Get("r")
 	if len(redirect) == 0 {

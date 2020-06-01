@@ -1,11 +1,12 @@
 package page
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
+	"path"
 
 	"github.com/razzie/razbox"
-	"github.com/razzie/razbox/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -17,13 +18,11 @@ type passwordPageView struct {
 }
 
 func passwordPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	uri := r.URL.Path[17:] // skip /change-password/
-	uri = internal.RemoveTrailingSlash(uri)
-
-	title := "Change password for " + uri
+	dir := path.Clean(r.URL.Path[17:]) // skip /change-password/
+	title := "Change password for " + dir
 	v := passwordPageView{
-		Folder:        uri,
-		PwFieldPrefix: internal.FilenameToUUID(uri),
+		Folder:        dir,
+		PwFieldPrefix: base64.StdEncoding.EncodeToString([]byte(dir)),
 	}
 
 	if r.Method == "POST" {
@@ -42,24 +41,24 @@ func passwordPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc
 		}
 
 		token := api.AccessTokenFromCookies(r.Cookies())
-		newToken, err := api.ChangeFolderPassword(token, uri, accessType, pw)
+		newToken, err := api.ChangeFolderPassword(token, dir, accessType, pw)
 		if err != nil {
 			v.Error = err.Error()
 			return view(v, &title)
 		}
 
 		cookie := newToken.ToCookie(api.CookieExpiration)
-		return razlink.CookieAndRedirectView(r, cookie, "/x/"+uri)
+		return razlink.CookieAndRedirectView(r, cookie, "/x/"+dir)
 	}
 
 	token := api.AccessTokenFromCookies(r.Cookies())
-	flags, err := api.GetFolderFlags(token, uri)
+	flags, err := api.GetFolderFlags(token, dir)
 	if err != nil {
 		return HandleError(r, err)
 	}
 
 	if !flags.EditMode {
-		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", uri, r.URL.RequestURI()))
+		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()))
 	}
 
 	return view(v, &title)

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/razzie/razbox"
-	"github.com/razzie/razbox/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -19,10 +18,8 @@ type textPageView struct {
 }
 
 func textPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	filename := r.URL.Path[6:] // skip /text/
-	filename = internal.RemoveTrailingSlash(filename)
+	filename := path.Clean(r.URL.Path[6:]) // skip /text/
 	dir := path.Dir(filename)
-
 	token := api.AccessTokenFromCookies(r.Cookies())
 	file, err := api.OpenFile(token, filename)
 	if err != nil {

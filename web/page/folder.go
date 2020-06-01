@@ -2,6 +2,7 @@ package page
 
 import (
 	"net/http"
+	"path"
 	"strings"
 
 	"github.com/razzie/razbox"
@@ -20,9 +21,8 @@ type folderPageView struct {
 }
 
 func folderPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	folderOrFilename := r.URL.Path[3:] // skip /x/
+	folderOrFilename := path.Clean(r.URL.Path[3:]) // skip /x/
 	tag := r.URL.Query().Get("tag")
-
 	token := api.AccessTokenFromCookies(r.Cookies())
 	entries, flags, err := api.GetFolderEntries(token, folderOrFilename)
 	if err != nil {

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/razzie/razbox"
-	"github.com/razzie/razbox/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -22,8 +21,7 @@ type editPageView struct {
 }
 
 func editPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	filename := r.URL.Path[6:] // skip /edit/
-	filename = internal.RemoveTrailingSlash(filename)
+	filename := path.Clean(r.URL.Path[6:]) // skip /edit/
 	dir := path.Dir(filename)
 	redirect := r.URL.Query().Get("r")
 	if len(redirect) == 0 {
@@ -46,7 +44,7 @@ func editPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) ra
 		Tags:     strings.Join(entry[0].Tags, " "),
 		Public:   entry[0].Public,
 		Redirect: redirect,
-		Thumb:    internal.IsThumbnailSupported(entry[0].MIME),
+		Thumb:    entry[0].HasThumbnail,
 	}
 	title := "Edit " + filename
 

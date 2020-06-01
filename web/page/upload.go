@@ -3,10 +3,10 @@ package page
 import (
 	"fmt"
 	"net/http"
+	"path"
 	"strings"
 
 	"github.com/razzie/razbox"
-	"github.com/razzie/razbox/internal"
 	"github.com/razzie/razlink"
 )
 
@@ -23,23 +23,22 @@ func ajaxErr(err string) razlink.PageView {
 }
 
 func uploadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	uri := r.URL.Path[8:] // skip /upload/
-	uri = internal.RemoveTrailingSlash(uri)
+	dir := path.Clean(r.URL.Path[8:]) // skip /upload/
 	ajax := r.URL.Query().Get("u") == "ajax"
 
 	token := api.AccessTokenFromCookies(r.Cookies())
-	flags, err := api.GetFolderFlags(token, uri)
+	flags, err := api.GetFolderFlags(token, dir)
 	if err != nil {
 		return HandleError(r, err)
 	}
 
 	if !flags.EditMode {
-		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", uri, r.URL.RequestURI()))
+		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()))
 	}
 
-	title := "Upload file to " + uri
+	title := "Upload file to " + dir
 	v := &uploadPageView{
-		Folder:      uri,
+		Folder:      dir,
 		MaxFileSize: fmt.Sprintf("%dMB", flags.MaxFileSizeMB),
 	}
 
@@ -57,7 +56,7 @@ func uploadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 		defer data.Close()
 
 		o := &razbox.UploadFileOptions{
-			Folder:    uri,
+			Folder:    dir,
 			File:      data,
 			Header:    handler,
 			Filename:  r.FormValue("filename"),
@@ -73,7 +72,7 @@ func uploadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 			return view(v, &title)
 		}
 
-		return razlink.RedirectView(r, "/x/"+uri)
+		return razlink.RedirectView(r, "/x/"+dir)
 	}
 
 	return view(v, &title)

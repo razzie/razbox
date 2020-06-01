@@ -4,18 +4,16 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"path"
 
 	"github.com/razzie/razbox"
-	"github.com/razzie/razbox/internal"
 	"github.com/razzie/razlink"
 )
 
 const maxThumbWidth = 250
 
 func thumbnailPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	filename := r.URL.Path[7:] // skip /thumb/
-	filename = internal.RemoveTrailingSlash(filename)
-
+	filename := path.Clean(r.URL.Path[7:]) // skip /thumb/
 	token := api.AccessTokenFromCookies(r.Cookies())
 	thumb, err := api.GetFileThumbnail(token, filename, maxThumbWidth)
 	if err != nil {
