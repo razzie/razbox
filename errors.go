@@ -1,5 +1,9 @@
 package razbox
 
+import (
+	"net/http"
+)
+
 // ErrNotFound ...
 type ErrNotFound struct{}
 
@@ -37,4 +41,22 @@ type ErrSizeLimitExceeded struct{}
 
 func (err ErrSizeLimitExceeded) Error() string {
 	return "Size limit exceeded"
+}
+
+// ErrUnsupportedFileFormat ...
+type ErrUnsupportedFileFormat struct {
+	MIME string
+}
+
+func (err ErrUnsupportedFileFormat) Error() string {
+	return "Unsupported file format: " + err.MIME
+}
+
+// ErrBadHTTPResponseStatus ...
+type ErrBadHTTPResponseStatus struct {
+	StatusCode int
+}
+
+func (err ErrBadHTTPResponseStatus) Error() string {
+	return "bad response status code: " + http.StatusText(err.StatusCode)
 }

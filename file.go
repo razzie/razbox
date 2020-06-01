@@ -1,7 +1,6 @@
 package razbox
 
 import (
-	"fmt"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -227,7 +226,7 @@ func (api API) DownloadFileToFolder(token *AccessToken, o *DownloadFileToFolderO
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("bad response status code: %s", http.StatusText(resp.StatusCode))
+		return &ErrBadHTTPResponseStatus{StatusCode: resp.StatusCode}
 	}
 
 	limit := folder.Config.MaxFileSizeMB << 20
@@ -417,7 +416,7 @@ func (api API) GetFileThumbnail(token *AccessToken, filePath string, maxWidth ui
 	}
 
 	if !internal.IsThumbnailSupported(file.MIME) {
-		return nil, fmt.Errorf("unsupported format: %s", file.MIME)
+		return nil, &ErrUnsupportedFileFormat{MIME: file.MIME}
 	}
 
 	thumb := file.Thumbnail

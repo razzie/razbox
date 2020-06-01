@@ -2,7 +2,6 @@ package internal
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"path"
@@ -49,7 +48,7 @@ func GetFolder(root, relPath string) (*Folder, error) {
 	}
 
 	if !configFound {
-		return nil, fmt.Errorf("config file not found for folder: %s", relPath)
+		return nil, &ErrFolderConfigNotFound{Folder: relPath}
 	}
 
 	folder := &Folder{
@@ -175,11 +174,11 @@ func (f *Folder) Search(tag string) []*File {
 // SetPasswords generates a random salt and sets and read and write passwords
 func (f *Folder) SetPasswords(readPw, writePw string) error {
 	if f.ConfigInherited {
-		return fmt.Errorf("Cannot change password of folders that inherit parent configuration")
+		return &ErrInheritedConfigPasswordChange{}
 	}
 
 	if readPw == writePw && len(readPw) > 0 {
-		return fmt.Errorf("read and write passwords cannot match")
+		return &ErrReadWritePasswordMatch{}
 	}
 
 	f.Config.Salt = Salt()
@@ -200,7 +199,7 @@ func (f *Folder) SetPasswords(readPw, writePw string) error {
 // SetReadPassword sets the read password
 func (f *Folder) SetReadPassword(readPw string) error {
 	if f.ConfigInherited {
-		return fmt.Errorf("Cannot change password of folders that inherit parent configuration")
+		return &ErrInheritedConfigPasswordChange{}
 	}
 
 	if len(readPw) == 0 {
@@ -208,7 +207,7 @@ func (f *Folder) SetReadPassword(readPw string) error {
 	} else {
 		hash := Hash(f.Config.Salt + readPw)
 		if hash == f.Config.WritePassword {
-			return fmt.Errorf("read and write passwords cannot match")
+			return &ErrReadWritePasswordMatch{}
 		}
 		f.Config.ReadPassword = hash
 	}
@@ -219,17 +218,17 @@ func (f *Folder) SetReadPassword(readPw string) error {
 // SetWritePassword sets the write password
 func (f *Folder) SetWritePassword(writePw string) error {
 	if f.ConfigInherited {
-		return fmt.Errorf("Cannot change password of folders that inherit parent configuration")
+		return &ErrInheritedConfigPasswordChange{}
 	}
 
 	pwtest := zxcvbn.PasswordStrength(writePw, []string{f.RelPath, filepath.Base(f.RelPath)})
 	if pwtest.Score < 3 {
-		return fmt.Errorf("password scored too low (%d) on zxcvbn test", pwtest.Score)
+		return &ErrPasswordScoreTooLow{Score: pwtest.Score}
 	}
 
 	hash := Hash(f.Config.Salt + writePw)
 	if hash == f.Config.ReadPassword {
-		return fmt.Errorf("read and write passwords cannot match")
+		return &ErrReadWritePasswordMatch{}
 	}
 	f.Config.WritePassword = hash
 
@@ -244,13 +243,13 @@ func (f *Folder) SetPassword(accessType, pw string) error {
 	case "write":
 		return f.SetWritePassword(pw)
 	default:
-		return fmt.Errorf("invalid access type: %s", accessType)
+		return &ErrInvalidAccessType{AccessType: accessType}
 	}
 }
 
 func (f *Folder) save() error {
 	if f.ConfigInherited {
-		return fmt.Errorf("Cannot change password of folders that inherit parent configuration")
+		return &ErrInheritedConfigPasswordChange{}
 	}
 
 	data, _ := json.MarshalIndent(&f.Config, "", "  ")
@@ -265,7 +264,7 @@ func (f *Folder) EnsureReadAccess(token *AccessToken) error {
 
 	pw, _ := token.Read[FilenameToUUID(f.RelPath)]
 	if pw != f.Config.ReadPassword {
-		return fmt.Errorf("incorrect read password")
+		return &ErrWrongPassword{}
 	}
 
 	return nil
@@ -274,12 +273,12 @@ func (f *Folder) EnsureReadAccess(token *AccessToken) error {
 // EnsureWriteAccess returns an error if the access token doesn't permit write access
 func (f *Folder) EnsureWriteAccess(token *AccessToken) error {
 	if len(f.Config.WritePassword) == 0 {
-		return fmt.Errorf("folder not writable")
+		return &ErrFolderNotWritable{}
 	}
 
 	pw, _ := token.Write[FilenameToUUID(f.RelPath)]
 	if pw != f.Config.WritePassword {
-		return fmt.Errorf("incorrect write password")
+		return &ErrWrongPassword{}
 	}
 
 	return nil
@@ -293,7 +292,7 @@ func (f *Folder) EnsureAccess(accessType string, token *AccessToken) error {
 	case "write":
 		return f.EnsureWriteAccess(token)
 	default:
-		return fmt.Errorf("invalid access type: %s", accessType)
+		return &ErrInvalidAccessType{AccessType: accessType}
 	}
 }
 
@@ -318,7 +317,7 @@ func (f *Folder) TestPassword(accessType, pw string) bool {
 	case "write":
 		return f.TestWritePassword(pw)
 	default:
-		log.Print("invalid access type:", accessType)
+		log.Print((&ErrInvalidAccessType{AccessType: accessType}).Error())
 		return false
 	}
 }
@@ -331,7 +330,7 @@ func (f *Folder) GetPasswordHash(accessType string) (string, error) {
 	case "write":
 		return f.Config.WritePassword, nil
 	default:
-		return "", fmt.Errorf("invalid access type: %s", accessType)
+		return "", &ErrInvalidAccessType{AccessType: accessType}
 	}
 }
 
@@ -355,6 +354,6 @@ func (f *Folder) GetAccessToken(accessType string) (*AccessToken, error) {
 		}, nil
 
 	default:
-		return nil, fmt.Errorf("invalid access type: %s", accessType)
+		return nil, &ErrInvalidAccessType{AccessType: accessType}
 	}
 }

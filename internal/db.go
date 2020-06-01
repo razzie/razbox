@@ -2,7 +2,6 @@ package internal
 
 import (
 	"encoding/json"
-	"fmt"
 	"path"
 	"time"
 
@@ -49,7 +48,7 @@ func (db *DB) GetCachedFolder(folderName string) (*Folder, error) {
 	}
 
 	if len(folder.CachedFiles) == 0 || len(folder.CachedSubfolders) == 0 {
-		return nil, fmt.Errorf("cached folder %s doesn't contain cached file or subfolder list", folder.RelPath)
+		return nil, &ErrFolderMissingCache{Folder: folder.RelPath}
 	}
 
 	return &folder, nil

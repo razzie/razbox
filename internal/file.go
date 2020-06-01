@@ -2,7 +2,6 @@ package internal
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -73,7 +72,7 @@ func (f *File) Create(content io.Reader, overwrite bool) error {
 			return err
 		}
 	} else {
-		return fmt.Errorf("file already exists: %s", f.Name)
+		return &ErrFileAlreadyExists{File: f.Name}
 	}
 
 	if content != nil {

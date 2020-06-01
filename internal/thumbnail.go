@@ -68,7 +68,7 @@ func GetThumbnail(filename string, mime string, maxWidth uint) (*Thumbnail, erro
 		return getThumbnailFFMPEG(filename, maxWidth)
 	}
 
-	return nil, fmt.Errorf("unsupported format: %s", mime)
+	return nil, &ErrUnsupportedFileFormat{MIME: mime}
 }
 
 func getThumbnailImage(img image.Image, maxWidth uint) (*Thumbnail, error) {
