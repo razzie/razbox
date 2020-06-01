@@ -48,9 +48,11 @@ func main() {
 	}
 
 	folder := &internal.Folder{
-		Root:          Root,
-		RelPath:       Folder,
-		MaxFileSizeMB: MaxFileSizeMB,
+		Root:    Root,
+		RelPath: Folder,
+		Config: internal.FolderConfig{
+			MaxFileSizeMB: MaxFileSizeMB,
+		},
 	}
 	err = folder.SetPasswords(ReadPassword, WritePassword)
 	if err != nil {
