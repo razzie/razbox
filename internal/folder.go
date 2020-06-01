@@ -174,9 +174,14 @@ func (f *Folder) Search(tag string) []*File {
 
 // SetPasswords generates a random salt and sets and read and write passwords
 func (f *Folder) SetPasswords(readPw, writePw string) error {
+	if f.ConfigInherited {
+		return fmt.Errorf("Cannot change password of folders that inherit parent configuration")
+	}
+
 	if readPw == writePw && len(readPw) > 0 {
 		return fmt.Errorf("read and write passwords cannot match")
 	}
+
 	f.Config.Salt = Salt()
 	if len(readPw) == 0 {
 		f.Config.ReadPassword = ""
@@ -188,11 +193,16 @@ func (f *Folder) SetPasswords(readPw, writePw string) error {
 	} else {
 		f.Config.WritePassword = Hash(f.Config.Salt + writePw)
 	}
+
 	return f.save()
 }
 
 // SetReadPassword sets the read password
 func (f *Folder) SetReadPassword(readPw string) error {
+	if f.ConfigInherited {
+		return fmt.Errorf("Cannot change password of folders that inherit parent configuration")
+	}
+
 	if len(readPw) == 0 {
 		f.Config.ReadPassword = ""
 	} else {
@@ -202,11 +212,16 @@ func (f *Folder) SetReadPassword(readPw string) error {
 		}
 		f.Config.ReadPassword = hash
 	}
+
 	return f.save()
 }
 
 // SetWritePassword sets the write password
 func (f *Folder) SetWritePassword(writePw string) error {
+	if f.ConfigInherited {
+		return fmt.Errorf("Cannot change password of folders that inherit parent configuration")
+	}
+
 	pwtest := zxcvbn.PasswordStrength(writePw, []string{f.RelPath, filepath.Base(f.RelPath)})
 	if pwtest.Score < 3 {
 		return fmt.Errorf("password scored too low (%d) on zxcvbn test", pwtest.Score)
@@ -217,6 +232,7 @@ func (f *Folder) SetWritePassword(writePw string) error {
 		return fmt.Errorf("read and write passwords cannot match")
 	}
 	f.Config.WritePassword = hash
+
 	return f.save()
 }
 
@@ -233,6 +249,10 @@ func (f *Folder) SetPassword(accessType, pw string) error {
 }
 
 func (f *Folder) save() error {
+	if f.ConfigInherited {
+		return fmt.Errorf("Cannot change password of folders that inherit parent configuration")
+	}
+
 	data, _ := json.MarshalIndent(&f.Config, "", "  ")
 	return ioutil.WriteFile(path.Join(f.Root, f.RelPath, ".razbox"), data, 0755)
 }

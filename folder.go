@@ -1,7 +1,6 @@
 package razbox
 
 import (
-	"fmt"
 	"html/template"
 	"path"
 	"path/filepath"
@@ -86,10 +85,6 @@ func (api API) ChangeFolderPassword(token *AccessToken, folderName, accessType, 
 	err = folder.EnsureWriteAccess(token.toLib())
 	if err != nil {
 		return nil, &ErrNoWriteAccess{Folder: folderName}
-	}
-
-	if folder.ConfigInherited {
-		return nil, fmt.Errorf("Cannot change password of folders that inherit parent configuration")
 	}
 
 	err = folder.SetPassword(accessType, password)
