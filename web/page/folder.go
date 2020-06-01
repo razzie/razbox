@@ -15,6 +15,7 @@ type folderPageView struct {
 	Entries      []*razbox.FolderEntry
 	EditMode     bool
 	Editable     bool
+	Deletable    bool
 	Configurable bool
 	Gallery      bool
 	Redirect     string
@@ -47,6 +48,7 @@ func folderPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 		Search:       tag,
 		EditMode:     flags.EditMode,
 		Editable:     flags.Editable,
+		Deletable:    flags.Deletable,
 		Configurable: flags.Configurable,
 		Redirect:     r.URL.RequestURI(),
 	}

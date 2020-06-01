@@ -70,3 +70,8 @@ func (db *DB) CacheFolder(folder *Folder) error {
 
 	return db.client.Set("folder:"+path.Clean(folder.RelPath), string(data), db.CacheDuration).Err()
 }
+
+// UncacheFolder uncaches a Folder
+func (db *DB) UncacheFolder(folderName string) error {
+	return db.client.Del("folder:" + path.Clean(folderName)).Err()
+}

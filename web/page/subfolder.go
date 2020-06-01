@@ -50,6 +50,19 @@ func createSubfolderPageHandler(api *razbox.API, r *http.Request, view razlink.V
 	return view(v, &title)
 }
 
+func deleteSubfolderPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
+	dir := path.Clean(r.URL.Path[18:]) // skip /delete-subfolder/
+	parent := path.Dir(dir)
+
+	token := api.AccessTokenFromCookies(r.Cookies())
+	err := api.DeleteSubfolder(token, parent, path.Base(dir))
+	if err != nil {
+		return HandleError(r, err)
+	}
+
+	return razlink.RedirectView(r, "/x/"+parent)
+}
+
 // CreateSubfolder returns a razlink.Page that handles subfolder creation
 func CreateSubfolder(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
@@ -57,6 +70,16 @@ func CreateSubfolder(api *razbox.API) *razlink.Page {
 		ContentTemplate: GetContentTemplate("create-subfolder"),
 		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
 			return createSubfolderPageHandler(api, r, view)
+		},
+	}
+}
+
+// DeleteSubfolder returns a razlink.Page that handles subfolder deletion
+func DeleteSubfolder(api *razbox.API) *razlink.Page {
+	return &razlink.Page{
+		Path: "/delete-subfolder/",
+		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
+			return deleteSubfolderPageHandler(api, r, view)
 		},
 	}
 }

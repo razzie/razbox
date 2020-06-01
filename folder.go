@@ -2,6 +2,7 @@ package razbox
 
 import (
 	"html/template"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -17,16 +18,25 @@ import (
 type FolderFlags struct {
 	EditMode      bool
 	Editable      bool
+	Deletable     bool
 	Configurable  bool
 	MaxFileSizeMB int64
 }
 
-func getFolderFlags(token *AccessToken, folder *internal.Folder) *FolderFlags {
+func getFolderFlags(token *AccessToken, f *internal.Folder) *FolderFlags {
+	gotWriteAccess := f.EnsureWriteAccess(token.toLib()) == nil
+	deletable := false
+	if gotWriteAccess && f.ConfigInherited {
+		entries, err := ioutil.ReadDir(path.Join(f.Root, f.RelPath))
+		deletable = (err == nil) && len(entries) == 0
+	}
+
 	return &FolderFlags{
-		EditMode:      folder.EnsureWriteAccess(token.toLib()) == nil,
-		Editable:      len(folder.Config.WritePassword) > 0,
-		Configurable:  !folder.ConfigInherited,
-		MaxFileSizeMB: folder.Config.MaxFileSizeMB,
+		EditMode:      gotWriteAccess,
+		Editable:      len(f.Config.WritePassword) > 0,
+		Deletable:     deletable,
+		Configurable:  !f.ConfigInherited,
+		MaxFileSizeMB: f.Config.MaxFileSizeMB,
 	}
 }
 
@@ -142,6 +152,36 @@ func (api *API) CreateSubfolder(token *AccessToken, folderName, subfolder string
 	folder.CacheSubfolder(safeName)
 	changed = true
 	return path.Join(folder.RelPath, safeName), nil
+}
+
+// DeleteSubfolder ...
+func (api *API) DeleteSubfolder(token *AccessToken, folderName, subfolder string) error {
+	flags, err := api.GetFolderFlags(token, path.Join(folderName, subfolder))
+	if err != nil {
+		return err
+	}
+
+	if !flags.EditMode {
+		return &ErrNoWriteAccess{Folder: path.Join(folderName, subfolder)}
+	}
+
+	if !flags.Deletable {
+		return &ErrNotDeletable{Name: subfolder}
+	}
+
+	parent, _, err := api.getFolder(folderName)
+	if err != nil {
+		return &ErrNotDeletable{Name: subfolder}
+	}
+
+	err = os.Remove(path.Join(api.root, folderName, subfolder))
+	if err != nil {
+		return err
+	}
+
+	parent.UncacheSubfolder(subfolder)
+	api.goCacheFolder(parent)
+	return nil
 }
 
 // FolderEntry ...

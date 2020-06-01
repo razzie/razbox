@@ -149,6 +149,7 @@ function sortTable(column, comparator) {
 				<button formaction="/download-to-folder/{{.Folder}}">Download file to folder</button>
 				<button formaction="/change-password/{{.Folder}}"{{if not .Configurable}} disabled{{end}}>Change password</button>
 				<button formaction="/create-subfolder/{{.Folder}}">Create subfolder</button>
+				<button formaction="/delete-subfolder/{{.Folder}}" onclick="return confirm('Are you sure?')"{{if not .Deletable}} disabled{{end}}>Delete</button>
 			{{else if .Editable}}
 				<button formaction="/write-auth/{{.Folder}}">Edit mode</button>
 			{{end}}

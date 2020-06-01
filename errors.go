@@ -69,3 +69,12 @@ type ErrInvalidName struct {
 func (err ErrInvalidName) Error() string {
 	return "Invalid name: " + err.Name
 }
+
+// ErrNotDeletable ...
+type ErrNotDeletable struct {
+	Name string
+}
+
+func (err ErrNotDeletable) Error() string {
+	return "Not deletable: " + err.Name
+}
