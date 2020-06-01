@@ -6,10 +6,6 @@ import (
 )
 
 var styleT = `
-body {
-	background-color: white;
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%23808080' fill-opacity='0.5' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
-}
 a {
 	color: black;
 	text-decoration: underline;
@@ -18,18 +14,6 @@ a {
 }
 a:hover {
 	color: dimgrey;
-}
-div.outer {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-div.inner {
-	background-color: white;
-	border: 1px solid black;
-	padding: 1rem;
-	display: inline-flex;
-	border-radius: 15px;
 }
 input[type="text"], input[type="password"] {
 	border: 0;
@@ -97,6 +81,22 @@ var layoutT = `
 		{{end}}
 		<link rel="icon" href="favicon.png" type="image/png" />
 		<style>
+			body {
+				background-color: white;
+				background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%23808080' fill-opacity='0.5' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
+			}
+			div.outer {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			div.inner {
+				background-color: white;
+				border: 1px solid black;
+				padding: 1rem;
+				display: inline-flex;
+				border-radius: 15px;
+			}
 			{{template "style"}}
 		</style>
 		{{range .Stylesheets}}
@@ -118,12 +118,7 @@ var layoutT = `
 </html>
 `
 
-var layout = initLayout()
-
-func initLayout() *template.Template {
-	layout := template.Must(template.New("layout").Parse(layoutT))
-	return template.Must(layout.New("style").Parse(styleT))
-}
+var layout = template.Must(template.New("layout").Parse(layoutT))
 
 // LayoutRenderer is a function that renders a html page
 type LayoutRenderer func(w http.ResponseWriter, r *http.Request, title string, data interface{})
@@ -134,6 +129,10 @@ func BindLayout(pageTemplate string, stylesheets, scripts []string, meta map[str
 	tmpl, err := cloneLayout.New("page").Parse(pageTemplate)
 	if err != nil {
 		return nil, err
+	}
+
+	if tmpl.Lookup("style") == nil {
+		tmpl = template.Must(tmpl.New("style").Parse(styleT))
 	}
 
 	if meta == nil {

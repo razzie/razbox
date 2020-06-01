@@ -58,7 +58,6 @@ func Text(api *razbox.API) *razlink.Page {
 		ContentTemplate: GetContentTemplate("text"),
 		Stylesheets: []string{
 			"/static/highlight.tomorrow.min.css",
-			"/static/highlightjs-line-numbers.css",
 		},
 		Scripts: []string{
 			"/static/highlight.min.js",

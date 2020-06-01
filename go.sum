@@ -62,9 +62,9 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/razzie/geoip-server v0.0.0-20200422034045-b8cbea961993 h1:ijFJslncF0MoOYScgVlHMu6EZCUof70py+UYs1MiTTI=
 github.com/razzie/geoip-server v0.0.0-20200422034045-b8cbea961993/go.mod h1:7/UJlKq1oNR6lf0gMRaLggIDeaR1ueF+XGZ1Y/lfKrU=
-github.com/razzie/razlink v0.0.0-20200524102512-a7b52994827f/go.mod h1:9mh5mLFsdoZDGJg4Vwa5d27HRYF7DA6eNfwR07uxqWo=
-github.com/razzie/razlink v0.0.0-20200531192417-b026c2574896 h1:bJYu2pGIMIe99JrDxqne9insrNbhTim/Og0ROvx2ndQ=
 github.com/razzie/razlink v0.0.0-20200531192417-b026c2574896/go.mod h1:9mh5mLFsdoZDGJg4Vwa5d27HRYF7DA6eNfwR07uxqWo=
+github.com/razzie/razlink v0.0.0-20200601151011-2b1077309b93 h1:tSG1zd5g58+1mkoa43mwTjBpmxDhditcJYzOe2YaXSY=
+github.com/razzie/razlink v0.0.0-20200601151011-2b1077309b93/go.mod h1:9mh5mLFsdoZDGJg4Vwa5d27HRYF7DA6eNfwR07uxqWo=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/sirupsen/logrus v1.6.0 h1:UBcNElsrwanuuMsnGSlYmtmgbb23qDR5dG+6X6Oo89I=
 github.com/sirupsen/logrus v1.6.0/go.mod h1:7uNnSEd1DgxDLC74fIahvMZmmYsHGZGEOFrfsX/uA88=

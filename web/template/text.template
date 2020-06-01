@@ -1,3 +1,4 @@
+{{define "style"}}{{end}}
 <div style="clear: both">
 	<div style="float: right">
 		<a href="/text/{{.Folder}}/{{.Filename}}?download">&#8681; Download raw</a> |
@@ -5,6 +6,25 @@
 	</div>
 </div>
 <div style="max-width: 90vw">
+	<style type="text/css" scoped>
+		.hljs-ln-numbers {
+			-webkit-touch-callout: none;
+			-webkit-user-select: none;
+			-khtml-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+
+			text-align: center;
+			color: #ccc;
+			border-right: 1px solid #CCC;
+			vertical-align: top;
+			padding-right: 5px !important;
+		}
+		pre, code {
+			width: 100%;
+		}
+	</style>
 	<pre><code>{{.Text}}</code></pre>
 </div>
 <script>
