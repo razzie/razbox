@@ -48,9 +48,10 @@ func (token *AccessToken) ToCookie(expiration time.Duration) *http.Cookie {
 	}
 	for write, value := range token.Write {
 		return &http.Cookie{
-			Name:  fmt.Sprintf("write-%s", write),
-			Value: value,
-			Path:  "/",
+			Name:    fmt.Sprintf("write-%s", write),
+			Value:   value,
+			Path:    "/",
+			Expires: time.Now().Add(expiration),
 		}
 	}
 	return nil
