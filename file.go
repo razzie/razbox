@@ -159,15 +159,15 @@ type limitedReader struct {
 	n int64
 }
 
-func (r *limitedReader) Read(p []byte) (n int, err error) {
-	if int64(len(p)) > r.n {
-		p = p[:r.n]
+func (l *limitedReader) Read(p []byte) (n int, err error) {
+	if l.n <= 0 {
+		return 0, &ErrSizeLimitExceeded{}
 	}
-	n, err = r.r.Read(p)
-	r.n -= int64(n)
-	if r.n == 0 && err == nil {
-		err = &ErrSizeLimitExceeded{}
+	if int64(len(p)) > l.n {
+		p = p[:l.n]
 	}
+	n, err = l.r.Read(p)
+	l.n -= int64(n)
 	return
 }
 
