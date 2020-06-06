@@ -2,6 +2,7 @@ package internal
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -61,7 +62,6 @@ func (f *File) Save() error {
 // Create ...
 func (f *File) Create(content io.Reader, overwrite bool) error {
 	absPath := path.Join(f.Root, f.RelPath)
-	temporaryUploadFilename := absPath + ".bin.upload"
 	dataFilename := absPath + ".bin"
 	jsonFilename := absPath + ".json"
 
@@ -76,21 +76,29 @@ func (f *File) Create(content io.Reader, overwrite bool) error {
 	}
 
 	if content != nil {
-		file, err := os.Create(temporaryUploadFilename)
+		tmpfile, err := ioutil.TempFile("", fmt.Sprintf("razbox-upload-*-%s", f.Name))
 		if err != nil {
 			return err
 		}
-		defer os.Remove(temporaryUploadFilename)
-		defer file.Close()
+		defer os.Remove(tmpfile.Name())
+		defer tmpfile.Close()
 
-		_, err = io.Copy(file, content)
+		n, err := io.Copy(tmpfile, content)
 		if err != nil {
 			os.Remove(jsonFilename)
 			return err
 		}
 
-		file.Close()
-		err = os.Rename(temporaryUploadFilename, dataFilename)
+		if len(f.MIME) == 0 || f.Size == 0 {
+			tmpfile.Seek(0, 0)
+			mime, _ := mimetype.DetectReader(tmpfile)
+			f.MIME = mime.String()
+			f.Size = n
+			f.Save()
+		}
+
+		tmpfile.Close()
+		err = os.Rename(tmpfile.Name(), dataFilename)
 		if err != nil {
 			os.Remove(jsonFilename)
 			return err
@@ -143,24 +151,4 @@ func (f *File) HasTag(tag string) bool {
 		}
 	}
 	return false
-}
-
-// FixMimeAndSize ...
-func (f *File) FixMimeAndSize() error {
-	file, err := f.Open()
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	fi, err := file.Stat()
-	if err != nil {
-		return err
-	}
-
-	mime, _ := mimetype.DetectReader(file)
-	f.Size = fi.Size()
-	f.MIME = mime.String()
-
-	return f.Save()
 }

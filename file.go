@@ -145,7 +145,6 @@ func (api API) UploadFile(token *AccessToken, o *UploadFileOptions) error {
 	}
 	err = file.Create(o.File, o.Overwrite)
 	if err != nil {
-		file.Delete()
 		return err
 	}
 
@@ -252,10 +251,8 @@ func (api API) DownloadFileToFolder(token *AccessToken, o *DownloadFileToFolderO
 	}
 	err = file.Create(data, o.Overwrite)
 	if err != nil {
-		file.Delete()
 		return err
 	}
-	file.FixMimeAndSize()
 
 	folder.CacheFile(file)
 	changed = true
