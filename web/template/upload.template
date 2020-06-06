@@ -10,6 +10,7 @@ function uploadFile() {
 	formdata.append("filename", form.elements["filename"].value);
 	formdata.append("tags", form.elements["tags"].value);
 	formdata.append("overwrite", form.elements["overwrite"].checked ? "overwrite" : "");
+	formdata.append("public", form.elements["public"].checked ? "public" : "");
 	var ajax = new XMLHttpRequest();
 	ajax.upload.addEventListener("progress", progressHandler, false);
 	ajax.addEventListener("load", completeHandler, false);
@@ -58,6 +59,8 @@ function abortHandler(event) {
 	<input type="text" name="tags" placeholder="Tags (space separated)" /><br />
 	<input type="checkbox" name="overwrite" value="overwrite" />
 	<label for="overwrite">Overwrite if exists</label><br />
+	<input type="checkbox" name="public" value="public">
+	<label for="public">Public</label><br />
 	<button id="submit">&#8686; Upload</button>
 </form>
 <div style="float: right">

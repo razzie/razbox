@@ -62,6 +62,7 @@ func uploadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 			Filename:  r.FormValue("filename"),
 			Tags:      strings.Fields(r.FormValue("tags")),
 			Overwrite: r.FormValue("overwrite") == "overwrite",
+			Public:    r.FormValue("public") == "public",
 		}
 		err = api.UploadFile(token, o)
 		if err != nil {

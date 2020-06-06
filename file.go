@@ -93,6 +93,7 @@ type UploadFileOptions struct {
 	Filename  string
 	Tags      []string
 	Overwrite bool
+	Public    bool
 }
 
 // UploadFile ...
@@ -142,6 +143,7 @@ func (api API) UploadFile(token *AccessToken, o *UploadFileOptions) error {
 		MIME:     mime.String(),
 		Size:     o.Header.Size,
 		Uploaded: time.Now(),
+		Public:   o.Public,
 	}
 	err = file.Create(o.File, o.Overwrite)
 	if err != nil {
@@ -189,6 +191,7 @@ type DownloadFileToFolderOptions struct {
 	Filename  string
 	Tags      []string
 	Overwrite bool
+	Public    bool
 }
 
 // DownloadFileToFolder ...
@@ -248,6 +251,7 @@ func (api API) DownloadFileToFolder(token *AccessToken, o *DownloadFileToFolderO
 		RelPath:  path.Join(o.Folder, internal.FilenameToUUID(filename)),
 		Tags:     o.Tags,
 		Uploaded: time.Now(),
+		Public:   o.Public,
 	}
 	err = file.Create(data, o.Overwrite)
 	if err != nil {
