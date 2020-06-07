@@ -386,13 +386,16 @@ func newThumbnail(thumb *internal.Thumbnail) *Thumbnail {
 func (api API) GetFileThumbnail(token *AccessToken, filePath string, maxWidth uint) (*Thumbnail, error) {
 	filePath = path.Clean(filePath)
 	dir := path.Dir(filePath)
+	changed := false
 	folder, cached, err := api.getFolder(dir)
 	if err != nil {
 		return nil, &ErrNotFound{}
 	}
-	if !cached {
-		defer api.goCacheFolder(folder)
-	}
+	defer func() {
+		if !cached || changed {
+			api.goCacheFolder(folder)
+		}
+	}()
 
 	err = folder.EnsureReadAccess(token.toLib())
 	if err != nil {
@@ -411,6 +414,7 @@ func (api API) GetFileThumbnail(token *AccessToken, filePath string, maxWidth ui
 
 	thumb := file.Thumbnail
 	if thumb == nil || (len(thumb.Data) == 0 && thumb.Timestamp.Add(api.ThumbnailRetryAfter).Before(time.Now())) {
+		changed = true
 		thumb, err = internal.GetThumbnail(path.Join(api.root, file.RelPath+".bin"), file.MIME, maxWidth)
 		defer file.Save()
 		if err != nil {
