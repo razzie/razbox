@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/asaskevich/govalidator"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/razzie/razbox/internal"
 )
@@ -123,13 +122,7 @@ func (api API) UploadFile(token *AccessToken, o *UploadFileOptions) error {
 		return &ErrSizeLimitExceeded{}
 	}
 
-	filename := govalidator.SafeFileName(o.Filename)
-	if len(filename) == 0 || filename == "." || filename == ".." {
-		filename = govalidator.SafeFileName(o.Header.Filename)
-		if len(filename) == 0 || filename == "." || filename == ".." {
-			filename = internal.Salt()
-		}
-	}
+	filename, _ := getSafeFilename(o.Filename, o.Header.Filename, internal.Salt())
 
 	mime, _ := mimetype.DetectReader(o.File)
 	o.File.Seek(0, io.SeekStart)
@@ -207,13 +200,11 @@ func (api API) DownloadFileToFolder(token *AccessToken, o *DownloadFileToFolderO
 		N: limit,
 	}
 
-	filename := govalidator.SafeFileName(o.Filename)
-	if len(filename) == 0 || filename == "." || filename == ".." {
-		filename = getResponseFilename(resp)
-		if len(filename) == 0 || filename == "." || filename == ".." {
-			filename = internal.Salt()
-		}
-	}
+	filename, _ := getSafeFilename(
+		o.Filename,
+		getContentDispositionFilename(resp.Header),
+		path.Base(resp.Request.URL.Path),
+		internal.Salt())
 
 	file := &internal.File{
 		Name:     filename,
@@ -284,13 +275,12 @@ func (api API) EditFile(token *AccessToken, o *EditFileOptions) error {
 		changed = true
 	}
 
-	newName := govalidator.SafeFileName(o.NewFilename)
-	if newName == "." || newName == ".." {
-		return err
-	}
-
-	if len(newName) == 0 {
-		newName = file.Name
+	newName := file.Name
+	if len(o.NewFilename) > 0 {
+		newName, err = getSafeFilename(o.NewFilename)
+		if err != nil {
+			return err
+		}
 	}
 
 	newFolderName := o.Folder

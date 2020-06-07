@@ -4,7 +4,7 @@ import (
 	"io"
 	"mime"
 	"net/http"
-	"path"
+	"strings"
 
 	"github.com/asaskevich/govalidator"
 )
@@ -52,14 +52,20 @@ func (l *LimitedReadCloser) Close() error {
 	return l.R.Close()
 }
 
-func getResponseFilename(resp *http.Response) string {
-	contentDisposition := resp.Header.Get("Content-Disposition")
-	if len(contentDisposition) > 0 {
-		_, params, _ := mime.ParseMediaType(contentDisposition)
-		filename := govalidator.SafeFileName(params["filename"])
-		if len(filename) > 0 && filename != "." {
-			return filename
+func getContentDispositionFilename(header http.Header) string {
+	contentDisposition := header.Get("Content-Disposition")
+	_, params, _ := mime.ParseMediaType(contentDisposition)
+	return params["filename"]
+}
+
+func getSafeFilename(filenames ...string) (string, error) {
+	var fails []string
+	for _, filename := range filenames {
+		safe := govalidator.SafeFileName(filename)
+		if len(safe) > 0 && safe != "." && safe != ".." {
+			return safe, nil
 		}
+		fails = append(fails, filename)
 	}
-	return govalidator.SafeFileName(path.Base(resp.Request.URL.Path))
+	return "", &ErrInvalidName{Name: strings.Join(fails, " | ")}
 }

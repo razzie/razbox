@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/asaskevich/govalidator"
 	"github.com/razzie/razbox/internal"
 )
 
@@ -195,9 +194,9 @@ func (api *API) CreateSubfolder(token *AccessToken, folderName, subfolder string
 		return "", &ErrNoWriteAccess{Folder: folderName}
 	}
 
-	safeName := govalidator.SafeFileName(subfolder)
-	if len(safeName) == 0 || safeName == "." || safeName == ".." {
-		return "", &ErrInvalidName{subfolder}
+	safeName, err := getSafeFilename(subfolder)
+	if err != nil {
+		return "", err
 	}
 
 	err = os.Mkdir(path.Join(api.root, folder.RelPath, safeName), 0755)
