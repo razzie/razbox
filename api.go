@@ -14,6 +14,7 @@ type API struct {
 	CacheDuration       *time.Duration
 	CookieExpiration    time.Duration
 	ThumbnailRetryAfter time.Duration
+	AuthsPerMin         int
 }
 
 // NewAPI ...
@@ -32,6 +33,7 @@ func NewAPI(root string) (*API, error) {
 		CacheDuration:       &tmpCacheDuration,
 		CookieExpiration:    time.Hour * 24 * 7,
 		ThumbnailRetryAfter: time.Hour,
+		AuthsPerMin:         3,
 	}, nil
 }
 

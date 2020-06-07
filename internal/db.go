@@ -2,6 +2,7 @@ package internal
 
 import (
 	"encoding/json"
+	"fmt"
 	"path"
 	"time"
 
@@ -74,4 +75,18 @@ func (db *DB) CacheFolder(folder *Folder) error {
 // UncacheFolder uncaches a Folder
 func (db *DB) UncacheFolder(folderName string) error {
 	return db.client.Del("folder:" + path.Clean(folderName)).Err()
+}
+
+// IsWithinRateLimit returns whether a request is withing rate limit per minute
+func (db *DB) IsWithinRateLimit(reqType, ip string, rate int) (bool, error) {
+	key := fmt.Sprintf("rate:%s:%s", reqType, ip)
+	pipe := db.client.TxPipeline()
+	incr := pipe.Incr(key)
+	pipe.Expire(key, time.Minute)
+	_, err := pipe.Exec()
+	if err != nil {
+		return false, err
+	}
+
+	return int(incr.Val()) <= rate, nil
 }

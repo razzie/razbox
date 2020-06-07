@@ -1,7 +1,20 @@
 package razbox
 
+import (
+	"log"
+)
+
 // Auth ...
-func (api API) Auth(folderName, accessType, password string) (*AccessToken, error) {
+func (api API) Auth(token *AccessToken, folderName, accessType, password string) (*AccessToken, error) {
+	if api.db != nil {
+		if len(token.IP) == 0 {
+			log.Println("auth: no IP in request")
+		}
+		if ok, _ := api.db.IsWithinRateLimit("auth", token.IP, api.AuthsPerMin); !ok {
+			return nil, &ErrRateLimitExceeded{}
+		}
+	}
+
 	folder, cached, err := api.getFolder(folderName)
 	if err != nil {
 		return nil, &ErrNotFound{}

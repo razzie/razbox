@@ -6,11 +6,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mo7zayed/reqip"
 	"github.com/razzie/razbox/internal"
 )
 
 // AccessToken ...
 type AccessToken struct {
+	IP    string
 	Read  map[string]string
 	Write map[string]string
 }
@@ -60,6 +62,13 @@ func (token *AccessToken) ToCookie(expiration time.Duration) *http.Cookie {
 // AccessTokenFromCookies ...
 func (api API) AccessTokenFromCookies(cookies []*http.Cookie) *AccessToken {
 	return new(AccessToken).FromCookies(cookies)
+}
+
+// AccessTokenFromRequest ...
+func (api API) AccessTokenFromRequest(r *http.Request) *AccessToken {
+	token := new(AccessToken).FromCookies(r.Cookies())
+	token.IP = reqip.GetClientIP(r)
+	return token
 }
 
 func (token *AccessToken) toLib() *internal.AccessToken {

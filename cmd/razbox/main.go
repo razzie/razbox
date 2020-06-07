@@ -21,6 +21,7 @@ var (
 	CacheDuration       time.Duration
 	CookieExpiration    time.Duration
 	ThumbnailRetryAfter time.Duration
+	AuthsPerMin         int
 )
 
 func init() {
@@ -33,6 +34,7 @@ func init() {
 	flag.DurationVar(&CacheDuration, "cache-duration", time.Hour, "Cache duration")
 	flag.DurationVar(&CookieExpiration, "cookie-expiration", time.Hour*24*7, "Cookie expiration for read and write access (1 week by default)")
 	flag.DurationVar(&ThumbnailRetryAfter, "thumb-retry-after", time.Hour, "Duration to wait before attempting to create thumbnail again after fail")
+	flag.IntVar(&AuthsPerMin, "auths-per-min", 3, "Max auth attempts/minute/IP (only works with Redis)")
 }
 
 func main() {
@@ -53,6 +55,7 @@ func main() {
 	}
 	api.CookieExpiration = CookieExpiration
 	api.ThumbnailRetryAfter = ThumbnailRetryAfter
+	api.AuthsPerMin = AuthsPerMin
 
 	srv := NewServer(api, DefaultFolder)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(Port), srv))

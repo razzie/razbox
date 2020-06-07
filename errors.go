@@ -87,3 +87,10 @@ type ErrNotDeletable struct {
 func (err ErrNotDeletable) Error() string {
 	return "Not deletable: " + err.Name
 }
+
+// ErrRateLimitExceeded ...
+type ErrRateLimitExceeded struct{}
+
+func (err ErrRateLimitExceeded) Error() string {
+	return "Rate limit exceeded"
+}
