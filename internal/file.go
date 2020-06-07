@@ -76,7 +76,7 @@ func (f *File) Create(content io.Reader, overwrite bool) error {
 	}
 
 	if content != nil {
-		tmpfile, err := ioutil.TempFile("", fmt.Sprintf("razbox-upload-*-%s", f.Name))
+		tmpfile, err := ioutil.TempFile(f.Root, fmt.Sprintf("razbox-upload-*-%s", f.Name))
 		if err != nil {
 			return err
 		}
