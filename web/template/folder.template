@@ -151,7 +151,7 @@ function sortTable(column, comparator) {
 			<button formaction="/gallery/{{.Folder}}/"{{if not .Gallery}} disabled{{end}}>Gallery</button>
 		{{else}}
 			{{if .EditMode}}
-				<button formaction="/upload/{{.Folder}}">Upload file</button>
+				<button formaction="/upload/{{.Folder}}">Upload file(s)</button>
 				<button formaction="/download-to-folder/{{.Folder}}">Download file to folder</button>
 				<button formaction="/change-password/{{.Folder}}"{{if not .Configurable}} disabled{{end}}>Change password</button>
 				<button formaction="/create-subfolder/{{.Folder}}">Create subfolder</button>

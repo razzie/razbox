@@ -5,12 +5,7 @@ function _(el) {
 function uploadFile() {
 	_("submit").disabled = true;
 	var form = _("upload_form")
-	var formdata = new FormData();
-	formdata.append("file", form.elements["file"].files[0]);
-	formdata.append("filename", form.elements["filename"].value);
-	formdata.append("tags", form.elements["tags"].value);
-	formdata.append("overwrite", form.elements["overwrite"].checked ? "overwrite" : "");
-	formdata.append("public", form.elements["public"].checked ? "public" : "");
+	var formdata = new FormData(form);
 	var ajax = new XMLHttpRequest();
 	ajax.upload.addEventListener("progress", progressHandler, false);
 	ajax.addEventListener("load", completeHandler, false);
@@ -51,8 +46,8 @@ function abortHandler(event) {
 	id="upload_form"
 >
 	<label>
-		<input type="file" name="file" style="display: none" onchange="_('upload_filename').value = this.value;" />
-		<span class="button">Pick file</span>
+		<input type="file" name="files" style="display: none" onchange="_('upload_filename').value = this.value;" multiple="multiple" />
+		<span class="button">Pick file(s)</span>
 		<input type="text" id="upload_filename" disabled />
 	</label><br />
 	<input type="text" name="filename" placeholder="Filename (optional)" /><br />

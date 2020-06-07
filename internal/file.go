@@ -90,7 +90,7 @@ func (f *File) Create(content io.Reader, overwrite bool) error {
 		}
 
 		if len(f.MIME) == 0 || f.Size == 0 {
-			tmpfile.Seek(0, 0)
+			tmpfile.Seek(0, io.SeekStart)
 			mime, _ := mimetype.DetectReader(tmpfile)
 			f.MIME = mime.String()
 			f.Size = n

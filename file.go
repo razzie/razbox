@@ -1,6 +1,7 @@
 package razbox
 
 import (
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -86,8 +87,7 @@ func (api API) OpenFile(token *AccessToken, filePath string) (*FileReader, error
 // UploadFileOptions ...
 type UploadFileOptions struct {
 	Folder    string
-	File      multipart.File
-	Header    *multipart.FileHeader
+	Files     []*multipart.FileHeader
 	Filename  string
 	Tags      []string
 	Overwrite bool
@@ -117,33 +117,55 @@ func (api API) UploadFile(token *AccessToken, o *UploadFileOptions) error {
 		return &ErrNoWriteAccess{Folder: o.Folder}
 	}
 
+	if len(o.Files) == 0 {
+		return &ErrNoFiles{}
+	}
+
+	nthFilename := func(n int) string {
+		if n == 0 || len(o.Filename) == 0 {
+			return o.Filename
+		}
+		ext := path.Ext(o.Filename)
+		return fmt.Sprintf("%s-%d%s", strings.TrimSuffix(o.Filename, ext), n+1, ext)
+	}
+
 	limit := folder.Config.MaxFileSizeMB << 20
-	if o.Header.Size > limit {
-		return &ErrSizeLimitExceeded{}
+	for i, header := range o.Files {
+		if header.Size > limit {
+			return &ErrSizeLimitExceeded{}
+		}
+
+		limit -= header.Size
+		filename, _ := getSafeFilename(nthFilename(i), header.Filename, internal.Salt())
+
+		data, err := header.Open()
+		if err != nil {
+			return err
+		}
+		defer data.Close()
+
+		mime, _ := mimetype.DetectReader(data)
+		data.Seek(0, io.SeekStart)
+
+		file := &internal.File{
+			Name:     filename,
+			Root:     api.root,
+			RelPath:  path.Join(o.Folder, internal.FilenameToUUID(filename)),
+			Tags:     o.Tags,
+			MIME:     mime.String(),
+			Size:     header.Size,
+			Uploaded: time.Now(),
+			Public:   o.Public,
+		}
+		err = file.Create(data, o.Overwrite)
+		if err != nil {
+			return err
+		}
+
+		folder.CacheFile(file)
+		changed = true
 	}
 
-	filename, _ := getSafeFilename(o.Filename, o.Header.Filename, internal.Salt())
-
-	mime, _ := mimetype.DetectReader(o.File)
-	o.File.Seek(0, io.SeekStart)
-
-	file := &internal.File{
-		Name:     filename,
-		Root:     api.root,
-		RelPath:  path.Join(o.Folder, internal.FilenameToUUID(filename)),
-		Tags:     o.Tags,
-		MIME:     mime.String(),
-		Size:     o.Header.Size,
-		Uploaded: time.Now(),
-		Public:   o.Public,
-	}
-	err = file.Create(o.File, o.Overwrite)
-	if err != nil {
-		return err
-	}
-
-	folder.CacheFile(file)
-	changed = true
 	return nil
 }
 

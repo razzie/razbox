@@ -94,3 +94,10 @@ type ErrRateLimitExceeded struct{}
 func (err ErrRateLimitExceeded) Error() string {
 	return "Rate limit exceeded"
 }
+
+// ErrNoFiles ...
+type ErrNoFiles struct{}
+
+func (err ErrNoFiles) Error() string {
+	return "No files"
+}

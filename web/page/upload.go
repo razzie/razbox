@@ -60,16 +60,11 @@ func uploadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 			N: limit,
 		}
 		r.ParseMultipartForm(1 << 20)
-		data, handler, err := r.FormFile("file")
-		if err != nil {
-			return handleError(err)
-		}
-		defer data.Close()
+		defer r.MultipartForm.RemoveAll()
 
 		o := &razbox.UploadFileOptions{
 			Folder:    dir,
-			File:      data,
-			Header:    handler,
+			Files:     r.MultipartForm.File["files"],
 			Filename:  r.FormValue("filename"),
 			Tags:      strings.Fields(r.FormValue("tags")),
 			Overwrite: r.FormValue("overwrite") == "overwrite",
