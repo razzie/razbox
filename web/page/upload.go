@@ -39,7 +39,7 @@ func uploadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 	title := "Upload file to " + dir
 	v := &uploadPageView{
 		Folder:      dir,
-		MaxFileSize: fmt.Sprintf("%dMB", flags.MaxFileSizeMB),
+		MaxFileSize: fmt.Sprintf("%dMB", flags.MaxUploadSizeMB),
 	}
 	handleError := func(err error) razlink.PageView {
 		if ajax {
@@ -50,7 +50,7 @@ func uploadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 	}
 
 	if r.Method == "POST" {
-		limit := (flags.MaxFileSizeMB + 10) << 20
+		limit := (flags.MaxUploadSizeMB + 10) << 20
 		if r.ContentLength > limit {
 			return handleError(&razbox.ErrSizeLimitExceeded{})
 		}

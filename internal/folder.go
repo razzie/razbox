@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"os"
 	"path"
 	"path/filepath"
 
@@ -12,10 +13,11 @@ import (
 
 // FolderConfig stores the folder's passwords and other congfiguration
 type FolderConfig struct {
-	Salt          string `json:"salt"`
-	ReadPassword  string `json:"read_pw"`
-	WritePassword string `json:"write_pw"`
-	MaxFileSizeMB int64  `json:"max_file_size"`
+	Salt            string `json:"salt"`
+	ReadPassword    string `json:"read_pw"`
+	WritePassword   string `json:"write_pw"`
+	MaxFileSizeMB   int64  `json:"max_file_size"`
+	MaxFolderSizeMB int64  `json:"max_folder_size"`
 }
 
 // Folder ...
@@ -70,10 +72,6 @@ func GetFolder(root, relPath string) (*Folder, error) {
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	if folder.Config.MaxFileSizeMB < 1 {
-		folder.Config.MaxFileSizeMB = 1
 	}
 
 	return folder, nil
@@ -363,4 +361,49 @@ func (f *Folder) GetAccessToken(accessType string) (*AccessToken, error) {
 	default:
 		return nil, &ErrInvalidAccessType{AccessType: accessType}
 	}
+}
+
+func (f *Folder) calcFolderStructureSizeMB() int64 {
+	var sum int64
+	var excludes []string
+	sizes := make(map[string]int64)
+	filepath.Walk(path.Join(f.Root, f.ConfigRootFolder), func(p string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			return err
+		}
+		dir := path.Dir(p)
+		switch path.Ext(p) {
+		case ".razbox":
+			if path.Clean(dir) != f.ConfigRootFolder {
+				excludes = append(excludes)
+			}
+		case ".bin":
+			sizes[dir] = sizes[dir] + info.Size()
+		}
+		return err
+	})
+	for _, exclude := range excludes {
+		delete(sizes, exclude)
+	}
+	for _, size := range sizes {
+		sum += size
+	}
+	return sum >> 20
+}
+
+// GetMaxUploadSizeMB returns the maximum allowed upload size in MBs
+func (f *Folder) GetMaxUploadSizeMB() int64 {
+	if f.Config.MaxFolderSizeMB > 0 {
+		size := f.calcFolderStructureSizeMB()
+		if size >= f.Config.MaxFolderSizeMB {
+			return 0
+		}
+		if f.Config.MaxFileSizeMB > 0 {
+			return min(f.Config.MaxFolderSizeMB-size, f.Config.MaxFileSizeMB)
+		}
+		return f.Config.MaxFolderSizeMB - size
+	} else if f.Config.MaxFileSizeMB > 0 {
+		return f.Config.MaxFileSizeMB
+	}
+	return 1
 }

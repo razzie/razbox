@@ -15,11 +15,11 @@ import (
 
 // FolderFlags ...
 type FolderFlags struct {
-	EditMode      bool
-	Editable      bool
-	Deletable     bool
-	Configurable  bool
-	MaxFileSizeMB int64
+	EditMode        bool
+	Editable        bool
+	Deletable       bool
+	Configurable    bool
+	MaxUploadSizeMB int64
 }
 
 func getFolderFlags(token *AccessToken, f *internal.Folder) *FolderFlags {
@@ -31,11 +31,11 @@ func getFolderFlags(token *AccessToken, f *internal.Folder) *FolderFlags {
 	}
 
 	return &FolderFlags{
-		EditMode:      gotWriteAccess,
-		Editable:      len(f.Config.WritePassword) > 0,
-		Deletable:     deletable,
-		Configurable:  !f.ConfigInherited,
-		MaxFileSizeMB: f.Config.MaxFileSizeMB,
+		EditMode:        gotWriteAccess,
+		Editable:        len(f.Config.WritePassword) > 0,
+		Deletable:       deletable,
+		Configurable:    !f.ConfigInherited,
+		MaxUploadSizeMB: f.GetMaxUploadSizeMB(),
 	}
 }
 

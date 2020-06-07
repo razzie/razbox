@@ -129,7 +129,7 @@ func (api API) UploadFile(token *AccessToken, o *UploadFileOptions) error {
 		return fmt.Sprintf("%s-%d%s", strings.TrimSuffix(o.Filename, ext), n+1, ext)
 	}
 
-	limit := folder.Config.MaxFileSizeMB << 20
+	limit := folder.GetMaxUploadSizeMB() << 20
 	for i, header := range o.Files {
 		if header.Size > limit {
 			return &ErrSizeLimitExceeded{}
@@ -216,7 +216,7 @@ func (api API) DownloadFileToFolder(token *AccessToken, o *DownloadFileToFolderO
 		return &ErrBadHTTPResponseStatus{StatusCode: resp.StatusCode}
 	}
 
-	limit := folder.Config.MaxFileSizeMB << 20
+	limit := folder.GetMaxUploadSizeMB() << 20
 	data := &LimitedReader{
 		R: resp.Body,
 		N: limit,

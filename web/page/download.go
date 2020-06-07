@@ -31,7 +31,7 @@ func downloadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc
 	title := "Download file to " + dir
 	v := &uploadPageView{
 		Folder:      dir,
-		MaxFileSize: fmt.Sprintf("%dMB", flags.MaxFileSizeMB),
+		MaxFileSize: fmt.Sprintf("%dMB", flags.MaxUploadSizeMB),
 	}
 
 	if r.Method == "POST" {

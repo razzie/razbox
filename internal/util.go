@@ -118,3 +118,10 @@ func MIMEtoSymbol(mime string) template.HTML {
 
 	return "&#128196;"
 }
+
+func min(a, b int64) int64 {
+	if a < b {
+		return a
+	}
+	return b
+}
