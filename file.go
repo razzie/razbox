@@ -2,7 +2,6 @@ package razbox
 
 import (
 	"io"
-	"mime"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -155,35 +154,6 @@ func (api API) UploadFile(token *AccessToken, o *UploadFileOptions) error {
 	return nil
 }
 
-type limitedReader struct {
-	r io.Reader
-	n int64
-}
-
-func (l *limitedReader) Read(p []byte) (n int, err error) {
-	if l.n <= 0 {
-		return 0, &ErrSizeLimitExceeded{}
-	}
-	if int64(len(p)) > l.n {
-		p = p[:l.n]
-	}
-	n, err = l.r.Read(p)
-	l.n -= int64(n)
-	return
-}
-
-func getResponseFilename(resp *http.Response) string {
-	contentDisposition := resp.Header.Get("Content-Disposition")
-	if len(contentDisposition) > 0 {
-		_, params, _ := mime.ParseMediaType(contentDisposition)
-		filename := govalidator.SafeFileName(params["filename"])
-		if len(filename) > 0 && filename != "." {
-			return filename
-		}
-	}
-	return govalidator.SafeFileName(path.Base(resp.Request.URL.Path))
-}
-
 // DownloadFileToFolderOptions ...
 type DownloadFileToFolderOptions struct {
 	Folder    string
@@ -232,9 +202,9 @@ func (api API) DownloadFileToFolder(token *AccessToken, o *DownloadFileToFolderO
 	}
 
 	limit := folder.Config.MaxFileSizeMB << 20
-	data := &limitedReader{
-		r: resp.Body,
-		n: limit,
+	data := &LimitedReader{
+		R: resp.Body,
+		N: limit,
 	}
 
 	filename := govalidator.SafeFileName(o.Filename)

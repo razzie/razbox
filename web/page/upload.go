@@ -41,17 +41,28 @@ func uploadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 		Folder:      dir,
 		MaxFileSize: fmt.Sprintf("%dMB", flags.MaxFileSizeMB),
 	}
+	handleError := func(err error) razlink.PageView {
+		if ajax {
+			return ajaxErr(err.Error())
+		}
+		v.Error = err.Error()
+		return view(v, &title)
+	}
 
 	if r.Method == "POST" {
-		limit := flags.MaxFileSizeMB << 20
-		r.ParseMultipartForm(limit)
+		limit := (flags.MaxFileSizeMB + 10) << 20
+		if r.ContentLength > limit {
+			return handleError(&razbox.ErrSizeLimitExceeded{})
+		}
+
+		r.Body = &razbox.LimitedReadCloser{
+			R: r.Body,
+			N: limit,
+		}
+		r.ParseMultipartForm(1 << 20)
 		data, handler, err := r.FormFile("file")
 		if err != nil {
-			if ajax {
-				return ajaxErr(err.Error())
-			}
-			v.Error = err.Error()
-			return view(v, &title)
+			return handleError(err)
 		}
 		defer data.Close()
 
@@ -66,11 +77,7 @@ func uploadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 		}
 		err = api.UploadFile(token, o)
 		if err != nil {
-			if ajax {
-				return ajaxErr(err.Error())
-			}
-			v.Error = err.Error()
-			return view(v, &title)
+			return handleError(err)
 		}
 
 		return razlink.RedirectView(r, "/x/"+dir)
