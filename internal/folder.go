@@ -93,6 +93,7 @@ func (f *Folder) GetFile(basename string) (*File, error) {
 // CacheFile adds a file to the list of cached files
 func (f *Folder) CacheFile(file *File) {
 	if f.CachedFiles != nil {
+		f.UncacheFile(file.Name)
 		f.CachedFiles = append(f.CachedFiles, file)
 	}
 }
