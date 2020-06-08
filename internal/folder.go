@@ -259,7 +259,7 @@ func (f *Folder) save() error {
 	}
 
 	data, _ := json.MarshalIndent(&f.Config, "", "  ")
-	return ioutil.WriteFile(path.Join(f.Root, f.RelPath, ".razbox"), data, 0755)
+	return ioutil.WriteFile(path.Join(f.Root, f.RelPath, ".razbox"), data, 0644)
 }
 
 // EnsureReadAccess returns an error if the access token doesn't permit read access
