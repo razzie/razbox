@@ -2,7 +2,8 @@ version: "2"
 
 services:
   app:
-    image: golang:alpine
+    #image: golang:alpine
+    build: .
     ports:
       - "8080"
     volumes:
@@ -12,7 +13,7 @@ services:
     environment:
       - VIRTUAL_HOST=download.gorzsony.com
       - VIRTUAL_PORT=8080
-    command: go run -mod=vendor . -root /uploads -redis-addr redis:6379
+    command: go run -mod=vendor ./cmd/razbox -root /uploads -redis-addr redis:6379
 
   redis:
     image: redis:alpine
