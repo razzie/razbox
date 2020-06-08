@@ -29,8 +29,8 @@ func init() {
 	flag.StringVar(&Root, "root", "./uploads", "Root directory of folders")
 	flag.StringVar(&ReadPassword, "readpw", "", "Password for read access to the folder (optional)")
 	flag.StringVar(&WritePassword, "writepw", "", "Password for write access to the folder")
-	flag.Int64Var(&MaxFileSizeMB, "max-file-size", 10, "File size limit for uploads in MiB for this folder")
-	flag.Int64Var(&MaxFolderSizeMB, "max-folder-size", 10, "Size limit in MiB for this folder")
+	flag.Int64Var(&MaxFileSizeMB, "max-file-size", 0, "File size limit for uploads in MiB for this folder")
+	flag.Int64Var(&MaxFolderSizeMB, "max-folder-size", 0, "Size limit in MiB for this folder")
 	flag.StringVar(&Folder, "folder", "", "Folder name (relative path)")
 }
 
