@@ -11,7 +11,7 @@ func (api API) Auth(token *AccessToken, folderName, accessType, password string)
 			log.Println("auth: no IP in request")
 		}
 		if ok, _ := api.db.IsWithinRateLimit("auth", token.IP, api.AuthsPerMin); !ok {
-			return nil, &ErrRateLimitExceeded{}
+			return nil, &ErrRateLimitExceeded{ReqPerMin: api.AuthsPerMin}
 		}
 	}
 

@@ -1,6 +1,7 @@
 package razbox
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -89,10 +90,16 @@ func (err ErrNotDeletable) Error() string {
 }
 
 // ErrRateLimitExceeded ...
-type ErrRateLimitExceeded struct{}
+type ErrRateLimitExceeded struct {
+	ReqPerMin int
+}
 
 func (err ErrRateLimitExceeded) Error() string {
-	return "Rate limit exceeded"
+	msg := "Rate limit exceeded"
+	if err.ReqPerMin > 0 {
+		msg += fmt.Sprintf(" (%d / minute)", err.ReqPerMin)
+	}
+	return msg
 }
 
 // ErrNoFiles ...
