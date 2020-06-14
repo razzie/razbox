@@ -40,6 +40,10 @@ func folderPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 		if err != nil {
 			return HandleError(r, err)
 		}
+		_, download := r.URL.Query()["download"]
+		if download {
+			return ServeFileAttachment(r, reader)
+		}
 		return ServeFile(r, reader)
 	}
 

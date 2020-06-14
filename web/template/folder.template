@@ -133,6 +133,9 @@ function sortTable(column, comparator) {
 			<td data-sortvalue="{{.Size}}">{{.SizeStr}}</td>
 			<td data-sortvalue="{{.Uploaded}}">{{.UploadedStr}}</td>
 			<td>
+				{{if not .Folder}}
+					<a href="/x/{{.RelPath}}?download">&#8681;</a>
+				{{end}}
 				{{if .EditMode}}
 					<a href="/edit/{{.RelPath}}/?r={{$Redirect}}">&#9998;</a>
 					<a href="/delete/{{.RelPath}}/?r={{$Redirect}}" onclick="return confirm('Are you sure?')">&#10008;</a>
