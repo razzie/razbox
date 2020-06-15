@@ -12,13 +12,13 @@ import (
 
 // AccessToken ...
 type AccessToken struct {
-	IP    string
-	Read  map[string]string
-	Write map[string]string
+	SessionID string
+	IP        string
+	Read      map[string]string
+	Write     map[string]string
 }
 
-// FromCookies ...
-func (token *AccessToken) FromCookies(cookies []*http.Cookie) *AccessToken {
+func (token *AccessToken) fromCookies(cookies []*http.Cookie) *AccessToken {
 	if token.Read == nil {
 		token.Read = make(map[string]string)
 	}
@@ -28,6 +28,8 @@ func (token *AccessToken) FromCookies(cookies []*http.Cookie) *AccessToken {
 
 	for _, c := range cookies {
 		switch {
+		case c.Name == "session":
+			token.SessionID = c.Value
 		case strings.HasPrefix(c.Name, "read-"):
 			token.Read[c.Name[5:]] = c.Value
 		case strings.HasPrefix(c.Name, "write-"):
@@ -40,6 +42,14 @@ func (token *AccessToken) FromCookies(cookies []*http.Cookie) *AccessToken {
 
 // ToCookie ...
 func (token *AccessToken) ToCookie(expiration time.Duration) *http.Cookie {
+	if len(token.SessionID) > 0 {
+		return &http.Cookie{
+			Name:    "session",
+			Value:   token.SessionID,
+			Path:    "/",
+			Expires: time.Now().Add(expiration),
+		}
+	}
 	for read, value := range token.Read {
 		return &http.Cookie{
 			Name:    fmt.Sprintf("read-%s", read),
@@ -61,12 +71,18 @@ func (token *AccessToken) ToCookie(expiration time.Duration) *http.Cookie {
 
 // AccessTokenFromCookies ...
 func (api API) AccessTokenFromCookies(cookies []*http.Cookie) *AccessToken {
-	return new(AccessToken).FromCookies(cookies)
+	token := new(AccessToken).fromCookies(cookies)
+	if api.db != nil && len(token.SessionID) > 0 {
+		libToken := token.toLib()
+		api.db.FillSessionToken(token.SessionID, libToken)
+		token.fromLib(libToken)
+	}
+	return token
 }
 
 // AccessTokenFromRequest ...
 func (api API) AccessTokenFromRequest(r *http.Request) *AccessToken {
-	token := new(AccessToken).FromCookies(r.Cookies())
+	token := api.AccessTokenFromCookies(r.Cookies())
 	token.IP = reqip.GetClientIP(r)
 	return token
 }

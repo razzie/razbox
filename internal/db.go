@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v7"
@@ -89,4 +90,59 @@ func (db *DB) IsWithinRateLimit(reqType, ip string, rate int) (bool, error) {
 	}
 
 	return int(incr.Val()) <= rate, nil
+}
+
+// GetSessionToken returns an access token from session ID
+func (db *DB) GetSessionToken(sessionID string) (*AccessToken, error) {
+	token := &AccessToken{
+		Read:  make(map[string]string),
+		Write: make(map[string]string),
+	}
+	return token, db.FillSessionToken(sessionID, token)
+}
+
+// FillSessionToken fills an existing token with extra access data from session ID
+func (db *DB) FillSessionToken(sessionID string, token *AccessToken) error {
+	reads, err := db.client.SMembers("session-read:" + sessionID).Result()
+	if err != nil {
+		return err
+	}
+	writes, err := db.client.SMembers("session-write:" + sessionID).Result()
+	if err != nil {
+		return err
+	}
+
+	for _, read := range reads {
+		parts := strings.SplitN(read, ":", 2) // folderhash:passwordhash
+		token.Read[parts[0]] = parts[1]
+	}
+	for _, write := range writes {
+		parts := strings.SplitN(write, ":", 2) // folderhash:passwordhash
+		token.Write[parts[0]] = parts[1]
+	}
+	return nil
+}
+
+// AddSessionToken adds an access token to an existing session
+// (or creates a new session if didn't exist)
+func (db *DB) AddSessionToken(sessionID string, token *AccessToken, expiration time.Duration) error {
+	var reads, writes []interface{}
+	for folderhash, pwhash := range token.Read {
+		reads = append(reads, fmt.Sprintf("%s:%s", folderhash, pwhash))
+	}
+	for folderhash, pwhash := range token.Write {
+		writes = append(writes, fmt.Sprintf("%s:%s", folderhash, pwhash))
+	}
+
+	pipe := db.client.TxPipeline()
+	if len(reads) > 0 {
+		pipe.SAdd("session-read:"+sessionID, reads...)
+	}
+	if len(writes) > 0 {
+		pipe.SAdd("session-write:"+sessionID, writes...)
+	}
+	pipe.Expire("session-read:"+sessionID, expiration)
+	pipe.Expire("session-write:"+sessionID, expiration)
+	_, err := pipe.Exec()
+	return err
 }
