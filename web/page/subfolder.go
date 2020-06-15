@@ -27,7 +27,7 @@ func createSubfolderPageHandler(api *razbox.API, r *http.Request, view razlink.V
 		r.ParseForm()
 		subfolderName := r.FormValue("subfolder")
 
-		token := api.AccessTokenFromCookies(r.Cookies())
+		token := api.AccessTokenFromRequest(r)
 		subfolderPath, err := api.CreateSubfolder(token, dir, subfolderName)
 		if err != nil {
 			v.Error = err.Error()
@@ -37,7 +37,7 @@ func createSubfolderPageHandler(api *razbox.API, r *http.Request, view razlink.V
 		return razlink.RedirectView(r, "/x/"+subfolderPath)
 	}
 
-	token := api.AccessTokenFromCookies(r.Cookies())
+	token := api.AccessTokenFromRequest(r)
 	flags, err := api.GetFolderFlags(token, dir)
 	if err != nil {
 		return HandleError(r, err)
@@ -54,7 +54,7 @@ func deleteSubfolderPageHandler(api *razbox.API, r *http.Request, view razlink.V
 	dir := path.Clean(r.URL.Path[18:]) // skip /delete-subfolder/
 	parent := path.Dir(dir)
 
-	token := api.AccessTokenFromCookies(r.Cookies())
+	token := api.AccessTokenFromRequest(r)
 	err := api.DeleteSubfolder(token, parent, path.Base(dir))
 	if err != nil {
 		return HandleError(r, err)

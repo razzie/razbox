@@ -1,6 +1,7 @@
 package razbox
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/google/uuid"
@@ -20,15 +21,18 @@ func (api API) Auth(token *AccessToken, folderName, accessType, password string)
 
 		if len(sessionID) > 0 {
 			libToken := token.toLib()
-			err := api.db.FillSessionToken(sessionID, libToken)
+			err := api.db.FillSessionToken(sessionID, token.IP, libToken)
 			if err != nil {
+				log.Println("session token error:", err)
 				sessionID = ""
 			} else {
 				token = token.fromLib(libToken)
 			}
 		} else {
 			newSessionID, err := uuid.NewRandom()
-			if err == nil {
+			if err != nil {
+				fmt.Println("session ID gen err:", err)
+			} else {
 				sessionID = newSessionID.String()
 			}
 		}
@@ -48,11 +52,12 @@ func (api API) Auth(token *AccessToken, folderName, accessType, password string)
 			return nil, err
 		}
 		if api.db != nil && len(sessionID) > 0 {
-			if err := api.db.AddSessionToken(sessionID, newToken, api.CookieExpiration); err == nil {
+			if err := api.db.AddSessionToken(sessionID, token.IP, newToken, api.CookieExpiration); err == nil {
 				return &AccessToken{
 					SessionID: sessionID,
 				}, nil
 			}
+			fmt.Println("session token error:", err)
 		}
 		return new(AccessToken).fromLib(newToken), nil
 	}

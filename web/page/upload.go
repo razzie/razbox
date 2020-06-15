@@ -26,7 +26,7 @@ func uploadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 	dir := path.Clean(r.URL.Path[8:]) // skip /upload/
 	ajax := r.URL.Query().Get("u") == "ajax"
 
-	token := api.AccessTokenFromCookies(r.Cookies())
+	token := api.AccessTokenFromRequest(r)
 	flags, err := api.GetFolderFlags(token, dir)
 	if err != nil {
 		return HandleError(r, err)

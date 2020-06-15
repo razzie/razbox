@@ -30,7 +30,7 @@ func galleryPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc)
 		v.Redirect = fmt.Sprintf("/x/%s/?tag=%s", uri, tag)
 	}
 
-	token := api.AccessTokenFromCookies(r.Cookies())
+	token := api.AccessTokenFromRequest(r)
 	entries, _, err := api.GetFolderEntries(token, uri)
 	if err != nil {
 		return HandleError(r, err)

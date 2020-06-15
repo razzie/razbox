@@ -14,7 +14,7 @@ const maxThumbWidth = 250
 
 func thumbnailPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	filename := path.Clean(r.URL.Path[7:]) // skip /thumb/
-	token := api.AccessTokenFromCookies(r.Cookies())
+	token := api.AccessTokenFromRequest(r)
 	thumb, err := api.GetFileThumbnail(token, filename, maxThumbWidth)
 	if err != nil {
 		switch err := err.(type) {

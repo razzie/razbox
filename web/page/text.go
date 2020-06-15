@@ -20,7 +20,7 @@ type textPageView struct {
 func textPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	filename := path.Clean(r.URL.Path[6:]) // skip /text/
 	dir := path.Dir(filename)
-	token := api.AccessTokenFromCookies(r.Cookies())
+	token := api.AccessTokenFromRequest(r)
 	file, err := api.OpenFile(token, filename)
 	if err != nil {
 		return HandleError(r, err)

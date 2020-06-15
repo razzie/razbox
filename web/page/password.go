@@ -40,7 +40,7 @@ func passwordPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc
 			return view(v, &title)
 		}
 
-		token := api.AccessTokenFromCookies(r.Cookies())
+		token := api.AccessTokenFromRequest(r)
 		newToken, err := api.ChangeFolderPassword(token, dir, accessType, pw)
 		if err != nil {
 			v.Error = err.Error()
@@ -51,7 +51,7 @@ func passwordPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc
 		return razlink.CookieAndRedirectView(r, cookie, "/x/"+dir)
 	}
 
-	token := api.AccessTokenFromCookies(r.Cookies())
+	token := api.AccessTokenFromRequest(r)
 	flags, err := api.GetFolderFlags(token, dir)
 	if err != nil {
 		return HandleError(r, err)

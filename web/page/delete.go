@@ -16,7 +16,7 @@ func deletePageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 		redirect = "/x/" + dir
 	}
 
-	token := api.AccessTokenFromCookies(r.Cookies())
+	token := api.AccessTokenFromRequest(r)
 	err := api.DeleteFile(token, filename)
 	if err != nil {
 		return HandleError(r, err)

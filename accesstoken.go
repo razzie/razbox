@@ -69,21 +69,15 @@ func (token *AccessToken) ToCookie(expiration time.Duration) *http.Cookie {
 	return nil
 }
 
-// AccessTokenFromCookies ...
-func (api API) AccessTokenFromCookies(cookies []*http.Cookie) *AccessToken {
-	token := new(AccessToken).fromCookies(cookies)
-	if api.db != nil && len(token.SessionID) > 0 {
-		libToken := token.toLib()
-		api.db.FillSessionToken(token.SessionID, libToken)
-		token.fromLib(libToken)
-	}
-	return token
-}
-
 // AccessTokenFromRequest ...
 func (api API) AccessTokenFromRequest(r *http.Request) *AccessToken {
-	token := api.AccessTokenFromCookies(r.Cookies())
+	token := new(AccessToken).fromCookies(r.Cookies())
 	token.IP = reqip.GetClientIP(r)
+	if api.db != nil && len(token.SessionID) > 0 {
+		libToken := token.toLib()
+		api.db.FillSessionToken(token.SessionID, token.IP, libToken)
+		token.fromLib(libToken)
+	}
 	return token
 }
 

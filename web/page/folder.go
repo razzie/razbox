@@ -24,7 +24,7 @@ type folderPageView struct {
 func folderPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	folderOrFilename := path.Clean(r.URL.Path[3:]) // skip /x/
 	tag := r.URL.Query().Get("tag")
-	token := api.AccessTokenFromCookies(r.Cookies())
+	token := api.AccessTokenFromRequest(r)
 	entries, flags, err := api.GetFolderEntries(token, folderOrFilename)
 	if err != nil {
 		return HandleError(r, err)

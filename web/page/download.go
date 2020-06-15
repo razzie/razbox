@@ -18,7 +18,7 @@ type downloadPageView struct {
 
 func downloadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
 	dir := path.Clean(r.URL.Path[20:]) // skip /download-to-folder/
-	token := api.AccessTokenFromCookies(r.Cookies())
+	token := api.AccessTokenFromRequest(r)
 	flags, err := api.GetFolderFlags(token, dir)
 	if err != nil {
 		return HandleError(r, err)

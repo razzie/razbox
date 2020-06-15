@@ -29,7 +29,7 @@ func editPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) ra
 		redirect = "/x/" + dir
 	}
 
-	token := api.AccessTokenFromCookies(r.Cookies())
+	token := api.AccessTokenFromRequest(r)
 	entry, _, err := api.GetFolderEntries(token, filename)
 	if err != nil {
 		return HandleError(r, err)

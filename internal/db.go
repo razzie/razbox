@@ -93,21 +93,22 @@ func (db *DB) IsWithinRateLimit(reqType, ip string, rate int) (bool, error) {
 }
 
 // GetSessionToken returns an access token from session ID
-func (db *DB) GetSessionToken(sessionID string) (*AccessToken, error) {
+func (db *DB) GetSessionToken(sessionID, ip string) (*AccessToken, error) {
 	token := &AccessToken{
 		Read:  make(map[string]string),
 		Write: make(map[string]string),
 	}
-	return token, db.FillSessionToken(sessionID, token)
+	return token, db.FillSessionToken(sessionID, ip, token)
 }
 
 // FillSessionToken fills an existing token with extra access data from session ID
-func (db *DB) FillSessionToken(sessionID string, token *AccessToken) error {
-	reads, err := db.client.SMembers("session-read:" + sessionID).Result()
+func (db *DB) FillSessionToken(sessionID, ip string, token *AccessToken) error {
+	key := fmt.Sprintf("%s:%s", sessionID, ip)
+	reads, err := db.client.SMembers("session-read:" + key).Result()
 	if err != nil {
 		return err
 	}
-	writes, err := db.client.SMembers("session-write:" + sessionID).Result()
+	writes, err := db.client.SMembers("session-write:" + key).Result()
 	if err != nil {
 		return err
 	}
@@ -125,7 +126,8 @@ func (db *DB) FillSessionToken(sessionID string, token *AccessToken) error {
 
 // AddSessionToken adds an access token to an existing session
 // (or creates a new session if didn't exist)
-func (db *DB) AddSessionToken(sessionID string, token *AccessToken, expiration time.Duration) error {
+func (db *DB) AddSessionToken(sessionID, ip string, token *AccessToken, expiration time.Duration) error {
+	key := fmt.Sprintf("%s:%s", sessionID, ip)
 	var reads, writes []interface{}
 	for folderhash, pwhash := range token.Read {
 		reads = append(reads, fmt.Sprintf("%s:%s", folderhash, pwhash))
@@ -136,13 +138,13 @@ func (db *DB) AddSessionToken(sessionID string, token *AccessToken, expiration t
 
 	pipe := db.client.TxPipeline()
 	if len(reads) > 0 {
-		pipe.SAdd("session-read:"+sessionID, reads...)
+		pipe.SAdd("session-read:"+key, reads...)
 	}
 	if len(writes) > 0 {
-		pipe.SAdd("session-write:"+sessionID, writes...)
+		pipe.SAdd("session-write:"+key, writes...)
 	}
-	pipe.Expire("session-read:"+sessionID, expiration)
-	pipe.Expire("session-write:"+sessionID, expiration)
+	pipe.Expire("session-read:"+key, expiration)
+	pipe.Expire("session-write:"+key, expiration)
 	_, err := pipe.Exec()
 	return err
 }
