@@ -17,8 +17,9 @@ type textPageView struct {
 	Text     string
 }
 
-func textPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	filename := path.Clean(r.URL.Path[6:]) // skip /text/
+func textPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+	r := pr.Request
+	filename := path.Clean(pr.RelPath)
 	dir := path.Dir(filename)
 	token := api.AccessTokenFromRequest(r)
 	file, err := api.OpenFile(token, filename)
@@ -27,7 +28,7 @@ func textPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) ra
 	}
 	_, download := r.URL.Query()["download"]
 	if download {
-		return ServeFileAttachment(r, file)
+		return ServeFileAttachmentAsync(r, file)
 	}
 	defer file.Close()
 
@@ -40,12 +41,13 @@ func textPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) ra
 		return razlink.ErrorView(r, "Could not read file", http.StatusInternalServerError)
 	}
 
+	pr.Title = filename
 	v := &textPageView{
 		Filename: filepath.Base(filename),
 		Folder:   dir,
 		Text:     string(data),
 	}
-	return view(v, &filename)
+	return pr.Respond(v)
 }
 
 // Text returns a razlink.Page that visualizes text files
@@ -60,8 +62,8 @@ func Text(api *razbox.API) *razlink.Page {
 			"/static/highlight.min.js",
 			"/static/highlightjs-line-numbers.min.js",
 		},
-		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return textPageHandler(api, r, view)
+		Handler: func(pr *razlink.PageRequest) *razlink.View {
+			return textPageHandler(api, pr)
 		},
 	}
 }

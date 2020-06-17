@@ -125,7 +125,7 @@ var layoutT = `
 var layout = template.Must(template.New("layout").Parse(layoutT))
 
 // LayoutRenderer is a function that renders a html page
-type LayoutRenderer func(w http.ResponseWriter, r *http.Request, title string, data interface{})
+type LayoutRenderer func(w http.ResponseWriter, r *http.Request, title string, data interface{}, statusCode int)
 
 // BindLayout creates a layout renderer function
 func BindLayout(pageTemplate string, stylesheets, scripts []string, meta map[string]string) (LayoutRenderer, error) {
@@ -145,7 +145,7 @@ func BindLayout(pageTemplate string, stylesheets, scripts []string, meta map[str
 		}
 	}
 
-	return func(w http.ResponseWriter, r *http.Request, title string, data interface{}) {
+	return func(w http.ResponseWriter, r *http.Request, title string, data interface{}, statusCode int) {
 		view := struct {
 			Title       string
 			Base        string
@@ -162,6 +162,7 @@ func BindLayout(pageTemplate string, stylesheets, scripts []string, meta map[str
 			Data:        data,
 		}
 
+		w.WriteHeader(statusCode)
 		tmpl.ExecuteTemplate(w, "layout", &view)
 	}, nil
 }

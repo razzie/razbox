@@ -15,9 +15,10 @@ type createSubfolderPageView struct {
 	Redirect string
 }
 
-func createSubfolderPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	dir := path.Clean(r.URL.Path[18:]) // skip /create-subfolder/
-	title := "Create subfolder in " + dir
+func createSubfolderPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+	r := pr.Request
+	dir := path.Clean(pr.RelPath)
+	pr.Title = "Create subfolder in " + dir
 	v := &createSubfolderPageView{
 		Folder:   dir,
 		Redirect: "/x/" + dir,
@@ -31,10 +32,10 @@ func createSubfolderPageHandler(api *razbox.API, r *http.Request, view razlink.V
 		subfolderPath, err := api.CreateSubfolder(token, dir, subfolderName)
 		if err != nil {
 			v.Error = err.Error()
-			return view(v, &title)
+			return pr.Respond(v, razlink.WithError(err, http.StatusInternalServerError))
 		}
 
-		return razlink.RedirectView(r, "/x/"+subfolderPath)
+		return pr.RedirectView("/x/" + subfolderPath)
 	}
 
 	token := api.AccessTokenFromRequest(r)
@@ -44,14 +45,17 @@ func createSubfolderPageHandler(api *razbox.API, r *http.Request, view razlink.V
 	}
 
 	if !flags.EditMode {
-		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()))
+		return pr.RedirectView(
+			fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()),
+			razlink.WithErrorMessage("Write access required", http.StatusUnauthorized))
 	}
 
-	return view(v, &title)
+	return pr.Respond(v)
 }
 
-func deleteSubfolderPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	dir := path.Clean(r.URL.Path[18:]) // skip /delete-subfolder/
+func deleteSubfolderPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+	r := pr.Request
+	dir := path.Clean(pr.RelPath)
 	parent := path.Dir(dir)
 
 	token := api.AccessTokenFromRequest(r)
@@ -60,7 +64,7 @@ func deleteSubfolderPageHandler(api *razbox.API, r *http.Request, view razlink.V
 		return HandleError(r, err)
 	}
 
-	return razlink.RedirectView(r, "/x/"+parent)
+	return pr.RedirectView("/x/" + parent)
 }
 
 // CreateSubfolder returns a razlink.Page that handles subfolder creation
@@ -68,8 +72,8 @@ func CreateSubfolder(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/create-subfolder/",
 		ContentTemplate: GetContentTemplate("create-subfolder"),
-		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return createSubfolderPageHandler(api, r, view)
+		Handler: func(pr *razlink.PageRequest) *razlink.View {
+			return createSubfolderPageHandler(api, pr)
 		},
 	}
 }
@@ -78,8 +82,8 @@ func CreateSubfolder(api *razbox.API) *razlink.Page {
 func DeleteSubfolder(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path: "/delete-subfolder/",
-		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return deleteSubfolderPageHandler(api, r, view)
+		Handler: func(pr *razlink.PageRequest) *razlink.View {
+			return deleteSubfolderPageHandler(api, pr)
 		},
 	}
 }

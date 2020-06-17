@@ -2,6 +2,7 @@ package razlink
 
 import (
 	"net/http"
+	"strings"
 )
 
 // Page ...
@@ -15,41 +16,56 @@ type Page struct {
 	Handler         PageHandler
 }
 
-// PageView is a callback function used to render the page
-type PageView func(w http.ResponseWriter)
+// PageRequest ...
+type PageRequest struct {
+	Request  *http.Request
+	RelPath  string
+	Title    string
+	renderer LayoutRenderer
+}
 
-// ViewFunc is a function that produces a PageView using the input data
-type ViewFunc func(data interface{}, title *string) PageView
+// Respond returns the default page response View
+func (r *PageRequest) Respond(data interface{}, opts ...ViewOption) *View {
+	v := &View{
+		StatusCode: http.StatusOK,
+		Data:       data,
+	}
+	for _, opt := range opts {
+		opt(v)
+	}
+	v.renderer = func(w http.ResponseWriter) {
+		r.renderer(w, r.Request, r.Title, data, v.StatusCode)
+	}
+	return v
+}
 
 // PageHandler handles the page's requests
-// If there was no error, the handler should call viewFunc and return the resulted PageView
-type PageHandler func(r *http.Request, viewFunc ViewFunc) PageView
+// If there was no error, the handler should call use r.Respond(data)
+type PageHandler func(r *PageRequest) *View
 
-// BindLayout creates a page renderer function that uses Razlink layout
-func (page *Page) BindLayout() (func(http.ResponseWriter, *http.Request), error) {
+// BindLayout creates a http.HandlerFunc that uses Razlink layout
+func (page *Page) BindLayout() (http.HandlerFunc, error) {
 	renderer, err := BindLayout(page.ContentTemplate, page.Stylesheets, page.Scripts, page.Meta)
 	if err != nil {
 		return nil, err
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		viewFunc := func(data interface{}, title *string) PageView {
-			return func(w http.ResponseWriter) {
-				if title != nil {
-					renderer(w, r, *title, data)
-				} else {
-					renderer(w, r, page.Title, data)
-				}
-			}
+		pr := &PageRequest{
+			Request:  r,
+			RelPath:  strings.TrimPrefix(r.URL.Path, page.Path),
+			Title:    page.Title,
+			renderer: renderer,
 		}
 
-		var view PageView
-		if page.Handler == nil {
-			view = viewFunc(nil, nil)
-		} else {
-			view = page.Handler(r, viewFunc)
+		var view *View
+		if page.Handler != nil {
+			view = page.Handler(pr)
+		}
+		if view == nil {
+			view = pr.Respond(nil)
 		}
 
-		view(w)
+		view.Render(w)
 	}, nil
 }

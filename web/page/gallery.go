@@ -2,7 +2,6 @@ package page
 
 import (
 	"fmt"
-	"net/http"
 	"path"
 
 	"github.com/razzie/razbox"
@@ -17,8 +16,10 @@ type galleryPageView struct {
 	MaxThumbWidth uint
 }
 
-func galleryPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	uri := path.Clean(r.URL.Path[9:]) // skip /gallery/
+func galleryPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+	r := pr.Request
+	uri := path.Clean(pr.RelPath)
+	pr.Title = uri
 	tag := r.URL.Query().Get("tag")
 	v := &galleryPageView{
 		Folder:        uri,
@@ -46,7 +47,7 @@ func galleryPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc)
 		v.Entries = append(v.Entries, entry)
 	}
 
-	return view(v, &uri)
+	return pr.Respond(v)
 }
 
 // Gallery returns a razlink.Page that handles galleries
@@ -57,8 +58,8 @@ func Gallery(api *razbox.API) *razlink.Page {
 		Scripts: []string{
 			"/static/masonry.min.js",
 		},
-		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return galleryPageHandler(api, r, view)
+		Handler: func(pr *razlink.PageRequest) *razlink.View {
+			return galleryPageHandler(api, pr)
 		},
 	}
 }

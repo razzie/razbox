@@ -93,7 +93,7 @@ func HasContentType(header http.Header, mimetype string) bool {
 var pixel, _ = base64.StdEncoding.DecodeString("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=")
 
 // WritePixel writes a transparent pixel to a http.ResponseWriter
-func WritePixel(w http.ResponseWriter) {
+func WritePixel(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "image/png")
 	w.Header().Set("Content-Length", strconv.Itoa(len(pixel)))
 	_, _ = w.Write(pixel)
@@ -112,7 +112,7 @@ var favicon, _ = base64.StdEncoding.DecodeString("iVBORw0KGgoAAAANSUhEUgAAACAAAA
 	"AW14OwZ8UIJFNsZm4yzeYAjfcEtYgsEfmmcOvhtYrlIAAAAASUVORK5CYII=")
 
 // WriteFavicon writes Razlink favicon to a http.ResponseWriter
-func WriteFavicon(w http.ResponseWriter) {
+func WriteFavicon(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "image/png")
 	w.Header().Set("Content-Length", strconv.Itoa(len(favicon)))
 	_, _ = w.Write(favicon)

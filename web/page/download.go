@@ -16,8 +16,9 @@ type downloadPageView struct {
 	MaxFileSize string
 }
 
-func downloadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	dir := path.Clean(r.URL.Path[20:]) // skip /download-to-folder/
+func downloadPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+	r := pr.Request
+	dir := path.Clean(pr.RelPath)
 	token := api.AccessTokenFromRequest(r)
 	flags, err := api.GetFolderFlags(token, dir)
 	if err != nil {
@@ -25,10 +26,12 @@ func downloadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc
 	}
 
 	if !flags.EditMode {
-		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()))
+		return pr.RedirectView(
+			fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()),
+			razlink.WithErrorMessage("Write access required", http.StatusUnauthorized))
 	}
 
-	title := "Download file to " + dir
+	pr.Title = "Download file to " + dir
 	v := &uploadPageView{
 		Folder:      dir,
 		MaxFileSize: fmt.Sprintf("%dMB", flags.MaxUploadSizeMB),
@@ -48,13 +51,13 @@ func downloadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc
 		err := api.DownloadFileToFolder(token, o)
 		if err != nil {
 			v.Error = err.Error()
-			return view(v, &title)
+			return pr.Respond(v, razlink.WithError(err, http.StatusInternalServerError))
 		}
 
 		return razlink.RedirectView(r, "/x/"+dir)
 	}
 
-	return view(v, &title)
+	return pr.Respond(v)
 }
 
 // Download returns a razlink.Page that handles file downloads from an URL to a folder
@@ -62,8 +65,8 @@ func Download(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/download-to-folder/",
 		ContentTemplate: GetContentTemplate("download"),
-		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return downloadPageHandler(api, r, view)
+		Handler: func(pr *razlink.PageRequest) *razlink.View {
+			return downloadPageHandler(api, pr)
 		},
 	}
 }

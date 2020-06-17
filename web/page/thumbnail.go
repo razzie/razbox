@@ -12,21 +12,24 @@ import (
 
 const maxThumbWidth = 250
 
-func thumbnailPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	filename := path.Clean(r.URL.Path[7:]) // skip /thumb/
+func thumbnailPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+	r := pr.Request
+	filename := path.Clean(pr.RelPath)
 	token := api.AccessTokenFromRequest(r)
 	thumb, err := api.GetFileThumbnail(token, filename, maxThumbWidth)
 	if err != nil {
 		switch err := err.(type) {
 		case *razbox.ErrNoReadAccess:
-			return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", err.Folder, r.URL.RequestURI()))
+			return pr.RedirectView(
+				fmt.Sprintf("/read-auth/%s?r=%s", err.Folder, r.URL.RequestURI()),
+				razlink.WithErrorMessage("Read access required", http.StatusUnauthorized))
 		default:
 			log.Println(filename, ":", err)
 		}
 	}
 
 	if thumb == nil || len(thumb.Data) == 0 {
-		return razlink.RedirectView(r, "/x/"+filename)
+		return pr.RedirectView("/x/" + filename)
 	}
 
 	return ServeThumbnail(thumb)
@@ -36,8 +39,8 @@ func thumbnailPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFun
 func Thumbnail(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path: "/thumb/",
-		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return thumbnailPageHandler(api, r, view)
+		Handler: func(pr *razlink.PageRequest) *razlink.View {
+			return thumbnailPageHandler(api, pr)
 		},
 	}
 }

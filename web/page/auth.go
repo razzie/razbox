@@ -18,8 +18,10 @@ type authPageView struct {
 	Redirect      string
 }
 
-func authPageHandler(api *razbox.API, accessType string, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	dir := path.Clean(r.URL.Path[7+len(accessType):]) // skip /[accessType]-auth/
+func authPageHandler(api *razbox.API, accessType string, pr *razlink.PageRequest) *razlink.View {
+	r := pr.Request
+	dir := path.Clean(pr.RelPath)
+	pr.Title = dir
 	pwPrefix := fmt.Sprintf("%s-%s", accessType, base64.StdEncoding.EncodeToString([]byte(dir)))
 	v := &authPageView{
 		Folder:        dir,
@@ -40,13 +42,13 @@ func authPageHandler(api *razbox.API, accessType string, r *http.Request, view r
 		newToken, err := api.Auth(token, dir, accessType, pw)
 		if err != nil {
 			v.Error = err.Error()
-			return view(v, &dir)
+			return pr.Respond(v, razlink.WithError(err, http.StatusUnauthorized))
 		}
 
 		return razlink.CookieAndRedirectView(r, newToken.ToCookie(api.CookieExpiration), v.Redirect)
 	}
 
-	return view(v, &dir)
+	return pr.Respond(v)
 }
 
 // ReadAuth returns a razlink.Page that handles authentication for read access
@@ -54,8 +56,8 @@ func ReadAuth(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/read-auth/",
 		ContentTemplate: GetContentTemplate("auth"),
-		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return authPageHandler(api, "read", r, view)
+		Handler: func(pr *razlink.PageRequest) *razlink.View {
+			return authPageHandler(api, "read", pr)
 		},
 	}
 }
@@ -65,8 +67,8 @@ func WriteAuth(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/write-auth/",
 		ContentTemplate: GetContentTemplate("auth"),
-		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return authPageHandler(api, "write", r, view)
+		Handler: func(pr *razlink.PageRequest) *razlink.View {
+			return authPageHandler(api, "write", pr)
 		},
 	}
 }

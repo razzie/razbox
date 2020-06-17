@@ -16,14 +16,21 @@ type uploadPageView struct {
 	MaxFileSize string
 }
 
-func ajaxErr(err string) razlink.PageView {
-	return func(w http.ResponseWriter) {
+func ajaxErr(err string) *razlink.View {
+	return razlink.HandlerView(nil, func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, err, http.StatusInternalServerError)
-	}
+	})
 }
 
-func uploadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	dir := path.Clean(r.URL.Path[8:]) // skip /upload/
+func ajaxOK() *razlink.View {
+	return razlink.HandlerView(nil, func(w http.ResponseWriter, _ *http.Request) {
+		w.Write([]byte("OK"))
+	})
+}
+
+func uploadPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+	r := pr.Request
+	dir := path.Clean(pr.RelPath)
 	ajax := r.URL.Query().Get("u") == "ajax"
 
 	token := api.AccessTokenFromRequest(r)
@@ -33,20 +40,22 @@ func uploadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 	}
 
 	if !flags.EditMode {
-		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()))
+		return pr.RedirectView(
+			fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()),
+			razlink.WithErrorMessage("Write access required", http.StatusUnauthorized))
 	}
 
-	title := "Upload file to " + dir
+	pr.Title = "Upload file to " + dir
 	v := &uploadPageView{
 		Folder:      dir,
 		MaxFileSize: fmt.Sprintf("%dMB", flags.MaxUploadSizeMB),
 	}
-	handleError := func(err error) razlink.PageView {
+	handleError := func(err error) *razlink.View {
 		if ajax {
 			return ajaxErr(err.Error())
 		}
 		v.Error = err.Error()
-		return view(v, &title)
+		return pr.Respond(v, razlink.WithError(err, http.StatusInternalServerError))
 	}
 
 	if r.Method == "POST" {
@@ -75,10 +84,13 @@ func uploadPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 			return handleError(err)
 		}
 
-		return razlink.RedirectView(r, "/x/"+dir)
+		if ajax {
+			return ajaxOK()
+		}
+		return pr.RedirectView("/x/" + dir)
 	}
 
-	return view(v, &title)
+	return pr.Respond(v)
 }
 
 // Upload returns a razlink.Page that handles file uploads
@@ -86,8 +98,8 @@ func Upload(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/upload/",
 		ContentTemplate: GetContentTemplate("upload"),
-		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return uploadPageHandler(api, r, view)
+		Handler: func(pr *razlink.PageRequest) *razlink.View {
+			return uploadPageHandler(api, pr)
 		},
 	}
 }

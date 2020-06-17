@@ -1,7 +1,6 @@
 package page
 
 import (
-	"net/http"
 	"path"
 	"strings"
 
@@ -21,8 +20,9 @@ type folderPageView struct {
 	Redirect     string
 }
 
-func folderPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	folderOrFilename := path.Clean(r.URL.Path[3:]) // skip /x/
+func folderPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+	r := pr.Request
+	folderOrFilename := path.Clean(pr.RelPath)
 	tag := r.URL.Query().Get("tag")
 	token := api.AccessTokenFromRequest(r)
 	entries, flags, err := api.GetFolderEntries(token, folderOrFilename)
@@ -42,11 +42,12 @@ func folderPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 		}
 		_, download := r.URL.Query()["download"]
 		if download {
-			return ServeFileAttachment(r, reader)
+			return ServeFileAttachmentAsync(r, reader)
 		}
-		return ServeFile(r, reader)
+		return ServeFileAsync(r, reader)
 	}
 
+	pr.Title = folderOrFilename
 	v := &folderPageView{
 		Folder:       folderOrFilename,
 		Search:       tag,
@@ -67,7 +68,7 @@ func folderPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 		v.Entries = append(v.Entries, entry)
 	}
 
-	return view(v, &folderOrFilename)
+	return pr.Respond(v)
 }
 
 // Folder returns a razlink.Page that handles folders
@@ -75,8 +76,8 @@ func Folder(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/x/",
 		ContentTemplate: GetContentTemplate("folder"),
-		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return folderPageHandler(api, r, view)
+		Handler: func(pr *razlink.PageRequest) *razlink.View {
+			return folderPageHandler(api, pr)
 		},
 	}
 }

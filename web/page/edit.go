@@ -21,8 +21,9 @@ type editPageView struct {
 	Subfolders []string
 }
 
-func editPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	filename := path.Clean(r.URL.Path[6:]) // skip /edit/
+func editPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+	r := pr.Request
+	filename := path.Clean(pr.RelPath)
 	dir := path.Dir(filename)
 	redirect := r.URL.Query().Get("r")
 	if len(redirect) == 0 {
@@ -36,10 +37,12 @@ func editPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) ra
 	}
 
 	if !entry[0].EditMode {
-		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()))
+		return pr.RedirectView(
+			fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()),
+			razlink.WithErrorMessage("Write access required", http.StatusUnauthorized))
 	}
 
-	title := "Edit " + filename
+	pr.Title = "Edit " + filename
 	subfolders, _ := api.GetSubfolders(token, dir)
 	v := &editPageView{
 		Folder:     dir,
@@ -65,13 +68,13 @@ func editPageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) ra
 		err := api.EditFile(token, o)
 		if err != nil {
 			v.Error = err.Error()
-			return view(v, &title)
+			return pr.Respond(v, razlink.WithError(err, http.StatusInternalServerError))
 		}
 
-		return razlink.RedirectView(r, redirect)
+		return pr.RedirectView(redirect)
 	}
 
-	return view(v, &title)
+	return pr.Respond(v)
 }
 
 // Edit returns a razlink.Page that handles edits
@@ -79,8 +82,8 @@ func Edit(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path:            "/edit/",
 		ContentTemplate: GetContentTemplate("edit"),
-		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return editPageHandler(api, r, view)
+		Handler: func(pr *razlink.PageRequest) *razlink.View {
+			return editPageHandler(api, pr)
 		},
 	}
 }

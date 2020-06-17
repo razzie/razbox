@@ -1,15 +1,15 @@
 package page
 
 import (
-	"net/http"
 	"path"
 
 	"github.com/razzie/razbox"
 	"github.com/razzie/razlink"
 )
 
-func deletePageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) razlink.PageView {
-	filename := path.Clean(r.URL.Path[8:]) // skip /delete/
+func deletePageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+	r := pr.Request
+	filename := path.Clean(pr.RelPath)
 	dir := path.Dir(filename)
 	redirect := r.URL.Query().Get("r")
 	if len(redirect) == 0 {
@@ -22,15 +22,15 @@ func deletePageHandler(api *razbox.API, r *http.Request, view razlink.ViewFunc) 
 		return HandleError(r, err)
 	}
 
-	return razlink.RedirectView(r, redirect)
+	return pr.RedirectView(redirect)
 }
 
 // Delete returns a razlink.Page that handles deletes
 func Delete(api *razbox.API) *razlink.Page {
 	return &razlink.Page{
 		Path: "/delete/",
-		Handler: func(r *http.Request, view razlink.ViewFunc) razlink.PageView {
-			return deletePageHandler(api, r, view)
+		Handler: func(pr *razlink.PageRequest) *razlink.View {
+			return deletePageHandler(api, pr)
 		},
 	}
 }
