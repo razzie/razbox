@@ -11,7 +11,7 @@ function uploadFile() {
 	ajax.addEventListener("load", completeHandler, false);
 	ajax.addEventListener("error", errorHandler, false);
 	ajax.addEventListener("abort", abortHandler, false);
-	ajax.open("POST", "/upload/{{.Folder}}?u=ajax");
+	ajax.open("POST", "/api/upload/{{.Folder}}");
 	ajax.send(formdata);
 }
 function progressHandler(event) {
@@ -22,7 +22,7 @@ function progressHandler(event) {
 }
 function completeHandler(event) {
 	_("submit").disabled = false;
-	if (event.target.statusText === 'OK')
+	if (event.target.status < 400)
 		window.location.replace("/x/{{.Folder}}");
 	else
 		_("error").innerHTML = event.target.responseText;

@@ -30,12 +30,14 @@ func NewServer() *Server {
 
 // AddPage adds a new servable page to the server
 func (srv *Server) AddPage(page *Page) error {
-	renderer, err := page.BindLayout()
+	renderer, err := page.GetHandler()
 	if err != nil {
 		return err
 	}
 
+	api := NewAPI(page)
 	srv.mux.HandleFunc(page.Path, renderer)
+	srv.mux.HandleFunc(api.Path, api.GetHandler())
 	return nil
 }
 

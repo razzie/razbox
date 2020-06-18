@@ -16,22 +16,9 @@ type uploadPageView struct {
 	MaxFileSize string
 }
 
-func ajaxErr(err string) *razlink.View {
-	return razlink.HandlerView(nil, func(w http.ResponseWriter, _ *http.Request) {
-		http.Error(w, err, http.StatusInternalServerError)
-	})
-}
-
-func ajaxOK() *razlink.View {
-	return razlink.HandlerView(nil, func(w http.ResponseWriter, _ *http.Request) {
-		w.Write([]byte("OK"))
-	})
-}
-
 func uploadPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 	r := pr.Request
 	dir := path.Clean(pr.RelPath)
-	ajax := r.URL.Query().Get("u") == "ajax"
 
 	token := api.AccessTokenFromRequest(r)
 	flags, err := api.GetFolderFlags(token, dir)
@@ -51,9 +38,6 @@ func uploadPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 		MaxFileSize: fmt.Sprintf("%dMB", flags.MaxUploadSizeMB),
 	}
 	handleError := func(err error) *razlink.View {
-		if ajax {
-			return ajaxErr(err.Error())
-		}
 		v.Error = err.Error()
 		return pr.Respond(v, razlink.WithError(err, http.StatusInternalServerError))
 	}
@@ -84,9 +68,6 @@ func uploadPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 			return handleError(err)
 		}
 
-		if ajax {
-			return ajaxOK()
-		}
 		return pr.RedirectView("/x/" + dir)
 	}
 

@@ -11,7 +11,7 @@ require (
 	github.com/mo7zayed/reqip v0.0.0-20200520084230-ae375eb9322b
 	github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-	github.com/razzie/razlink v0.0.0-20200617232150-0de6db6c3f24
+	github.com/razzie/razlink v0.0.0-20200618225912-487a42ea0508
 	github.com/stretchr/testify v1.5.1 // indirect
 	golang.org/x/image v0.0.0-20200430140353-33d19683fad8
 )

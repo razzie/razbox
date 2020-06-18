@@ -20,9 +20,14 @@ type Page struct {
 type PageRequest struct {
 	Request  *http.Request
 	RelPath  string
+	RelURI   string
 	Title    string
 	renderer LayoutRenderer
 }
+
+// PageHandler handles the page's requests
+// If there was no error, the handler should call use r.Respond(data)
+type PageHandler func(r *PageRequest) *View
 
 // Respond returns the default page response View
 func (r *PageRequest) Respond(data interface{}, opts ...ViewOption) *View {
@@ -39,24 +44,15 @@ func (r *PageRequest) Respond(data interface{}, opts ...ViewOption) *View {
 	return v
 }
 
-// PageHandler handles the page's requests
-// If there was no error, the handler should call use r.Respond(data)
-type PageHandler func(r *PageRequest) *View
-
-// BindLayout creates a http.HandlerFunc that uses Razlink layout
-func (page *Page) BindLayout() (http.HandlerFunc, error) {
+// GetHandler creates a http.HandlerFunc that uses Razlink layout
+func (page *Page) GetHandler() (http.HandlerFunc, error) {
 	renderer, err := BindLayout(page.ContentTemplate, page.Stylesheets, page.Scripts, page.Meta)
 	if err != nil {
 		return nil, err
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		pr := &PageRequest{
-			Request:  r,
-			RelPath:  strings.TrimPrefix(r.URL.Path, page.Path),
-			Title:    page.Title,
-			renderer: renderer,
-		}
+		pr := page.newPageRequest(r, renderer)
 
 		var view *View
 		if page.Handler != nil {
@@ -68,4 +64,14 @@ func (page *Page) BindLayout() (http.HandlerFunc, error) {
 
 		view.Render(w)
 	}, nil
+}
+
+func (page *Page) newPageRequest(r *http.Request, renderer LayoutRenderer) *PageRequest {
+	return &PageRequest{
+		Request:  r,
+		RelPath:  strings.TrimPrefix(r.URL.Path, page.Path),
+		RelURI:   strings.TrimPrefix(r.RequestURI, page.Path),
+		Title:    page.Title,
+		renderer: renderer,
+	}
 }
