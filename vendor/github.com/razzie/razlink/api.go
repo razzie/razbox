@@ -67,4 +67,6 @@ func renderAPIResponse(w http.ResponseWriter, view *View) {
 		w.Write([]byte(view.Error.Error()))
 		return
 	}
+
+	w.Write([]byte(http.StatusText(view.StatusCode)))
 }

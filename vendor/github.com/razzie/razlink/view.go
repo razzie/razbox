@@ -12,6 +12,7 @@ type View struct {
 	StatusCode int
 	Error      error
 	Data       interface{}
+	Redirect   string
 	renderer   func(w http.ResponseWriter)
 }
 
@@ -90,8 +91,8 @@ func (r *PageRequest) EmbedView(url string, opts ...ViewOption) *View {
 // RedirectView ...
 func RedirectView(r *http.Request, url string, opts ...ViewOption) *View {
 	v := &View{
-		StatusCode: http.StatusSeeOther,
-		Data:       url,
+		StatusCode: http.StatusOK,
+		Redirect:   url,
 	}
 	for _, opt := range opts {
 		opt(v)
@@ -110,8 +111,9 @@ func (r *PageRequest) RedirectView(url string, opts ...ViewOption) *View {
 // CookieAndRedirectView ...
 func CookieAndRedirectView(r *http.Request, cookie *http.Cookie, url string, opts ...ViewOption) *View {
 	v := &View{
-		StatusCode: http.StatusSeeOther,
+		StatusCode: http.StatusOK,
 		Data:       cookie,
+		Redirect:   url,
 	}
 	for _, opt := range opts {
 		opt(v)
