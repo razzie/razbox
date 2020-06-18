@@ -12,9 +12,9 @@ import (
 )
 
 type textPageView struct {
-	Filename string
-	Folder   string
-	Text     string
+	Filename string `json:"filename,omitempty"`
+	Folder   string `json:"folder,omitempty"`
+	Text     string `json:"text,omitempty"`
 }
 
 func textPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {

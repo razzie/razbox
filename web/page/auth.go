@@ -11,11 +11,11 @@ import (
 )
 
 type authPageView struct {
-	Error         string
-	Folder        string
-	PwFieldPrefix string
-	AccessType    string
-	Redirect      string
+	Error         string `json:"error,omitempty"`
+	Folder        string `json:"folder,omitempty"`
+	PwFieldPrefix string `json:"pw_field_prefix,omitempty"`
+	AccessType    string `json:"access_type,omitempty"`
+	Redirect      string `json:"redirect,omitempty"`
 }
 
 func authPageHandler(api *razbox.API, accessType string, pr *razlink.PageRequest) *razlink.View {

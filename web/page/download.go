@@ -11,9 +11,9 @@ import (
 )
 
 type downloadPageView struct {
-	Error       string
-	Folder      string
-	MaxFileSize string
+	Error       string `json:"error,omitempty"`
+	Folder      string `json:"folder,omitempty"`
+	MaxFileSize string `json:"max_file_size,omitempty"`
 }
 
 func downloadPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {

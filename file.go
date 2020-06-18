@@ -389,8 +389,8 @@ type Thumbnail struct {
 
 // ThumbnailBounds ...
 type ThumbnailBounds struct {
-	Width  int
-	Height int
+	Width  int `json:"width"`
+	Height int `json:"height"`
 }
 
 func newThumbnail(thumb *internal.Thumbnail) *Thumbnail {

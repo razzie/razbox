@@ -241,20 +241,20 @@ func (api *API) DeleteSubfolder(token *AccessToken, folderName, subfolder string
 
 // FolderEntry ...
 type FolderEntry struct {
-	Folder       bool
-	Prefix       template.HTML
-	Name         string
-	RelPath      string
-	MIME         string
-	Tags         []string
-	Size         int64
-	SizeStr      string
-	Uploaded     int64
-	UploadedStr  string
-	Public       bool
-	EditMode     bool
-	HasThumbnail bool
-	ThumbBounds  *ThumbnailBounds
+	Folder       bool             `json:"folder,omitempty"`
+	Prefix       template.HTML    `json:"prefix,omitempty"`
+	Name         string           `json:"name"`
+	RelPath      string           `json:"rel_path"`
+	MIME         string           `json:"mime,omitempty"`
+	Tags         []string         `json:"tags,omitempty"`
+	Size         int64            `json:"size,omitempty"`
+	SizeStr      string           `json:"size_str,omitempty"`
+	Uploaded     int64            `json:"uploaded,omitempty"`
+	UploadedStr  string           `json:"uploaded_str,omitempty"`
+	Public       bool             `json:"public,omitempty"`
+	EditMode     bool             `json:"edit_mode,omitempty"`
+	HasThumbnail bool             `json:"has_thumbnail,omitempty"`
+	ThumbBounds  *ThumbnailBounds `json:"thumb_bounds,omitempty"`
 }
 
 func newSubfolderEntry(uri, subfolder string) *FolderEntry {

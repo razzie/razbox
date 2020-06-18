@@ -11,10 +11,10 @@ import (
 )
 
 type passwordPageView struct {
-	Error         string
-	Folder        string
-	PwFieldPrefix string
-	WriteAccess   bool
+	Error         string `json:"error,omitempty"`
+	Folder        string `json:"folder,omitempty"`
+	PwFieldPrefix string `json:"pw_field_prefix,omitempty"`
+	WriteAccess   bool   `json:"write_access,omitempty"`
 }
 
 func passwordPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {

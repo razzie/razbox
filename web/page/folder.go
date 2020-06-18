@@ -9,15 +9,15 @@ import (
 )
 
 type folderPageView struct {
-	Folder       string
-	Search       string
-	Entries      []*razbox.FolderEntry
-	EditMode     bool
-	Editable     bool
-	Deletable    bool
-	Configurable bool
-	Gallery      bool
-	Redirect     string
+	Folder       string                `json:"folder,omitempty"`
+	Search       string                `json:"search,omitempty"`
+	Entries      []*razbox.FolderEntry `json:"entries,omitempty"`
+	EditMode     bool                  `json:"edit_mode,omitempty"`
+	Editable     bool                  `json:"editable,omitempty"`
+	Deletable    bool                  `json:"deletable,omitempty"`
+	Configurable bool                  `json:"configurable,omitempty"`
+	Gallery      bool                  `json:"gallery,omitempty"`
+	Redirect     string                `json:"redirect,omitempty"`
 }
 
 func folderPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {

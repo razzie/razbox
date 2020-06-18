@@ -9,11 +9,11 @@ import (
 )
 
 type galleryPageView struct {
-	Folder        string
-	Entries       []*razbox.FolderEntry
-	Redirect      string
-	EditRedirect  string
-	MaxThumbWidth uint
+	Folder        string                `json:"folder,omitempty"`
+	Entries       []*razbox.FolderEntry `json:"entries,omitempty"`
+	Redirect      string                `json:"redirect,omitempty"`
+	EditRedirect  string                `json:"edit_redirect,omitempty"`
+	MaxThumbWidth uint                  `json:"max_thumb_width,omitempty"`
 }
 
 func galleryPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {

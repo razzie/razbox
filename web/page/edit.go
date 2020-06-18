@@ -11,14 +11,14 @@ import (
 )
 
 type editPageView struct {
-	Error      string
-	Folder     string
-	Filename   string
-	Tags       string
-	Public     bool
-	Redirect   string
-	Thumb      bool
-	Subfolders []string
+	Error      string   `json:"error,omitempty"`
+	Folder     string   `json:"folder,omitempty"`
+	Filename   string   `json:"filename,omitempty"`
+	Tags       string   `json:"tags,omitempty"`
+	Public     bool     `json:"public,omitempty"`
+	Redirect   string   `json:"redirect,omitempty"`
+	Thumb      bool     `json:"thumb,omitempty"`
+	Subfolders []string `json:"subfolders,omitempty"`
 }
 
 func editPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {

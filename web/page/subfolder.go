@@ -10,9 +10,9 @@ import (
 )
 
 type createSubfolderPageView struct {
-	Error    string
-	Folder   string
-	Redirect string
+	Error    string `json:"error,omitempty"`
+	Folder   string `json:"folder,omitempty"`
+	Redirect string `json:"redirect,omitempty"`
 }
 
 func createSubfolderPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
