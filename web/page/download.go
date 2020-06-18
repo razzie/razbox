@@ -54,7 +54,7 @@ func downloadPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View
 			return pr.Respond(v, razlink.WithError(err, http.StatusInternalServerError))
 		}
 
-		return razlink.RedirectView(r, "/x/"+dir)
+		return pr.RedirectView("/x/" + dir)
 	}
 
 	return pr.Respond(v)

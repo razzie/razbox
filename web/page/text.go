@@ -33,12 +33,12 @@ func textPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 	defer file.Close()
 
 	if !strings.HasPrefix(file.MIME, "text/") {
-		return razlink.RedirectView(r, "/x/"+filename)
+		return pr.RedirectView("/x/" + filename)
 	}
 
 	data, err := ioutil.ReadAll(file)
 	if err != nil {
-		return razlink.ErrorView(r, "Could not read file", http.StatusInternalServerError)
+		return pr.ErrorView("Could not read file", http.StatusInternalServerError)
 	}
 
 	pr.Title = filename

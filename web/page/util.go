@@ -25,9 +25,13 @@ func GetContentTemplate(page string) string {
 func HandleError(r *http.Request, err error) *razlink.View {
 	switch err := err.(type) {
 	case *razbox.ErrNoReadAccess:
-		return razlink.RedirectView(r, fmt.Sprintf("/read-auth/%s?r=%s", err.Folder, r.URL.RequestURI()), razlink.WithError(err, http.StatusUnauthorized))
+		return razlink.RedirectView(r,
+			fmt.Sprintf("/read-auth/%s?r=%s", err.Folder, r.URL.RequestURI()),
+			razlink.WithError(err, http.StatusUnauthorized))
 	case *razbox.ErrNoWriteAccess:
-		return razlink.RedirectView(r, fmt.Sprintf("/write-auth/%s?r=%s", err.Folder, r.URL.RequestURI()), razlink.WithError(err, http.StatusUnauthorized))
+		return razlink.RedirectView(r,
+			fmt.Sprintf("/write-auth/%s?r=%s", err.Folder, r.URL.RequestURI()),
+			razlink.WithError(err, http.StatusUnauthorized))
 	default:
 		return razlink.ErrorView(r, err.Error(), http.StatusInternalServerError)
 	}

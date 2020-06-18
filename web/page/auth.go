@@ -45,7 +45,7 @@ func authPageHandler(api *razbox.API, accessType string, pr *razlink.PageRequest
 			return pr.Respond(v, razlink.WithError(err, http.StatusUnauthorized))
 		}
 
-		return razlink.CookieAndRedirectView(r, newToken.ToCookie(api.CookieExpiration), v.Redirect)
+		return pr.CookieAndRedirectView(newToken.ToCookie(api.CookieExpiration), v.Redirect)
 	}
 
 	return pr.Respond(v)
