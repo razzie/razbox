@@ -44,8 +44,8 @@ func ServeFileAsync(r *http.Request, file *razbox.FileReader) *razlink.View {
 	})
 }
 
-// ServeFileAttachmentAsync ...
-func ServeFileAttachmentAsync(r *http.Request, file *razbox.FileReader) *razlink.View {
+// ServeFileAsAttachmentAsync ...
+func ServeFileAsAttachmentAsync(r *http.Request, file *razbox.FileReader) *razlink.View {
 	return razlink.HandlerView(r, func(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", file.Name))

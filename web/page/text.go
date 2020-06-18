@@ -28,7 +28,7 @@ func textPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 	}
 	_, download := r.URL.Query()["download"]
 	if download {
-		return ServeFileAttachmentAsync(r, file)
+		return ServeFileAsAttachmentAsync(r, file)
 	}
 	defer file.Close()
 

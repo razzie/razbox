@@ -33,7 +33,7 @@ func folderPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 	// this is a file
 	if len(entries) == 1 && !entries[0].Folder {
 		if strings.HasPrefix(entries[0].MIME, "text/") {
-			return razlink.RedirectView(r, "/text/"+folderOrFilename)
+			return pr.RedirectView("/text/" + folderOrFilename)
 		}
 
 		reader, err := api.OpenFile(token, folderOrFilename)
@@ -42,7 +42,7 @@ func folderPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 		}
 		_, download := r.URL.Query()["download"]
 		if download {
-			return ServeFileAttachmentAsync(r, reader)
+			return ServeFileAsAttachmentAsync(r, reader)
 		}
 		return ServeFileAsync(r, reader)
 	}
