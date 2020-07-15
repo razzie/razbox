@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
-	"github.com/razzie/razlink"
 )
 
 // GetContentTemplate returns the content template for a page
@@ -24,31 +24,31 @@ func GetContentTemplate(page string) string {
 }
 
 // HandleError ...
-func HandleError(r *http.Request, err error) *razlink.View {
+func HandleError(r *http.Request, err error) *beepboop.View {
 	switch err := err.(type) {
 	case *razbox.ErrNoReadAccess:
-		return razlink.RedirectView(r,
+		return beepboop.RedirectView(r,
 			fmt.Sprintf("/read-auth/%s?r=%s", err.Folder, r.URL.RequestURI()),
-			razlink.WithError(err, http.StatusUnauthorized))
+			beepboop.WithError(err, http.StatusUnauthorized))
 	case *razbox.ErrNoWriteAccess:
-		return razlink.RedirectView(r,
+		return beepboop.RedirectView(r,
 			fmt.Sprintf("/write-auth/%s?r=%s", err.Folder, r.URL.RequestURI()),
-			razlink.WithError(err, http.StatusUnauthorized))
+			beepboop.WithError(err, http.StatusUnauthorized))
 	default:
-		return razlink.ErrorView(r, err.Error(), http.StatusInternalServerError)
+		return beepboop.ErrorView(r, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 // ServeFileAsync ...
-func ServeFileAsync(r *http.Request, file *razbox.FileReader) *razlink.View {
-	return razlink.HandlerView(r, func(w http.ResponseWriter, r *http.Request) {
+func ServeFileAsync(r *http.Request, file *razbox.FileReader) *beepboop.View {
+	return beepboop.HandlerView(r, func(w http.ResponseWriter, r *http.Request) {
 		serveFile(w, r, file)
 	})
 }
 
 // ServeFileAsAttachmentAsync ...
-func ServeFileAsAttachmentAsync(r *http.Request, file *razbox.FileReader) *razlink.View {
-	return razlink.HandlerView(r, func(w http.ResponseWriter, r *http.Request) {
+func ServeFileAsAttachmentAsync(r *http.Request, file *razbox.FileReader) *beepboop.View {
+	return beepboop.HandlerView(r, func(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", file.Name))
 		w.Header().Set("Content-Type", file.MIME)
@@ -61,8 +61,8 @@ func ServeFileAsAttachmentAsync(r *http.Request, file *razbox.FileReader) *razli
 }
 
 // ServeThumbnail ...
-func ServeThumbnail(thumb *razbox.Thumbnail) *razlink.View {
-	return razlink.HandlerView(nil, func(w http.ResponseWriter, _ *http.Request) {
+func ServeThumbnail(thumb *razbox.Thumbnail) *beepboop.View {
+	return beepboop.HandlerView(nil, func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", thumb.MIME)
 		w.Header().Set("Content-Length", strconv.Itoa(len(thumb.Data)))
 		w.Write(thumb.Data)

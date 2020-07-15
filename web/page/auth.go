@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
-	"github.com/razzie/razlink"
 )
 
 type authPageView struct {
@@ -18,7 +18,7 @@ type authPageView struct {
 	Redirect      string `json:"redirect,omitempty"`
 }
 
-func authPageHandler(api *razbox.API, accessType string, pr *razlink.PageRequest) *razlink.View {
+func authPageHandler(api *razbox.API, accessType string, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	dir := path.Clean(pr.RelPath)
 	pr.Title = dir
@@ -42,7 +42,7 @@ func authPageHandler(api *razbox.API, accessType string, pr *razlink.PageRequest
 		newToken, err := api.Auth(token, dir, accessType, pw)
 		if err != nil {
 			v.Error = err.Error()
-			return pr.Respond(v, razlink.WithError(err, http.StatusUnauthorized))
+			return pr.Respond(v, beepboop.WithError(err, http.StatusUnauthorized))
 		}
 
 		return pr.CookieAndRedirectView(newToken.ToCookie(api.CookieExpiration), v.Redirect)
@@ -51,23 +51,23 @@ func authPageHandler(api *razbox.API, accessType string, pr *razlink.PageRequest
 	return pr.Respond(v)
 }
 
-// ReadAuth returns a razlink.Page that handles authentication for read access
-func ReadAuth(api *razbox.API) *razlink.Page {
-	return &razlink.Page{
+// ReadAuth returns a beepboop.Page that handles authentication for read access
+func ReadAuth(api *razbox.API) *beepboop.Page {
+	return &beepboop.Page{
 		Path:            "/read-auth/",
 		ContentTemplate: GetContentTemplate("auth"),
-		Handler: func(pr *razlink.PageRequest) *razlink.View {
+		Handler: func(pr *beepboop.PageRequest) *beepboop.View {
 			return authPageHandler(api, "read", pr)
 		},
 	}
 }
 
-// WriteAuth returns a razlink.Page that handles authentication for read access
-func WriteAuth(api *razbox.API) *razlink.Page {
-	return &razlink.Page{
+// WriteAuth returns a beepboop.Page that handles authentication for read access
+func WriteAuth(api *razbox.API) *beepboop.Page {
+	return &beepboop.Page{
 		Path:            "/write-auth/",
 		ContentTemplate: GetContentTemplate("auth"),
-		Handler: func(pr *razlink.PageRequest) *razlink.View {
+		Handler: func(pr *beepboop.PageRequest) *beepboop.View {
 			return authPageHandler(api, "write", pr)
 		},
 	}

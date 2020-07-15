@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
-	"github.com/razzie/razlink"
 )
 
 type folderPageView struct {
@@ -21,7 +21,7 @@ type folderPageView struct {
 	Redirect     string                `json:"redirect,omitempty"`
 }
 
-func folderPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+func folderPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	folderOrFilename := path.Clean(pr.RelPath)
 	tag := r.URL.Query().Get("tag")
@@ -75,12 +75,12 @@ func folderPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 	return pr.Respond(v)
 }
 
-// Folder returns a razlink.Page that handles folders
-func Folder(api *razbox.API) *razlink.Page {
-	return &razlink.Page{
+// Folder returns a beepboop.Page that handles folders
+func Folder(api *razbox.API) *beepboop.Page {
+	return &beepboop.Page{
 		Path:            "/x/",
 		ContentTemplate: GetContentTemplate("folder"),
-		Handler: func(pr *razlink.PageRequest) *razlink.View {
+		Handler: func(pr *beepboop.PageRequest) *beepboop.View {
 			return folderPageHandler(api, pr)
 		},
 	}

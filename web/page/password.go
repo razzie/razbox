@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
-	"github.com/razzie/razlink"
 )
 
 type passwordPageView struct {
@@ -17,7 +17,7 @@ type passwordPageView struct {
 	WriteAccess   bool   `json:"write_access,omitempty"`
 }
 
-func passwordPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+func passwordPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	dir := path.Clean(pr.RelPath)
 	pr.Title = "Change password for " + dir
@@ -45,7 +45,7 @@ func passwordPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View
 		newToken, err := api.ChangeFolderPassword(token, dir, accessType, pw)
 		if err != nil {
 			v.Error = err.Error()
-			return pr.Respond(v, razlink.WithError(err, http.StatusInternalServerError))
+			return pr.Respond(v, beepboop.WithError(err, http.StatusInternalServerError))
 		}
 
 		cookie := newToken.ToCookie(api.CookieExpiration)
@@ -61,21 +61,21 @@ func passwordPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View
 	if !flags.EditMode {
 		return pr.RedirectView(
 			fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()),
-			razlink.WithErrorMessage("Write access required", http.StatusUnauthorized))
+			beepboop.WithErrorMessage("Write access required", http.StatusUnauthorized))
 	}
 
 	return pr.Respond(v)
 }
 
-// Password returns a razlink.Page that handles password change for folders
-func Password(api *razbox.API) *razlink.Page {
-	return &razlink.Page{
+// Password returns a beepboop.Page that handles password change for folders
+func Password(api *razbox.API) *beepboop.Page {
+	return &beepboop.Page{
 		Path:            "/change-password/",
 		ContentTemplate: GetContentTemplate("password"),
 		Scripts: []string{
 			"/static/zxcvbn.min.js",
 		},
-		Handler: func(pr *razlink.PageRequest) *razlink.View {
+		Handler: func(pr *beepboop.PageRequest) *beepboop.View {
 			return passwordPageHandler(api, pr)
 		},
 	}

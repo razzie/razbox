@@ -5,10 +5,10 @@ import (
 	"os"
 	"path"
 
-	"github.com/razzie/razlink"
+	"github.com/razzie/beepboop"
 )
 
-func staticPageHandler(pr *razlink.PageRequest) *razlink.View {
+func staticPageHandler(pr *beepboop.PageRequest) *beepboop.View {
 	uri := path.Clean(pr.RelPath)
 	if fi, _ := os.Stat(path.Join("web/static", uri)); fi != nil && fi.IsDir() {
 		return pr.ErrorView("Forbidden", http.StatusForbidden)
@@ -18,9 +18,9 @@ func staticPageHandler(pr *razlink.PageRequest) *razlink.View {
 	})
 }
 
-// Static returns a razlink.Page that handles static assets
-func Static() *razlink.Page {
-	return &razlink.Page{
+// Static returns a beepboop.Page that handles static assets
+func Static() *beepboop.Page {
+	return &beepboop.Page{
 		Path:    "/static/",
 		Handler: staticPageHandler,
 	}

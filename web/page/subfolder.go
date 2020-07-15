@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
-	"github.com/razzie/razlink"
 )
 
 type createSubfolderPageView struct {
@@ -15,7 +15,7 @@ type createSubfolderPageView struct {
 	Redirect string `json:"redirect,omitempty"`
 }
 
-func createSubfolderPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+func createSubfolderPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	dir := path.Clean(pr.RelPath)
 	pr.Title = "Create subfolder in " + dir
@@ -32,7 +32,7 @@ func createSubfolderPageHandler(api *razbox.API, pr *razlink.PageRequest) *razli
 		subfolderPath, err := api.CreateSubfolder(token, dir, subfolderName)
 		if err != nil {
 			v.Error = err.Error()
-			return pr.Respond(v, razlink.WithError(err, http.StatusInternalServerError))
+			return pr.Respond(v, beepboop.WithError(err, http.StatusInternalServerError))
 		}
 
 		return pr.RedirectView("/x/" + subfolderPath)
@@ -47,13 +47,13 @@ func createSubfolderPageHandler(api *razbox.API, pr *razlink.PageRequest) *razli
 	if !flags.EditMode {
 		return pr.RedirectView(
 			fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()),
-			razlink.WithErrorMessage("Write access required", http.StatusUnauthorized))
+			beepboop.WithErrorMessage("Write access required", http.StatusUnauthorized))
 	}
 
 	return pr.Respond(v)
 }
 
-func deleteSubfolderPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+func deleteSubfolderPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	dir := path.Clean(pr.RelPath)
 	parent := path.Dir(dir)
@@ -67,22 +67,22 @@ func deleteSubfolderPageHandler(api *razbox.API, pr *razlink.PageRequest) *razli
 	return pr.RedirectView("/x/" + parent)
 }
 
-// CreateSubfolder returns a razlink.Page that handles subfolder creation
-func CreateSubfolder(api *razbox.API) *razlink.Page {
-	return &razlink.Page{
+// CreateSubfolder returns a beepboop.Page that handles subfolder creation
+func CreateSubfolder(api *razbox.API) *beepboop.Page {
+	return &beepboop.Page{
 		Path:            "/create-subfolder/",
 		ContentTemplate: GetContentTemplate("create-subfolder"),
-		Handler: func(pr *razlink.PageRequest) *razlink.View {
+		Handler: func(pr *beepboop.PageRequest) *beepboop.View {
 			return createSubfolderPageHandler(api, pr)
 		},
 	}
 }
 
-// DeleteSubfolder returns a razlink.Page that handles subfolder deletion
-func DeleteSubfolder(api *razbox.API) *razlink.Page {
-	return &razlink.Page{
+// DeleteSubfolder returns a beepboop.Page that handles subfolder deletion
+func DeleteSubfolder(api *razbox.API) *beepboop.Page {
+	return &beepboop.Page{
 		Path: "/delete-subfolder/",
-		Handler: func(pr *razlink.PageRequest) *razlink.View {
+		Handler: func(pr *beepboop.PageRequest) *beepboop.View {
 			return deleteSubfolderPageHandler(api, pr)
 		},
 	}

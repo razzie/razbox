@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
-	"github.com/razzie/razlink"
 )
 
 type textPageView struct {
@@ -17,7 +17,7 @@ type textPageView struct {
 	Text     string `json:"text,omitempty"`
 }
 
-func textPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+func textPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	filename := path.Clean(pr.RelPath)
 	dir := path.Dir(filename)
@@ -50,9 +50,9 @@ func textPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 	return pr.Respond(v)
 }
 
-// Text returns a razlink.Page that visualizes text files
-func Text(api *razbox.API) *razlink.Page {
-	return &razlink.Page{
+// Text returns a beepboop.Page that visualizes text files
+func Text(api *razbox.API) *beepboop.Page {
+	return &beepboop.Page{
 		Path:            "/text/",
 		ContentTemplate: GetContentTemplate("text"),
 		Stylesheets: []string{
@@ -62,7 +62,7 @@ func Text(api *razbox.API) *razlink.Page {
 			"/static/highlight.min.js",
 			"/static/highlightjs-line-numbers.min.js",
 		},
-		Handler: func(pr *razlink.PageRequest) *razlink.View {
+		Handler: func(pr *beepboop.PageRequest) *beepboop.View {
 			return textPageHandler(api, pr)
 		},
 	}

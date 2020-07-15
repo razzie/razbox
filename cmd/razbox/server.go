@@ -3,14 +3,14 @@ package main
 import (
 	"io/ioutil"
 
+	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
 	"github.com/razzie/razbox/web/page"
-	"github.com/razzie/razlink"
 )
 
 // NewServer ...
-func NewServer(api *razbox.API, defaultFolder string) *razlink.Server {
-	srv := razlink.NewServer()
+func NewServer(api *razbox.API, defaultFolder string) *beepboop.Server {
+	srv := beepboop.NewServer()
 	srv.FaviconPNG, _ = ioutil.ReadFile("web/favicon.png")
 	srv.AddPages(
 		page.Static(),

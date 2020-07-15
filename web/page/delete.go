@@ -3,11 +3,11 @@ package page
 import (
 	"path"
 
+	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
-	"github.com/razzie/razlink"
 )
 
-func deletePageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+func deletePageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	filename := path.Clean(pr.RelPath)
 	dir := path.Dir(filename)
@@ -25,11 +25,11 @@ func deletePageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 	return pr.RedirectView(redirect)
 }
 
-// Delete returns a razlink.Page that handles deletes
-func Delete(api *razbox.API) *razlink.Page {
-	return &razlink.Page{
+// Delete returns a beepboop.Page that handles deletes
+func Delete(api *razbox.API) *beepboop.Page {
+	return &beepboop.Page{
 		Path: "/delete/",
-		Handler: func(pr *razlink.PageRequest) *razlink.View {
+		Handler: func(pr *beepboop.PageRequest) *beepboop.View {
 			return deletePageHandler(api, pr)
 		},
 	}

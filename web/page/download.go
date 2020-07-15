@@ -6,8 +6,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
-	"github.com/razzie/razlink"
 )
 
 type downloadPageView struct {
@@ -16,7 +16,7 @@ type downloadPageView struct {
 	MaxFileSize string `json:"max_file_size,omitempty"`
 }
 
-func downloadPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+func downloadPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	dir := path.Clean(pr.RelPath)
 	token := api.AccessTokenFromRequest(r)
@@ -28,7 +28,7 @@ func downloadPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View
 	if !flags.EditMode {
 		return pr.RedirectView(
 			fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()),
-			razlink.WithErrorMessage("Write access required", http.StatusUnauthorized))
+			beepboop.WithErrorMessage("Write access required", http.StatusUnauthorized))
 	}
 
 	pr.Title = "Download file to " + dir
@@ -51,7 +51,7 @@ func downloadPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View
 		err := api.DownloadFileToFolder(token, o)
 		if err != nil {
 			v.Error = err.Error()
-			return pr.Respond(v, razlink.WithError(err, http.StatusInternalServerError))
+			return pr.Respond(v, beepboop.WithError(err, http.StatusInternalServerError))
 		}
 
 		return pr.RedirectView("/x/" + dir)
@@ -60,12 +60,12 @@ func downloadPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View
 	return pr.Respond(v)
 }
 
-// Download returns a razlink.Page that handles file downloads from an URL to a folder
-func Download(api *razbox.API) *razlink.Page {
-	return &razlink.Page{
+// Download returns a beepboop.Page that handles file downloads from an URL to a folder
+func Download(api *razbox.API) *beepboop.Page {
+	return &beepboop.Page{
 		Path:            "/download-to-folder/",
 		ContentTemplate: GetContentTemplate("download"),
-		Handler: func(pr *razlink.PageRequest) *razlink.View {
+		Handler: func(pr *beepboop.PageRequest) *beepboop.View {
 			return downloadPageHandler(api, pr)
 		},
 	}

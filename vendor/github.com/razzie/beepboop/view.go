@@ -1,4 +1,4 @@
-package razlink
+package beepboop
 
 import (
 	"fmt"
@@ -44,7 +44,7 @@ func WithData(data interface{}) ViewOption {
 	}
 }
 
-var errViewRenderer, _ = BindLayout("<strong>{{.}}</strong>", nil, nil, nil)
+var errViewRenderer, _ = DefaultLayout.BindTemplate("<strong>{{.}}</strong>", nil, nil, nil)
 
 // ErrorView returns a View that represents an error
 func ErrorView(r *http.Request, errmsg string, errcode int, opts ...ViewOption) *View {

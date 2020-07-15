@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
-	"github.com/razzie/razlink"
 )
 
 const maxThumbWidth = 250
 
-func thumbnailPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+func thumbnailPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	filename := path.Clean(pr.RelPath)
 	token := api.AccessTokenFromRequest(r)
@@ -22,7 +22,7 @@ func thumbnailPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.Vie
 		case *razbox.ErrNoReadAccess:
 			return pr.RedirectView(
 				fmt.Sprintf("/read-auth/%s?r=%s", err.Folder, r.URL.RequestURI()),
-				razlink.WithErrorMessage("Read access required", http.StatusUnauthorized))
+				beepboop.WithErrorMessage("Read access required", http.StatusUnauthorized))
 		default:
 			log.Println(filename, ":", err)
 		}
@@ -35,11 +35,11 @@ func thumbnailPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.Vie
 	return ServeThumbnail(thumb)
 }
 
-// Thumbnail returns a razlink.Page that handles image file thumbnails
-func Thumbnail(api *razbox.API) *razlink.Page {
-	return &razlink.Page{
+// Thumbnail returns a beepboop.Page that handles image file thumbnails
+func Thumbnail(api *razbox.API) *beepboop.Page {
+	return &beepboop.Page{
 		Path: "/thumb/",
-		Handler: func(pr *razlink.PageRequest) *razlink.View {
+		Handler: func(pr *beepboop.PageRequest) *beepboop.View {
 			return thumbnailPageHandler(api, pr)
 		},
 	}

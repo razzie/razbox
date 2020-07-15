@@ -1,8 +1,10 @@
-package razlink
+package beepboop
 
 import (
 	"html/template"
 	"net/http"
+	"strings"
+	"time"
 )
 
 var styleT = `
@@ -122,14 +124,22 @@ var layoutT = `
 </html>
 `
 
-var layout = template.Must(template.New("layout").Parse(layoutT))
+// Layout is used to give pages a uniform layout
+type Layout interface {
+	BindTemplate(pageTemplate string, stylesheets, scripts []string, meta map[string]string) (LayoutRenderer, error)
+}
 
 // LayoutRenderer is a function that renders a html page
 type LayoutRenderer func(w http.ResponseWriter, r *http.Request, title string, data interface{}, statusCode int)
 
-// BindLayout creates a layout renderer function
-func BindLayout(pageTemplate string, stylesheets, scripts []string, meta map[string]string) (LayoutRenderer, error) {
-	cloneLayout, _ := layout.Clone()
+// DefaultLayout is razlink's default layout
+var DefaultLayout Layout = (*layout)(template.Must(template.New("layout").Parse(layoutT)))
+
+type layout template.Template
+
+// BindTemplate creates a layout renderer function from a page template
+func (l *layout) BindTemplate(pageTemplate string, stylesheets, scripts []string, meta map[string]string) (LayoutRenderer, error) {
+	cloneLayout, _ := (*template.Template)(l).Clone()
 	tmpl, err := cloneLayout.New("page").Parse(pageTemplate)
 	if err != nil {
 		return nil, err
@@ -139,11 +149,11 @@ func BindLayout(pageTemplate string, stylesheets, scripts []string, meta map[str
 		tmpl = template.Must(tmpl.New("style").Parse(styleT))
 	}
 
-	if meta == nil {
-		meta = map[string]string{
-			"author": "Gábor Görzsöny",
-		}
-	}
+	tmpl.Funcs(template.FuncMap{
+		"TimeElapsed": func(then int64) string {
+			return TimeElapsed(time.Now(), time.Unix(then, 0), false)
+		},
+	})
 
 	return func(w http.ResponseWriter, r *http.Request, title string, data interface{}, statusCode int) {
 		view := struct {
@@ -165,4 +175,13 @@ func BindLayout(pageTemplate string, stylesheets, scripts []string, meta map[str
 		w.WriteHeader(statusCode)
 		tmpl.ExecuteTemplate(w, "layout", &view)
 	}, nil
+}
+
+// GetBase returns the base target for relative URLs
+func GetBase(r *http.Request) string {
+	slashes := strings.Count(r.URL.Path, "/")
+	if slashes > 1 {
+		return strings.Repeat("../", slashes-1)
+	}
+	return "/"
 }

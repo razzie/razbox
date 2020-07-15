@@ -1,4 +1,4 @@
-package razlink
+package beepboop
 
 import (
 	"net/http"
@@ -12,8 +12,8 @@ type Page struct {
 	ContentTemplate string
 	Stylesheets     []string
 	Scripts         []string
-	Meta            map[string]string
-	Handler         PageHandler
+	Metadata        map[string]string
+	Handler         func(*PageRequest) *View
 }
 
 // PageRequest ...
@@ -24,10 +24,6 @@ type PageRequest struct {
 	Title    string
 	renderer LayoutRenderer
 }
-
-// PageHandler handles the page's requests
-// If there was no error, the handler should call use r.Respond(data)
-type PageHandler func(r *PageRequest) *View
 
 // Respond returns the default page response View
 func (r *PageRequest) Respond(data interface{}, opts ...ViewOption) *View {
@@ -44,9 +40,9 @@ func (r *PageRequest) Respond(data interface{}, opts ...ViewOption) *View {
 	return v
 }
 
-// GetHandler creates a http.HandlerFunc that uses Razlink layout
-func (page *Page) GetHandler() (http.HandlerFunc, error) {
-	renderer, err := BindLayout(page.ContentTemplate, page.Stylesheets, page.Scripts, page.Meta)
+// GetHandler creates a http.HandlerFunc that uses the given layout to render the page
+func (page *Page) GetHandler(layout Layout) (http.HandlerFunc, error) {
+	renderer, err := layout.BindTemplate(page.ContentTemplate, page.Stylesheets, page.Scripts, page.Metadata)
 	if err != nil {
 		return nil, err
 	}
@@ -73,5 +69,14 @@ func (page *Page) newPageRequest(r *http.Request, renderer LayoutRenderer) *Page
 		RelURI:   strings.TrimPrefix(r.RequestURI, page.Path),
 		Title:    page.Title,
 		renderer: renderer,
+	}
+}
+
+func (page *Page) addMetadata(meta map[string]string) {
+	if page.Metadata == nil && len(meta) > 0 {
+		page.Metadata = make(map[string]string)
+	}
+	for name, content := range meta {
+		page.Metadata[name] = content
 	}
 }

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
-	"github.com/razzie/razlink"
 )
 
 type galleryPageView struct {
@@ -16,7 +16,7 @@ type galleryPageView struct {
 	MaxThumbWidth uint                  `json:"max_thumb_width,omitempty"`
 }
 
-func galleryPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+func galleryPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	uri := path.Clean(pr.RelPath)
 	pr.Title = uri
@@ -50,15 +50,15 @@ func galleryPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View 
 	return pr.Respond(v)
 }
 
-// Gallery returns a razlink.Page that handles galleries
-func Gallery(api *razbox.API) *razlink.Page {
-	return &razlink.Page{
+// Gallery returns a beepboop.Page that handles galleries
+func Gallery(api *razbox.API) *beepboop.Page {
+	return &beepboop.Page{
 		Path:            "/gallery/",
 		ContentTemplate: GetContentTemplate("gallery"),
 		Scripts: []string{
 			"/static/masonry.min.js",
 		},
-		Handler: func(pr *razlink.PageRequest) *razlink.View {
+		Handler: func(pr *beepboop.PageRequest) *beepboop.View {
 			return galleryPageHandler(api, pr)
 		},
 	}

@@ -6,8 +6,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
-	"github.com/razzie/razlink"
 )
 
 type editPageView struct {
@@ -21,7 +21,7 @@ type editPageView struct {
 	Subfolders []string `json:"subfolders,omitempty"`
 }
 
-func editPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+func editPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	filename := path.Clean(pr.RelPath)
 	dir := path.Dir(filename)
@@ -39,7 +39,7 @@ func editPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 	if !entry[0].EditMode {
 		return pr.RedirectView(
 			fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()),
-			razlink.WithErrorMessage("Write access required", http.StatusUnauthorized))
+			beepboop.WithErrorMessage("Write access required", http.StatusUnauthorized))
 	}
 
 	pr.Title = "Edit " + filename
@@ -68,7 +68,7 @@ func editPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 		err := api.EditFile(token, o)
 		if err != nil {
 			v.Error = err.Error()
-			return pr.Respond(v, razlink.WithError(err, http.StatusInternalServerError))
+			return pr.Respond(v, beepboop.WithError(err, http.StatusInternalServerError))
 		}
 
 		return pr.RedirectView(redirect)
@@ -77,12 +77,12 @@ func editPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 	return pr.Respond(v)
 }
 
-// Edit returns a razlink.Page that handles edits
-func Edit(api *razbox.API) *razlink.Page {
-	return &razlink.Page{
+// Edit returns a beepboop.Page that handles edits
+func Edit(api *razbox.API) *beepboop.Page {
+	return &beepboop.Page{
 		Path:            "/edit/",
 		ContentTemplate: GetContentTemplate("edit"),
-		Handler: func(pr *razlink.PageRequest) *razlink.View {
+		Handler: func(pr *beepboop.PageRequest) *beepboop.View {
 			return editPageHandler(api, pr)
 		},
 	}

@@ -6,8 +6,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
-	"github.com/razzie/razlink"
 )
 
 type uploadPageView struct {
@@ -16,7 +16,7 @@ type uploadPageView struct {
 	MaxFileSize string `json:"max_file_size,omitempty"`
 }
 
-func uploadPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
+func uploadPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	dir := path.Clean(pr.RelPath)
 
@@ -29,7 +29,7 @@ func uploadPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 	if !flags.EditMode {
 		return pr.RedirectView(
 			fmt.Sprintf("/write-auth/%s?r=%s", dir, r.URL.RequestURI()),
-			razlink.WithErrorMessage("Write access required", http.StatusUnauthorized))
+			beepboop.WithErrorMessage("Write access required", http.StatusUnauthorized))
 	}
 
 	pr.Title = "Upload file to " + dir
@@ -37,9 +37,9 @@ func uploadPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 		Folder:      dir,
 		MaxFileSize: fmt.Sprintf("%dMB", flags.MaxUploadSizeMB),
 	}
-	handleError := func(err error) *razlink.View {
+	handleError := func(err error) *beepboop.View {
 		v.Error = err.Error()
-		return pr.Respond(v, razlink.WithError(err, http.StatusInternalServerError))
+		return pr.Respond(v, beepboop.WithError(err, http.StatusInternalServerError))
 	}
 
 	if r.Method == "POST" {
@@ -74,12 +74,12 @@ func uploadPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 	return pr.Respond(v)
 }
 
-// Upload returns a razlink.Page that handles file uploads
-func Upload(api *razbox.API) *razlink.Page {
-	return &razlink.Page{
+// Upload returns a beepboop.Page that handles file uploads
+func Upload(api *razbox.API) *beepboop.Page {
+	return &beepboop.Page{
 		Path:            "/upload/",
 		ContentTemplate: GetContentTemplate("upload"),
-		Handler: func(pr *razlink.PageRequest) *razlink.View {
+		Handler: func(pr *beepboop.PageRequest) *beepboop.View {
 			return uploadPageHandler(api, pr)
 		},
 	}

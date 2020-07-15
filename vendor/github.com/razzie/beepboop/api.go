@@ -1,4 +1,4 @@
-package razlink
+package beepboop
 
 import (
 	"encoding/json"
