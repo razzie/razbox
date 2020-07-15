@@ -88,6 +88,24 @@ func (token *AccessToken) toLib() *internal.AccessToken {
 	}
 }
 
+func (token *AccessToken) toLibFilter(folder, accessType string) *internal.AccessToken {
+	switch accessType {
+	case "read":
+		return &internal.AccessToken{
+			Read: map[string]string{
+				folder: token.Read[folder],
+			},
+		}
+	case "write":
+		return &internal.AccessToken{
+			Write: map[string]string{
+				folder: token.Write[folder],
+			},
+		}
+	}
+	return nil
+}
+
 func (token *AccessToken) fromLib(libtoken *internal.AccessToken) *AccessToken {
 	if libtoken == nil {
 		return token

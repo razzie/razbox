@@ -148,3 +148,26 @@ func (db *DB) AddSessionToken(sessionID, ip string, token *AccessToken, expirati
 	_, err := pipe.Exec()
 	return err
 }
+
+// RemoveSessionToken removes an access token from an existing session
+// (typically due to password change)
+func (db *DB) RemoveSessionToken(sessionID, ip string, token *AccessToken) error {
+	key := fmt.Sprintf("%s:%s", sessionID, ip)
+	var reads, writes []interface{}
+	for folderhash, pwhash := range token.Read {
+		reads = append(reads, fmt.Sprintf("%s:%s", folderhash, pwhash))
+	}
+	for folderhash, pwhash := range token.Write {
+		writes = append(writes, fmt.Sprintf("%s:%s", folderhash, pwhash))
+	}
+
+	pipe := db.client.TxPipeline()
+	if len(reads) > 0 {
+		pipe.SRem("session-read:"+key, reads...)
+	}
+	if len(writes) > 0 {
+		pipe.SRem("session-write:"+key, writes...)
+	}
+	_, err := pipe.Exec()
+	return err
+}

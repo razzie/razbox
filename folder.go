@@ -1,6 +1,7 @@
 package razbox
 
 import (
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"os"
@@ -107,6 +108,20 @@ func (api API) ChangeFolderPassword(token *AccessToken, folderName, accessType, 
 	newToken, err := folder.GetAccessToken(accessType)
 	if err != nil {
 		return nil, err
+	}
+
+	if api.db != nil && len(token.SessionID) > 0 {
+		tokenToRemove := token.toLibFilter(folderName, accessType)
+		if err := api.db.RemoveSessionToken(token.SessionID, token.IP, tokenToRemove); err != nil {
+			fmt.Println("session token error:", err)
+		}
+
+		if err := api.db.AddSessionToken(token.SessionID, token.IP, newToken, api.CookieExpiration); err == nil {
+			return &AccessToken{
+				SessionID: token.SessionID,
+			}, nil
+		}
+		fmt.Println("session token error:", err)
 	}
 
 	return &AccessToken{
