@@ -3,6 +3,7 @@ package page
 import (
 	"path"
 	"strings"
+	"time"
 
 	"github.com/razzie/razbox"
 	"github.com/razzie/razlink"
@@ -64,6 +65,9 @@ func folderPageHandler(api *razbox.API, pr *razlink.PageRequest) *razlink.View {
 		}
 		if !v.Gallery && entry.HasThumbnail {
 			v.Gallery = true
+		}
+		if !entry.Folder {
+			entry.UploadedStr = TimeElapsed(time.Now(), time.Unix(entry.Uploaded, 0), false)
 		}
 		v.Entries = append(v.Entries, entry)
 	}
