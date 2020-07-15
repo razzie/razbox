@@ -1,5 +1,8 @@
 <script>
 // credit: https://www.w3schools.com/howto/howto_js_sort_table.asp
+function _(el) {
+	return document.getElementById(el);
+}
 function strless(x,y) {
 	return x < y;
 }
@@ -14,7 +17,7 @@ function greater(x,y) {
 }
 function sortTable(column, comparator) {
 	var table, rows, switching, i, x, y, shouldSwitch;
-	table = document.getElementById("entries");
+	table = _("entries");
 	switching = true;
 	while (switching) {
 		switching = false;
@@ -37,6 +40,9 @@ function sortTable(column, comparator) {
 		}
 	}
 }
+function toggleFirst20() {
+	_("entries").classList.toggle("first20");
+}
 </script>
 <div style="text-align: center; margin-bottom: -1em">
 	<a href="{{.Redirect}}#controls" style="text-decoration: none; position: relative; top: -1.25em">&#9660;</a>
@@ -48,7 +54,7 @@ function sortTable(column, comparator) {
 	</div>
 	<div style="clear: both; margin-bottom: 1rem"></div>
 {{end}}
-<table id="entries">
+<table id="entries" class="first20">
 	<style type="text/css" scoped>
 		table {
 			width: 100%;
@@ -83,6 +89,9 @@ function sortTable(column, comparator) {
 		span.sort > sub {
 			left: 0;
 			bottom: 0.5em;
+		}
+		table.first20 > tbody > tr:nth-child(n+22):not(.first20_ignore) > td {
+			display: none !important;
 		}
 	</style>
 	<tr>
@@ -125,6 +134,7 @@ function sortTable(column, comparator) {
 	</tr>
 	{{$Folder := .Folder}}
 	{{$Redirect := .Redirect}}
+	{{$NumEntries := len .Entries}}
 	{{range .Entries}}
 		<tr data-isfolder="{{.Folder}}">
 			<td data-sortvalue="{{.Name}}">
@@ -148,6 +158,11 @@ function sortTable(column, comparator) {
 					<a href="/delete/{{.RelPath}}/?r={{$Redirect}}" onclick="return confirm('Are you sure?')">&#10008;</a>
 				{{end}}
 			</td>
+		</tr>
+	{{end}}
+	{{if gt $NumEntries 20}}
+		<tr class="first20_ignore">
+			<td colspan="6" style="text-align: center"><a href="javascript:toggleFirst20()">Show more/less</a></td>
 		</tr>
 	{{end}}
 	{{if not .Entries}}
