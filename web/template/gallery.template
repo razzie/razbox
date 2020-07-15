@@ -4,7 +4,7 @@
 	{{$MaxThumbWidth := .MaxThumbWidth}}
 	{{range .Entries}}
 		<div class="grid-item" style="width: {{$MaxThumbWidth}}px; padding: 15px; text-align: center">
-			<a href="/x/{{.RelPath}}" target="_blank">
+			<a data-fslightbox="gallery" href="/x/{{.RelPath}}" target="_blank">
 				<img
 					src="/thumb/{{.RelPath}}"
 					{{if .ThumbBounds}} width="{{.ThumbBounds.Width}}" height="{{.ThumbBounds.Height}}"{{end}}
@@ -23,6 +23,7 @@
 <div style="text-align: right">
 	<a href="{{.Redirect}}">Go back &#10548;</a>
 </div>
+<script src="/static/fslightbox.min.js"></script>
 <script>
 var msnry = new Masonry('.grid', {
 	itemSelector: '.grid-item',
