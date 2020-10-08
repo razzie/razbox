@@ -1,6 +1,7 @@
 package beepboop
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -39,7 +40,7 @@ func (r *PageRequest) logRequest() {
 		strings.Join(hostnames, ", "),
 		fmt.Sprintf("%s %s %s", ua.OS(), browser, ver))
 
-	loc, _ := r.Context.GeoIPClient.GetLocation(r.Context.Context, ip)
+	loc, _ := r.Context.GeoIPClient.GetLocation(context.Background(), ip)
 	if loc != nil {
 		logmsg += "\n - location: " + loc.String()
 	}

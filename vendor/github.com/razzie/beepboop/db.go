@@ -146,6 +146,7 @@ func (db *DB) GetAccessToken(sessionID, ip string) (*AccessToken, error) {
 
 	return &AccessToken{
 		SessionID: sessionID,
+		IP:        ip,
 		AccessMap: access,
 	}, nil
 }

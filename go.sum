@@ -43,6 +43,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/razzie/beepboop v0.0.0-20201008161057-310eb283e812 h1:k6sbc/Bf94lE5x8aV6qV+NJQlbvM+JtsyvKWwr+ziAY=
 github.com/razzie/beepboop v0.0.0-20201008161057-310eb283e812/go.mod h1:pQULiMKtDFBTzzdal8EhibEVUCs7xBtaAaZsyqPf9Rg=
+github.com/razzie/beepboop v0.0.0-20201008181320-ffbae7354494 h1:sEeWv+Of5+kPya+R0JH+nNi1GWSQz/I8A77kQuGRMcM=
+github.com/razzie/beepboop v0.0.0-20201008181320-ffbae7354494/go.mod h1:pQULiMKtDFBTzzdal8EhibEVUCs7xBtaAaZsyqPf9Rg=
 github.com/razzie/geoip-server v0.0.0-20200717211516-d78b93ab9e14 h1:596YTcVuRoacI0kJ5M2yt6obGZ4mtsZEPb1KfKS+ZSQ=
 github.com/razzie/geoip-server v0.0.0-20200717211516-d78b93ab9e14/go.mod h1:H1xjjW4QbZdPyvvx7BImgKhOEKEd/qd1fTBD8FYXu/s=
 github.com/rs/xid v1.2.1 h1:mhH9Nq+C1fY2l1XIpgxIiUOfNpRBYH1kKcr+qfKgjRc=
