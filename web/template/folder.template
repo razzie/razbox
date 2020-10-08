@@ -141,7 +141,11 @@ function toggleFirst20() {
 				{{.Prefix}} <a href="/x/{{.RelPath}}">{{.Name}}</a>
 				{{if .Public}}<small>[public]</small>{{end}}
 			</td>
-			<td data-sortvalue="{{.MIME}}">{{.MIME}}</td>
+			<td data-sortvalue="{{.MIME}}">
+				{{if .MIME}}
+					<a href="/x/{{$Folder}}/?tag={{.PrimaryType}}">{{.PrimaryType}}</a>/{{.SecondaryType}}
+				{{end}}
+			</td>
 			<td data-sortvalue="{{range .Tags}}{{.}} {{end}}">
 				{{range .Tags}}
 					<a href="/x/{{$Folder}}/?tag={{.}}">{{.}}</a>

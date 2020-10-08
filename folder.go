@@ -263,20 +263,22 @@ func (api *API) DeleteSubfolder(token *beepboop.AccessToken, folderName, subfold
 
 // FolderEntry ...
 type FolderEntry struct {
-	Folder       bool             `json:"folder,omitempty"`
-	Prefix       template.HTML    `json:"prefix,omitempty"`
-	Name         string           `json:"name"`
-	RelPath      string           `json:"rel_path"`
-	MIME         string           `json:"mime,omitempty"`
-	Tags         []string         `json:"tags,omitempty"`
-	Size         int64            `json:"size,omitempty"`
-	SizeStr      string           `json:"size_str,omitempty"`
-	Uploaded     int64            `json:"uploaded,omitempty"`
-	UploadedStr  string           `json:"uploaded_str,omitempty"`
-	Public       bool             `json:"public,omitempty"`
-	EditMode     bool             `json:"edit_mode,omitempty"`
-	HasThumbnail bool             `json:"has_thumbnail,omitempty"`
-	ThumbBounds  *ThumbnailBounds `json:"thumb_bounds,omitempty"`
+	Folder        bool             `json:"folder,omitempty"`
+	Prefix        template.HTML    `json:"prefix,omitempty"`
+	Name          string           `json:"name"`
+	RelPath       string           `json:"rel_path"`
+	MIME          string           `json:"mime,omitempty"`
+	PrimaryType   string           `json:"primary_type,omitempty"`
+	SecondaryType string           `json:"secondary_type,omitempty"`
+	Tags          []string         `json:"tags,omitempty"`
+	Size          int64            `json:"size,omitempty"`
+	SizeStr       string           `json:"size_str,omitempty"`
+	Uploaded      int64            `json:"uploaded,omitempty"`
+	UploadedStr   string           `json:"uploaded_str,omitempty"`
+	Public        bool             `json:"public,omitempty"`
+	EditMode      bool             `json:"edit_mode,omitempty"`
+	HasThumbnail  bool             `json:"has_thumbnail,omitempty"`
+	ThumbBounds   *ThumbnailBounds `json:"thumb_bounds,omitempty"`
 }
 
 func newSubfolderEntry(uri, subfolder string) *FolderEntry {
@@ -289,18 +291,24 @@ func newSubfolderEntry(uri, subfolder string) *FolderEntry {
 }
 
 func newFileEntry(uri string, file *internal.File, thumbnailRetryAfter time.Duration) *FolderEntry {
+	typ := strings.SplitN(file.MIME, "/", 2)
+	if len(typ) < 2 {
+		typ = append(typ, "")
+	}
 	entry := &FolderEntry{
-		Prefix:       internal.MIMEtoSymbol(file.MIME),
-		Name:         file.Name,
-		RelPath:      path.Join(uri, file.Name),
-		MIME:         file.MIME,
-		Tags:         file.Tags,
-		Size:         file.Size,
-		SizeStr:      internal.ByteCountSI(file.Size),
-		Uploaded:     file.Uploaded.Unix(),
-		UploadedStr:  file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
-		Public:       file.Public,
-		HasThumbnail: internal.IsThumbnailSupported(file.MIME),
+		Prefix:        internal.MIMEtoSymbol(file.MIME),
+		Name:          file.Name,
+		RelPath:       path.Join(uri, file.Name),
+		MIME:          file.MIME,
+		PrimaryType:   typ[0],
+		SecondaryType: typ[1],
+		Tags:          file.Tags,
+		Size:          file.Size,
+		SizeStr:       internal.ByteCountSI(file.Size),
+		Uploaded:      file.Uploaded.Unix(),
+		UploadedStr:   file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
+		Public:        file.Public,
+		HasThumbnail:  internal.IsThumbnailSupported(file.MIME),
 	}
 	entry.updateThumbBounds(file, thumbnailRetryAfter)
 	return entry
@@ -332,6 +340,9 @@ func (f *FolderEntry) updateThumbBounds(file *internal.File, thumbnailRetryAfter
 
 // HasTag ...
 func (f *FolderEntry) HasTag(tag string) bool {
+	if tag == f.PrimaryType {
+		return true
+	}
 	for _, t := range f.Tags {
 		if t == tag {
 			return true
