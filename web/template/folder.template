@@ -134,8 +134,12 @@ function toggleFirst20() {
 	</tr>
 	{{$Folder := .Folder}}
 	{{$Redirect := .Redirect}}
-	{{$NumEntries := len .Entries}}
-	{{range .Entries}}
+	{{range $i, $e := .Entries}}
+		{{if eq $i 20}}
+			<tr class="first20_ignore">
+				<td colspan="6" style="text-align: center"><a href="javascript:toggleFirst20()">Show more/less</a></td>
+			</tr>
+		{{end}}
 		<tr data-isfolder="{{.Folder}}">
 			<td data-sortvalue="{{.Name}}">
 				{{.Prefix}} <a {{if eq .PrimaryType "image"}}data-fslightbox="gallery"{{end}} href="/x/{{.RelPath}}">{{.Name}}</a>
@@ -162,11 +166,6 @@ function toggleFirst20() {
 					<a href="/delete/{{.RelPath}}/?r={{$Redirect}}" onclick="return confirm('Are you sure?')">&#10008;</a>
 				{{end}}
 			</td>
-		</tr>
-	{{end}}
-	{{if gt $NumEntries 20}}
-		<tr class="first20_ignore">
-			<td colspan="6" style="text-align: center"><a href="javascript:toggleFirst20()">Show more/less</a></td>
 		</tr>
 	{{end}}
 	{{if not .Entries}}
