@@ -138,7 +138,7 @@ function toggleFirst20() {
 	{{range .Entries}}
 		<tr data-isfolder="{{.Folder}}">
 			<td data-sortvalue="{{.Name}}">
-				{{.Prefix}} <a href="/x/{{.RelPath}}">{{.Name}}</a>
+				{{.Prefix}} <a {{if eq .PrimaryType "image"}}data-fslightbox="gallery"{{end}} href="/x/{{.RelPath}}">{{.Name}}</a>
 				{{if .Public}}<small>[public]</small>{{end}}
 			</td>
 			<td data-sortvalue="{{.MIME}}">
@@ -198,3 +198,4 @@ function toggleFirst20() {
 		{{end}}
 	</form>
 </div>
+<script src="/static/fslightbox.min.js"></script>
