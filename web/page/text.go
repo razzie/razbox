@@ -21,7 +21,7 @@ func textPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	filename := path.Clean(pr.RelPath)
 	dir := path.Dir(filename)
-	token := api.AccessTokenFromRequest(r)
+	token := beepboop.NewAccessTokenFromRequest(pr)
 	file, err := api.OpenFile(token, filename)
 	if err != nil {
 		return HandleError(r, err)

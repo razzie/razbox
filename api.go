@@ -4,15 +4,15 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/razzie/razbox/internal"
+	"github.com/razzie/beepboop"
 )
 
 // API ...
 type API struct {
 	root                string
-	db                  *internal.DB
+	db                  *beepboop.DB
 	CacheDuration       *time.Duration
-	CookieExpiration    time.Duration
+	CookieExpiration    *time.Duration
 	ThumbnailRetryAfter time.Duration
 	AuthsPerMin         int
 }
@@ -27,25 +27,22 @@ func NewAPI(root string) (*API, error) {
 		}
 	}
 
-	tmpCacheDuration := time.Hour
 	return &API{
 		root:                root,
-		CacheDuration:       &tmpCacheDuration,
-		CookieExpiration:    time.Hour * 24 * 7,
 		ThumbnailRetryAfter: time.Hour,
 		AuthsPerMin:         3,
 	}, nil
 }
 
 // ConnectDB ...
-func (api *API) ConnectDB(redisAddr, redisPw string, redisDb int) error {
-	db, err := internal.NewDB(redisAddr, redisPw, redisDb)
+func (api *API) ConnectDB(redisAddr, redisPw string, redisDb int) (*beepboop.DB, error) {
+	db, err := beepboop.NewDB(redisAddr, redisPw, redisDb)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	db.CacheDuration = *api.CacheDuration
 	api.db = db
 	api.CacheDuration = &db.CacheDuration
-	return nil
+	api.CookieExpiration = &db.SessionDuration
+	return db, nil
 }

@@ -2,7 +2,6 @@ package page
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"path"
 
@@ -15,7 +14,7 @@ const maxThumbWidth = 250
 func thumbnailPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	filename := path.Clean(pr.RelPath)
-	token := api.AccessTokenFromRequest(r)
+	token := beepboop.NewAccessTokenFromRequest(pr)
 	thumb, err := api.GetFileThumbnail(token, filename, maxThumbWidth)
 	if err != nil {
 		switch err := err.(type) {
@@ -24,7 +23,7 @@ func thumbnailPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.V
 				fmt.Sprintf("/read-auth/%s?r=%s", err.Folder, r.URL.RequestURI()),
 				beepboop.WithErrorMessage("Read access required", http.StatusUnauthorized))
 		default:
-			log.Println(filename, ":", err)
+			pr.Log(filename, ":", err)
 		}
 	}
 

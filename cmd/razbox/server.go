@@ -2,6 +2,8 @@ package main
 
 import (
 	"io/ioutil"
+	"log"
+	"os"
 
 	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
@@ -29,5 +31,6 @@ func NewServer(api *razbox.API, defaultFolder string) *beepboop.Server {
 		page.CreateSubfolder(api),
 		page.DeleteSubfolder(api),
 	)
+	srv.Logger = log.New(os.Stdout, "", log.Lshortfile|log.LstdFlags)
 	return srv
 }

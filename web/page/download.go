@@ -19,7 +19,7 @@ type downloadPageView struct {
 func downloadPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	dir := path.Clean(pr.RelPath)
-	token := api.AccessTokenFromRequest(r)
+	token := beepboop.NewAccessTokenFromRequest(pr)
 	flags, err := api.GetFolderFlags(token, dir)
 	if err != nil {
 		return HandleError(r, err)

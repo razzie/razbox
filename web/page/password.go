@@ -41,18 +41,18 @@ func passwordPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vi
 			return pr.Respond(v)
 		}
 
-		token := api.AccessTokenFromRequest(r)
+		token := beepboop.NewAccessTokenFromRequest(pr)
 		newToken, err := api.ChangeFolderPassword(token, dir, accessType, pw)
 		if err != nil {
 			v.Error = err.Error()
 			return pr.Respond(v, beepboop.WithError(err, http.StatusInternalServerError))
 		}
 
-		cookie := newToken.ToCookie(api.CookieExpiration)
+		cookie := newToken.ToCookie(*api.CookieExpiration)
 		return pr.CookieAndRedirectView(cookie, "/x/"+dir)
 	}
 
-	token := api.AccessTokenFromRequest(r)
+	token := beepboop.NewAccessTokenFromRequest(pr)
 	flags, err := api.GetFolderFlags(token, dir)
 	if err != nil {
 		return HandleError(r, err)

@@ -31,7 +31,7 @@ func galleryPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vie
 		v.Redirect = fmt.Sprintf("/x/%s/?tag=%s", uri, tag)
 	}
 
-	token := api.AccessTokenFromRequest(r)
+	token := beepboop.NewAccessTokenFromRequest(pr)
 	entries, _, err := api.GetFolderEntries(token, uri)
 	if err != nil {
 		return HandleError(r, err)

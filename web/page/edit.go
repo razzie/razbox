@@ -30,7 +30,7 @@ func editPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 		redirect = "/x/" + dir
 	}
 
-	token := api.AccessTokenFromRequest(r)
+	token := beepboop.NewAccessTokenFromRequest(pr)
 	entry, _, err := api.GetFolderEntries(token, filename)
 	if err != nil {
 		return HandleError(r, err)

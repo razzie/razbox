@@ -6,12 +6,10 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.1.1
-	github.com/go-redis/redis/v7 v7.4.0
 	github.com/google/uuid v1.1.2
-	github.com/mo7zayed/reqip v0.0.0-20200520084230-ae375eb9322b
 	github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-	github.com/razzie/beepboop v0.0.0-20201008030849-62288e1d60c0
+	github.com/razzie/beepboop v0.0.0-20201008161057-310eb283e812
 	github.com/stretchr/testify v1.6.1 // indirect
 	golang.org/x/image v0.0.0-20200927104501-e162460cd6b5
 	golang.org/x/net v0.0.0-20201006153459-a7d1128ccaa0 // indirect

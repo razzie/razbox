@@ -84,19 +84,19 @@ func (db *DB) IsWithinRateLimit(reqType, ip string, rate int) (bool, error) {
 
 // AddSessionAccess merges an AccessMap into a session's AccessMap
 func (db *DB) AddSessionAccess(sessionID, ip string, access AccessMap) error {
-	key := fmt.Sprintf("%s:%s", sessionID, ip)
-	data, err := db.client.Get("beepboop-session:" + key).Result()
-	if err != nil {
-		return err
-	}
+	key := fmt.Sprintf("beepboop-session:%s:%s", sessionID, ip)
+	data, _ := db.client.Get(key).Result()
 
-	sessAccess := make(AccessMap)
-	err = json.Unmarshal([]byte(data), &sessAccess)
-	if err != nil {
-		return err
+	var sessAccess AccessMap
+	if len(data) > 0 {
+		err := json.Unmarshal([]byte(data), &sessAccess)
+		if err != nil {
+			return err
+		}
+		sessAccess.Merge(access)
+	} else {
+		sessAccess = access
 	}
-
-	sessAccess.Merge(access)
 
 	newData, err := json.Marshal(sessAccess)
 	if err != nil {
@@ -108,8 +108,8 @@ func (db *DB) AddSessionAccess(sessionID, ip string, access AccessMap) error {
 
 // RemoveSessionAccess removes/unmerges an AccessMap from a session's AccessMap
 func (db *DB) RemoveSessionAccess(sessionID, ip string, access AccessMap) error {
-	key := fmt.Sprintf("%s:%s", sessionID, ip)
-	data, err := db.client.Get("beepboop-session:" + key).Result()
+	key := fmt.Sprintf("beepboop-session:%s:%s", sessionID, ip)
+	data, err := db.client.Get(key).Result()
 	if err != nil {
 		return err
 	}
@@ -132,8 +132,8 @@ func (db *DB) RemoveSessionAccess(sessionID, ip string, access AccessMap) error 
 
 // GetAccessToken returns an AccessToken for the given session
 func (db *DB) GetAccessToken(sessionID, ip string) (*AccessToken, error) {
-	key := fmt.Sprintf("%s:%s", sessionID, ip)
-	data, err := db.client.Get("beepboop-session:" + key).Result()
+	key := fmt.Sprintf("beepboop-session:%s:%s", sessionID, ip)
+	data, err := db.client.Get(key).Result()
 	if err != nil {
 		return nil, err
 	}

@@ -45,7 +45,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = api.ConnectDB(RedisAddr, RedisPw, RedisDb)
+	db, err := api.ConnectDB(RedisAddr, RedisPw, RedisDb)
 	if err != nil {
 		log.Print("failed to connect to database:", err)
 	}
@@ -53,10 +53,13 @@ func main() {
 	if api.CacheDuration != nil {
 		*api.CacheDuration = CacheDuration
 	}
-	api.CookieExpiration = CookieExpiration
+	if api.CookieExpiration != nil {
+		*api.CookieExpiration = CookieExpiration
+	}
 	api.ThumbnailRetryAfter = ThumbnailRetryAfter
 	api.AuthsPerMin = AuthsPerMin
 
 	srv := NewServer(api, DefaultFolder)
+	srv.DB = db
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(Port), srv))
 }

@@ -2,7 +2,7 @@ package beepboop
 
 import (
 	"fmt"
-	"log"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -13,6 +13,7 @@ import (
 // AccessToken ...
 type AccessToken struct {
 	SessionID string
+	IP        string
 	AccessMap AccessMap
 }
 
@@ -26,19 +27,26 @@ func NewAccessToken() *AccessToken {
 // NewAccessTokenFromRequest returns a new AccessToken from a page request
 func NewAccessTokenFromRequest(r *PageRequest) *AccessToken {
 	token := new(AccessToken).fromCookies(r.Request.Cookies())
+	token.IP = reqip.GetClientIP(r.Request)
+	if len(token.IP) == 0 {
+		token.IP, _, _ = net.SplitHostPort(r.Request.RemoteAddr)
+	}
 	db := r.Context.DB
 	if db != nil && len(token.SessionID) > 0 {
-		dbToken, err := db.GetAccessToken(token.SessionID, reqip.GetClientIP(r.Request))
+		dbToken, err := db.GetAccessToken(token.SessionID, token.IP)
 		if err == nil {
 			token.AccessMap.Merge(dbToken.AccessMap)
 		} else {
-			log.Println(err)
+			r.Log(err)
 		}
 	}
 	return token
 }
 
 func (token *AccessToken) fromCookies(cookies []*http.Cookie) *AccessToken {
+	if token.AccessMap == nil {
+		token.AccessMap = make(AccessMap)
+	}
 	for _, c := range cookies {
 		if c.Name == "session" {
 			token.SessionID = c.Value

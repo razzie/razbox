@@ -32,19 +32,24 @@ func (r *PageRequest) logRequest() {
 	ua := user_agent.New(r.Request.UserAgent())
 	browser, ver := ua.Browser()
 
-	location := "?"
-	loc, _ := r.Context.GeoIPClient.GetLocation(r.Context.Context, ip)
-	if loc != nil {
-		location = loc.String()
-	}
-
-	r.Context.Logger.Printf("[%s]: %s\n - IP: %s\n - hostnames: %s\n - browser: %s\n - location: %s",
+	logmsg := fmt.Sprintf("[%s]: %s\n - IP: %s\n - hostnames: %s\n - browser: %s",
 		r.RequestID,
 		r.Request.URL.Path,
 		ip,
 		strings.Join(hostnames, ", "),
-		fmt.Sprintf("%s %s %s", ua.OS(), browser, ver),
-		location)
+		fmt.Sprintf("%s %s %s", ua.OS(), browser, ver))
+
+	loc, _ := r.Context.GeoIPClient.GetLocation(r.Context.Context, ip)
+	if loc != nil {
+		logmsg += "\n - location: " + loc.String()
+	}
+
+	session, _ := r.Request.Cookie("session")
+	if session != nil {
+		logmsg += "\n - sessionID: " + session.Value
+	}
+
+	r.Context.Logger.Print(logmsg)
 }
 
 // Log ...

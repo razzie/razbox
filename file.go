@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox/internal"
 )
 
@@ -55,7 +56,7 @@ func newFileReader(file *internal.File) (*FileReader, error) {
 }
 
 // OpenFile ...
-func (api API) OpenFile(token *AccessToken, filePath string) (*FileReader, error) {
+func (api API) OpenFile(token *beepboop.AccessToken, filePath string) (*FileReader, error) {
 	filePath = path.Clean(filePath)
 	dir := path.Dir(filePath)
 	folder, cached, err := api.getFolder(dir)
@@ -66,7 +67,7 @@ func (api API) OpenFile(token *AccessToken, filePath string) (*FileReader, error
 		defer api.goCacheFolder(folder)
 	}
 
-	hasViewAccess := folder.EnsureReadAccess(token.toLib()) == nil
+	hasViewAccess := folder.EnsureReadAccess(token.AccessMap) == nil
 
 	basename := filepath.Base(filePath)
 	file, err := folder.GetFile(basename)
@@ -95,7 +96,7 @@ type UploadFileOptions struct {
 }
 
 // UploadFile ...
-func (api API) UploadFile(token *AccessToken, o *UploadFileOptions) error {
+func (api API) UploadFile(token *beepboop.AccessToken, o *UploadFileOptions) error {
 	changed := false
 	folder, cached, err := api.getFolder(o.Folder)
 	if err != nil {
@@ -107,12 +108,12 @@ func (api API) UploadFile(token *AccessToken, o *UploadFileOptions) error {
 		}
 	}()
 
-	err = folder.EnsureReadAccess(token.toLib())
+	err = folder.EnsureReadAccess(token.AccessMap)
 	if err != nil {
 		return &ErrNoReadAccess{Folder: o.Folder}
 	}
 
-	err = folder.EnsureWriteAccess(token.toLib())
+	err = folder.EnsureWriteAccess(token.AccessMap)
 	if err != nil {
 		return &ErrNoWriteAccess{Folder: o.Folder}
 	}
@@ -180,7 +181,7 @@ type DownloadFileToFolderOptions struct {
 }
 
 // DownloadFileToFolder ...
-func (api API) DownloadFileToFolder(token *AccessToken, o *DownloadFileToFolderOptions) error {
+func (api API) DownloadFileToFolder(token *beepboop.AccessToken, o *DownloadFileToFolderOptions) error {
 	changed := false
 	folder, cached, err := api.getFolder(o.Folder)
 	if err != nil {
@@ -192,12 +193,12 @@ func (api API) DownloadFileToFolder(token *AccessToken, o *DownloadFileToFolderO
 		}
 	}()
 
-	err = folder.EnsureReadAccess(token.toLib())
+	err = folder.EnsureReadAccess(token.AccessMap)
 	if err != nil {
 		return &ErrNoReadAccess{Folder: o.Folder}
 	}
 
-	err = folder.EnsureWriteAccess(token.toLib())
+	err = folder.EnsureWriteAccess(token.AccessMap)
 	if err != nil {
 		return &ErrNoWriteAccess{Folder: o.Folder}
 	}
@@ -257,7 +258,7 @@ type EditFileOptions struct {
 }
 
 // EditFile ...
-func (api API) EditFile(token *AccessToken, o *EditFileOptions) error {
+func (api API) EditFile(token *beepboop.AccessToken, o *EditFileOptions) error {
 	changed := false
 	folder, cached, err := api.getFolder(o.Folder)
 	if err != nil {
@@ -269,12 +270,12 @@ func (api API) EditFile(token *AccessToken, o *EditFileOptions) error {
 		}
 	}()
 
-	err = folder.EnsureReadAccess(token.toLib())
+	err = folder.EnsureReadAccess(token.AccessMap)
 	if err != nil {
 		return &ErrNoReadAccess{Folder: o.Folder}
 	}
 
-	err = folder.EnsureWriteAccess(token.toLib())
+	err = folder.EnsureWriteAccess(token.AccessMap)
 	if err != nil {
 		return &ErrNoWriteAccess{Folder: o.Folder}
 	}
@@ -342,7 +343,7 @@ func (api API) EditFile(token *AccessToken, o *EditFileOptions) error {
 }
 
 // DeleteFile ...
-func (api API) DeleteFile(token *AccessToken, filePath string) error {
+func (api API) DeleteFile(token *beepboop.AccessToken, filePath string) error {
 	filePath = path.Clean(filePath)
 	dir := path.Dir(filePath)
 	changed := false
@@ -356,12 +357,12 @@ func (api API) DeleteFile(token *AccessToken, filePath string) error {
 		}
 	}()
 
-	err = folder.EnsureReadAccess(token.toLib())
+	err = folder.EnsureReadAccess(token.AccessMap)
 	if err != nil {
 		return &ErrNoReadAccess{Folder: dir}
 	}
 
-	err = folder.EnsureWriteAccess(token.toLib())
+	err = folder.EnsureWriteAccess(token.AccessMap)
 	if err != nil {
 		return &ErrNoWriteAccess{Folder: dir}
 	}
@@ -405,7 +406,7 @@ func newThumbnail(thumb *internal.Thumbnail) *Thumbnail {
 }
 
 // GetFileThumbnail ...
-func (api API) GetFileThumbnail(token *AccessToken, filePath string, maxWidth uint) (*Thumbnail, error) {
+func (api API) GetFileThumbnail(token *beepboop.AccessToken, filePath string, maxWidth uint) (*Thumbnail, error) {
 	filePath = path.Clean(filePath)
 	dir := path.Dir(filePath)
 	changed := false
@@ -419,7 +420,7 @@ func (api API) GetFileThumbnail(token *AccessToken, filePath string, maxWidth ui
 		}
 	}()
 
-	err = folder.EnsureReadAccess(token.toLib())
+	err = folder.EnsureReadAccess(token.AccessMap)
 	if err != nil {
 		return nil, &ErrNoReadAccess{Folder: dir}
 	}

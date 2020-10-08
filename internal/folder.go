@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/nbutton23/zxcvbn-go"
+	"github.com/razzie/beepboop"
 )
 
 // FolderConfig stores the folder's passwords and other congfiguration
@@ -263,12 +264,12 @@ func (f *Folder) save() error {
 }
 
 // EnsureReadAccess returns an error if the access token doesn't permit read access
-func (f *Folder) EnsureReadAccess(token *AccessToken) error {
+func (f *Folder) EnsureReadAccess(token beepboop.AccessMap) error {
 	if len(f.Config.ReadPassword) == 0 {
 		return nil
 	}
 
-	pw, _ := token.Read[FilenameToUUID(f.ConfigRootFolder)]
+	pw, _ := token.Get("read", FilenameToUUID(f.ConfigRootFolder))
 	if pw != f.Config.ReadPassword {
 		return &ErrWrongPassword{}
 	}
@@ -277,12 +278,12 @@ func (f *Folder) EnsureReadAccess(token *AccessToken) error {
 }
 
 // EnsureWriteAccess returns an error if the access token doesn't permit write access
-func (f *Folder) EnsureWriteAccess(token *AccessToken) error {
+func (f *Folder) EnsureWriteAccess(token beepboop.AccessMap) error {
 	if len(f.Config.WritePassword) == 0 {
 		return &ErrFolderNotWritable{}
 	}
 
-	pw, _ := token.Write[FilenameToUUID(f.ConfigRootFolder)]
+	pw, _ := token.Get("write", FilenameToUUID(f.ConfigRootFolder))
 	if pw != f.Config.WritePassword {
 		return &ErrWrongPassword{}
 	}
@@ -291,7 +292,7 @@ func (f *Folder) EnsureWriteAccess(token *AccessToken) error {
 }
 
 // EnsureAccess returns an error if the access token doesn't permit access for the given access type
-func (f *Folder) EnsureAccess(accessType string, token *AccessToken) error {
+func (f *Folder) EnsureAccess(accessType string, token beepboop.AccessMap) error {
 	switch accessType {
 	case "read":
 		return f.EnsureReadAccess(token)
@@ -341,23 +342,19 @@ func (f *Folder) GetPasswordHash(accessType string) (string, error) {
 }
 
 // GetAccessToken returns an access token that permits access of the given access type
-func (f *Folder) GetAccessToken(accessType string) (*AccessToken, error) {
+func (f *Folder) GetAccessToken(accessType string) (beepboop.AccessMap, error) {
 	switch accessType {
 	case "read":
 		pw, _ := f.GetPasswordHash(accessType)
-		return &AccessToken{
-			Read: map[string]string{
-				FilenameToUUID(f.ConfigRootFolder): pw,
-			},
-		}, nil
+		token := make(beepboop.AccessMap)
+		token.Add("read", FilenameToUUID(f.ConfigRootFolder), pw)
+		return token, nil
 
 	case "write":
 		pw, _ := f.GetPasswordHash(accessType)
-		return &AccessToken{
-			Write: map[string]string{
-				FilenameToUUID(f.ConfigRootFolder): pw,
-			},
-		}, nil
+		token := make(beepboop.AccessMap)
+		token.Add("write", FilenameToUUID(f.ConfigRootFolder), pw)
+		return token, nil
 
 	default:
 		return nil, &ErrInvalidAccessType{AccessType: accessType}

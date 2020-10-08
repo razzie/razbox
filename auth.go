@@ -1,37 +1,35 @@
 package razbox
 
 import (
-	"fmt"
-	"log"
-
 	"github.com/google/uuid"
+	"github.com/razzie/beepboop"
 )
 
 // Auth ...
-func (api API) Auth(token *AccessToken, folderName, accessType, password string) (*AccessToken, error) {
+func (api API) Auth(pr *beepboop.PageRequest, folderName, accessType, password string) (*beepboop.AccessToken, error) {
+	token := beepboop.NewAccessTokenFromRequest(pr)
 	sessionID := token.SessionID
 
 	if api.db != nil {
 		if len(token.IP) == 0 {
-			log.Println("auth: no IP in request")
+			pr.Log("auth: no IP in request")
 		}
 		if ok, err := api.db.IsWithinRateLimit("auth", token.IP, api.AuthsPerMin); !ok && err == nil {
 			return nil, &ErrRateLimitExceeded{ReqPerMin: api.AuthsPerMin}
 		}
 
 		if len(sessionID) > 0 {
-			libToken := token.toLib()
-			err := api.db.FillSessionToken(sessionID, token.IP, libToken)
+			sessToken, err := api.db.GetAccessToken(sessionID, token.IP)
 			if err != nil {
-				log.Println("session token error:", err)
+				pr.Log("session token error:", err)
 				sessionID = ""
 			} else {
-				token = token.fromLib(libToken)
+				token.AccessMap.Merge(sessToken.AccessMap)
 			}
 		} else {
 			newSessionID, err := uuid.NewRandom()
 			if err != nil {
-				fmt.Println("session ID gen err:", err)
+				pr.Log("session ID gen err:", err)
 			} else {
 				sessionID = newSessionID.String()
 			}
@@ -52,14 +50,17 @@ func (api API) Auth(token *AccessToken, folderName, accessType, password string)
 			return nil, err
 		}
 		if api.db != nil && len(sessionID) > 0 {
-			if err := api.db.AddSessionToken(sessionID, token.IP, newToken, api.CookieExpiration); err == nil {
-				return &AccessToken{
+			if err = api.db.AddSessionAccess(sessionID, token.IP, newToken); err == nil {
+				return &beepboop.AccessToken{
 					SessionID: sessionID,
 				}, nil
 			}
-			fmt.Println("session token error:", err)
+			pr.Log("session token error:", err)
 		}
-		return new(AccessToken).fromLib(newToken), nil
+		return &beepboop.AccessToken{
+			SessionID: sessionID,
+			AccessMap: newToken,
+		}, nil
 	}
 
 	return nil, &ErrWrongPassword{}

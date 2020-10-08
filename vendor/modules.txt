@@ -32,7 +32,7 @@ github.com/nbutton23/zxcvbn-go/scoring
 github.com/nbutton23/zxcvbn-go/utils/math
 # github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 github.com/nfnt/resize
-# github.com/razzie/beepboop v0.0.0-20201008030849-62288e1d60c0
+# github.com/razzie/beepboop v0.0.0-20201008161057-310eb283e812
 github.com/razzie/beepboop
 # github.com/razzie/geoip-server v0.0.0-20200717211516-d78b93ab9e14
 github.com/razzie/geoip-server/client
