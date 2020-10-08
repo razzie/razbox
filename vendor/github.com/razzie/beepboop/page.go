@@ -3,6 +3,8 @@ package beepboop
 import (
 	"net/http"
 	"strings"
+
+	"github.com/rs/xid"
 )
 
 // Page ...
@@ -16,39 +18,16 @@ type Page struct {
 	Handler         func(*PageRequest) *View
 }
 
-// PageRequest ...
-type PageRequest struct {
-	Request  *http.Request
-	RelPath  string
-	RelURI   string
-	Title    string
-	renderer LayoutRenderer
-}
-
-// Respond returns the default page response View
-func (r *PageRequest) Respond(data interface{}, opts ...ViewOption) *View {
-	v := &View{
-		StatusCode: http.StatusOK,
-		Data:       data,
-	}
-	for _, opt := range opts {
-		opt(v)
-	}
-	v.renderer = func(w http.ResponseWriter) {
-		r.renderer(w, r.Request, r.Title, data, v.StatusCode)
-	}
-	return v
-}
-
 // GetHandler creates a http.HandlerFunc that uses the given layout to render the page
-func (page *Page) GetHandler(layout Layout) (http.HandlerFunc, error) {
+func (page *Page) GetHandler(layout Layout, ctx ContextGetter) (http.HandlerFunc, error) {
 	renderer, err := layout.BindTemplate(page.ContentTemplate, page.Stylesheets, page.Scripts, page.Metadata)
 	if err != nil {
 		return nil, err
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		pr := page.newPageRequest(r, renderer)
+		pr := page.newPageRequest(r, renderer, ctx(r.Context()))
+		go pr.logRequest()
 
 		var view *View
 		if page.Handler != nil {
@@ -62,13 +41,15 @@ func (page *Page) GetHandler(layout Layout) (http.HandlerFunc, error) {
 	}, nil
 }
 
-func (page *Page) newPageRequest(r *http.Request, renderer LayoutRenderer) *PageRequest {
+func (page *Page) newPageRequest(r *http.Request, renderer LayoutRenderer, ctx *Context) *PageRequest {
 	return &PageRequest{
-		Request:  r,
-		RelPath:  strings.TrimPrefix(r.URL.Path, page.Path),
-		RelURI:   strings.TrimPrefix(r.RequestURI, page.Path),
-		Title:    page.Title,
-		renderer: renderer,
+		Context:   ctx,
+		Request:   r,
+		RequestID: xid.New().String(),
+		RelPath:   strings.TrimPrefix(r.URL.Path, page.Path),
+		RelURI:    strings.TrimPrefix(r.RequestURI, page.Path),
+		Title:     page.Title,
+		renderer:  renderer,
 	}
 }
 

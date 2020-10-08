@@ -1,16 +1,25 @@
 package beepboop
 
 import (
+	"context"
 	"encoding/base64"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
+
+	geoclient "github.com/razzie/geoip-server/client"
+	"github.com/razzie/geoip-server/geoip"
 )
 
 // Server ...
 type Server struct {
-	mux        http.ServeMux
-	FaviconPNG []byte
-	Metadata   map[string]string
+	mux         http.ServeMux
+	FaviconPNG  []byte
+	Metadata    map[string]string
+	DB          *DB
+	Logger      *log.Logger
+	GeoIPClient geoip.Client
 }
 
 // NewServer creates a new Server
@@ -20,6 +29,8 @@ func NewServer() *Server {
 		Metadata: map[string]string{
 			"generator": "https://github.com/razzie/beepboop",
 		},
+		Logger:      log.New(os.Stdout, "", log.LstdFlags),
+		GeoIPClient: geoclient.DefaultClient,
 	}
 	srv.mux.HandleFunc("/favicon.png", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "image/png")
@@ -40,7 +51,7 @@ func (srv *Server) AddPage(page *Page) error {
 // AddPageWithLayout adds a new servable page with custom layout to the server
 func (srv *Server) AddPageWithLayout(page *Page, layout Layout) error {
 	page.addMetadata(srv.Metadata)
-	renderer, err := page.GetHandler(layout)
+	renderer, err := page.GetHandler(layout, srv.getContext())
 	if err != nil {
 		return err
 	}
@@ -61,8 +72,30 @@ func (srv *Server) AddPages(pages ...*Page) {
 	}
 }
 
+// ConnectDB ...
+func (srv *Server) ConnectDB(redisAddr, redisPw string, redisDb int) error {
+	db, err := NewDB(redisAddr, redisPw, redisDb)
+	if err != nil {
+		return err
+	}
+
+	srv.DB = db
+	return nil
+}
+
 func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	srv.mux.ServeHTTP(w, r)
+}
+
+func (srv *Server) getContext() ContextGetter {
+	return func(ctx context.Context) *Context {
+		return &Context{
+			Context:     ctx,
+			DB:          srv.DB,
+			Logger:      srv.Logger,
+			GeoIPClient: srv.GeoIPClient,
+		}
+	}
 }
 
 var favicon, _ = base64.StdEncoding.DecodeString("" +

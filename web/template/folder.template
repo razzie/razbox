@@ -162,14 +162,12 @@ function toggleFirst20() {
 	{{end}}
 	{{if gt $NumEntries 20}}
 		<tr class="first20_ignore">
-			<td colspan="5" style="text-align: center"><a href="javascript:toggleFirst20()">Show more/less</a></td>
-			<td></td>
+			<td colspan="6" style="text-align: center"><a href="javascript:toggleFirst20()">Show more/less</a></td>
 		</tr>
 	{{end}}
 	{{if not .Entries}}
 		<tr>
-			<td colspan="5">No entries</td>
-			<td></td>
+			<td colspan="6">No entries</td>
 		</tr>
 	{{end}}
 </table>
