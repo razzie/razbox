@@ -18,6 +18,9 @@
 					<a href="/delete/{{.RelPath}}/?r={{$EditRedirect}}" onclick="return confirm('Are you sure?')">&#10008;</a>
 				{{end}}
 			</div>
+			<div style="position: relative; top: -1em;">
+				<small>{{.Name}}</small>
+			</div>
 		</div>
 	{{end}}
 </div>
