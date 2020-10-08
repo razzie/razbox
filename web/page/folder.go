@@ -17,6 +17,7 @@ type folderPageView struct {
 	Editable     bool                  `json:"editable,omitempty"`
 	Deletable    bool                  `json:"deletable,omitempty"`
 	Configurable bool                  `json:"configurable,omitempty"`
+	Subfolders   bool                  `json:"subfolders,omitempty"`
 	Gallery      bool                  `json:"gallery,omitempty"`
 	Redirect     string                `json:"redirect,omitempty"`
 }
@@ -56,6 +57,7 @@ func folderPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View
 		Editable:     flags.Editable,
 		Deletable:    flags.Deletable,
 		Configurable: flags.Configurable,
+		Subfolders:   flags.Subfolders,
 		Redirect:     r.URL.RequestURI(),
 	}
 

@@ -19,6 +19,7 @@ type FolderConfig struct {
 	WritePassword   string `json:"write_pw"`
 	MaxFileSizeMB   int64  `json:"max_file_size"`
 	MaxFolderSizeMB int64  `json:"max_folder_size"`
+	Subfolders      bool   `json:"subfolders"`
 }
 
 // Folder ...

@@ -33,11 +33,10 @@ func init() {
 	flag.StringVar(&TargetFolder, "folder", "", "Relative path of target/destination folder for the file")
 	flag.StringVar(&Tags, "tags", "", "Search tags for the file (space separated)")
 	flag.BoolVar(&Move, "move", false, "Remove original file(s)")
+	flag.Parse()
 }
 
 func main() {
-	flag.Parse()
-
 	if len(SourceFiles) == 0 {
 		log.Fatal("No source file(s)")
 	}

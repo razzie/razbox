@@ -108,3 +108,12 @@ type ErrNoFiles struct{}
 func (err ErrNoFiles) Error() string {
 	return "No files"
 }
+
+// ErrSubfoldersDisabled ...
+type ErrSubfoldersDisabled struct {
+	Folder string
+}
+
+func (err ErrSubfoldersDisabled) Error() string {
+	return "Subfolders are disabled for this folder: " + err.Folder
+}

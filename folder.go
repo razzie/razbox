@@ -21,6 +21,7 @@ type FolderFlags struct {
 	Editable        bool
 	Deletable       bool
 	Configurable    bool
+	Subfolders      bool
 	MaxUploadSizeMB int64
 }
 
@@ -37,6 +38,7 @@ func getFolderFlags(token *beepboop.AccessToken, f *internal.Folder) *FolderFlag
 		Editable:        len(f.Config.WritePassword) > 0,
 		Deletable:       deletable,
 		Configurable:    !f.ConfigInherited,
+		Subfolders:      f.Config.Subfolders,
 		MaxUploadSizeMB: f.GetMaxUploadSizeMB(),
 	}
 }
@@ -208,6 +210,10 @@ func (api *API) CreateSubfolder(token *beepboop.AccessToken, folderName, subfold
 	err = folder.EnsureWriteAccess(token.AccessMap)
 	if err != nil {
 		return "", &ErrNoWriteAccess{Folder: folderName}
+	}
+
+	if !folder.Config.Subfolders {
+		return "", &ErrSubfoldersDisabled{Folder: folderName}
 	}
 
 	safeName, err := getSafeFilename(subfolder)

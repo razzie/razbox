@@ -23,6 +23,8 @@ var (
 	MaxFolderSizeMB int64
 	// Folder is the relative path of the folder compared to Root
 	Folder string
+	// Subfolders is a flag that allows the user to create subfolders
+	Subfolders bool
 )
 
 func init() {
@@ -32,11 +34,11 @@ func init() {
 	flag.Int64Var(&MaxFileSizeMB, "max-file-size", 0, "File size limit for uploads in MiB for this folder")
 	flag.Int64Var(&MaxFolderSizeMB, "max-folder-size", 0, "Size limit in MiB for this folder")
 	flag.StringVar(&Folder, "folder", "", "Folder name (relative path)")
+	flag.BoolVar(&Subfolders, "subfolders", false, "Allows the user to create subfolders")
+	flag.Parse()
 }
 
 func main() {
-	flag.Parse()
-
 	if !filepath.IsAbs(Root) {
 		var err error
 		Root, err = filepath.Abs(Root)
@@ -56,6 +58,7 @@ func main() {
 		Config: internal.FolderConfig{
 			MaxFileSizeMB:   MaxFileSizeMB,
 			MaxFolderSizeMB: MaxFolderSizeMB,
+			Subfolders:      Subfolders,
 		},
 	}
 	err = folder.SetPasswords(ReadPassword, WritePassword)
