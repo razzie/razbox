@@ -58,7 +58,7 @@ func (srv *Server) AddPageWithLayout(page *Page, layout Layout) error {
 
 	api := NewAPI(page)
 	srv.mux.HandleFunc(page.Path, renderer)
-	srv.mux.HandleFunc(api.Path, api.GetHandler())
+	srv.mux.HandleFunc(api.Path, api.GetHandler(srv.getContext()))
 	return nil
 }
 

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+
+	"github.com/rs/xid"
 )
 
 // API is lightweight frontend-less version of a page
@@ -21,9 +23,9 @@ func NewAPI(page *Page) *API {
 }
 
 // GetHandler creates a http.HandlerFunc that uses Razlink layout
-func (api *API) GetHandler() http.HandlerFunc {
+func (api *API) GetHandler(ctx ContextGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		pr := api.newPageRequest(r)
+		pr := api.newPageRequest(r, ctx(r.Context()))
 
 		var view *View
 		if api.page.Handler != nil {
@@ -37,11 +39,13 @@ func (api *API) GetHandler() http.HandlerFunc {
 	}
 }
 
-func (api *API) newPageRequest(r *http.Request) *PageRequest {
+func (api *API) newPageRequest(r *http.Request, ctx *Context) *PageRequest {
 	return &PageRequest{
-		Request: r,
-		RelPath: strings.TrimPrefix(r.URL.Path, api.Path),
-		RelURI:  strings.TrimPrefix(r.RequestURI, api.Path),
+		Context:   ctx,
+		Request:   r,
+		RequestID: xid.New().String(),
+		RelPath:   strings.TrimPrefix(r.URL.Path, api.Path),
+		RelURI:    strings.TrimPrefix(r.RequestURI, api.Path),
 	}
 }
 
