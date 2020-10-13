@@ -48,7 +48,7 @@ func passwordPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vi
 			return pr.Respond(v, beepboop.WithError(err, http.StatusInternalServerError))
 		}
 
-		cookie := newToken.ToCookie(*api.CookieExpiration)
+		cookie := newToken.ToCookie(api.CookieExpiration)
 		return pr.CookieAndRedirectView(cookie, "/x/"+dir)
 	}
 

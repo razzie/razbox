@@ -45,19 +45,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// CacheDuration and CookieExpiration must be set before connecting to DB
+	api.CacheDuration = CacheDuration
+	api.CookieExpiration = CookieExpiration
+	api.ThumbnailRetryAfter = ThumbnailRetryAfter
+	api.AuthsPerMin = AuthsPerMin
+
 	db, err := api.ConnectDB(RedisAddr, RedisPw, RedisDb)
 	if err != nil {
 		log.Print("failed to connect to database:", err)
 	}
-
-	if api.CacheDuration != nil {
-		*api.CacheDuration = CacheDuration
-	}
-	if api.CookieExpiration != nil {
-		*api.CookieExpiration = CookieExpiration
-	}
-	api.ThumbnailRetryAfter = ThumbnailRetryAfter
-	api.AuthsPerMin = AuthsPerMin
 
 	srv := NewServer(api, DefaultFolder)
 	srv.DB = db

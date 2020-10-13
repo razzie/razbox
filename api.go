@@ -11,8 +11,8 @@ import (
 type API struct {
 	root                string
 	db                  *beepboop.DB
-	CacheDuration       *time.Duration
-	CookieExpiration    *time.Duration
+	CacheDuration       time.Duration
+	CookieExpiration    time.Duration
 	ThumbnailRetryAfter time.Duration
 	AuthsPerMin         int
 }
@@ -27,10 +27,10 @@ func NewAPI(root string) (*API, error) {
 		}
 	}
 
-	tmpCookieExpiration := time.Hour * 24 * 7
 	return &API{
 		root:                root,
-		CookieExpiration:    &tmpCookieExpiration,
+		CacheDuration:       time.Hour,
+		CookieExpiration:    time.Hour * 24 * 7,
 		ThumbnailRetryAfter: time.Hour,
 		AuthsPerMin:         3,
 	}, nil
@@ -43,8 +43,8 @@ func (api *API) ConnectDB(redisAddr, redisPw string, redisDb int) (*beepboop.DB,
 		return nil, err
 	}
 
+	db.CacheDuration = api.CacheDuration
+	db.SessionDuration = api.CookieExpiration
 	api.db = db
-	api.CacheDuration = &db.CacheDuration
-	api.CookieExpiration = &db.SessionDuration
 	return db, nil
 }

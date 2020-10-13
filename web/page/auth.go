@@ -44,7 +44,7 @@ func authPageHandler(api *razbox.API, accessType string, pr *beepboop.PageReques
 			return pr.Respond(v, beepboop.WithError(err, http.StatusUnauthorized))
 		}
 
-		return pr.CookieAndRedirectView(newToken.ToCookie(*api.CookieExpiration), v.Redirect)
+		return pr.CookieAndRedirectView(newToken.ToCookie(api.CookieExpiration), v.Redirect)
 	}
 
 	return pr.Respond(v)
