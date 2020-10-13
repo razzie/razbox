@@ -55,7 +55,11 @@ func Gallery(api *razbox.API) *beepboop.Page {
 	return &beepboop.Page{
 		Path:            "/gallery/",
 		ContentTemplate: GetContentTemplate("gallery"),
+		Stylesheets: []string{
+			"/static/glightbox.min.css",
+		},
 		Scripts: []string{
+			"/static/glightbox.min.js",
 			"/static/masonry.min.js",
 		},
 		Handler: func(pr *beepboop.PageRequest) *beepboop.View {

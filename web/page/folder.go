@@ -82,6 +82,12 @@ func Folder(api *razbox.API) *beepboop.Page {
 	return &beepboop.Page{
 		Path:            "/x/",
 		ContentTemplate: GetContentTemplate("folder"),
+		Stylesheets: []string{
+			"/static/glightbox.min.css",
+		},
+		Scripts: []string{
+			"/static/glightbox.min.js",
+		},
 		Handler: func(pr *beepboop.PageRequest) *beepboop.View {
 			return folderPageHandler(api, pr)
 		},
