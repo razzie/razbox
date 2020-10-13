@@ -17,7 +17,7 @@ function greater(x,y) {
 }
 function sortTable(column, comparator) {
 	var table, rows, switching, i, x, y, shouldSwitch;
-	table = _("entries");
+	table = _('entries');
 	switching = true;
 	while (switching) {
 		switching = false;
@@ -27,8 +27,8 @@ function sortTable(column, comparator) {
 			if (rows[i].dataset.isfolder != rows[i + 1].dataset.isfolder) {
 				continue
 			}
-			x = rows[i].getElementsByTagName("TD")[column];
-			y = rows[i + 1].getElementsByTagName("TD")[column];
+			x = rows[i].getElementsByTagName('TD')[column];
+			y = rows[i + 1].getElementsByTagName('TD')[column];
 			if (comparator(x.dataset.sortvalue, y.dataset.sortvalue)) {
 				shouldSwitch = true;
 				break;
@@ -41,7 +41,31 @@ function sortTable(column, comparator) {
 	}
 }
 function toggleFirst20() {
-	_("entries").classList.toggle("first20");
+	_("entries").classList.toggle('first20');
+}
+function deleteFile(filename) {
+	if (!confirm('Are you sure?')) {
+		return false;
+	}
+	let xhr = new XMLHttpRequest();
+	xhr.open('GET', '/api/delete/' + filename);
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState !== 4) return;
+		if (xhr.status === 200) {
+			var rows = _('entries').rows;
+			for (i = 1; i < (rows.length - 1); i++) {
+				if (rows[i].getElementsByTagName('TD')[0].dataset.relpath == filename) {
+					rows[i].remove();
+					return false;
+				}
+			}
+		}
+		else {
+			console.log('/api/delete/' + filename, xhr.status, xhr.statusText);
+		}
+	};
+	xhr.send();
+	return false;
 }
 </script>
 <div style="text-align: center; margin-bottom: -1em">
@@ -141,7 +165,7 @@ function toggleFirst20() {
 			</tr>
 		{{end}}
 		<tr data-isfolder="{{.Folder}}">
-			<td data-sortvalue="{{.Name}}">
+			<td data-sortvalue="{{.Name}}" data-relpath="{{.RelPath}}">
 				{{.Prefix}} <a {{if eq .PrimaryType "image"}}class="glightbox"{{end}} href="/x/{{.RelPath}}">{{.Name}}</a>
 				{{if .Public}}<small>[public]</small>{{end}}
 			</td>
@@ -163,7 +187,7 @@ function toggleFirst20() {
 				{{end}}
 				{{if .EditMode}}
 					<a href="/edit/{{.RelPath}}/?r={{$Redirect}}">&#9998;</a>
-					<a href="/delete/{{.RelPath}}/?r={{$Redirect}}" onclick="return confirm('Are you sure?')">&#10008;</a>
+					<a href="/delete/{{.RelPath}}/?r={{$Redirect}}" onclick="return deleteFile('{{.RelPath}}');">&#10008;</a>
 				{{end}}
 			</td>
 		</tr>
