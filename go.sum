@@ -47,6 +47,10 @@ github.com/razzie/beepboop v0.0.0-20201008181320-ffbae7354494 h1:sEeWv+Of5+kPya+
 github.com/razzie/beepboop v0.0.0-20201008181320-ffbae7354494/go.mod h1:pQULiMKtDFBTzzdal8EhibEVUCs7xBtaAaZsyqPf9Rg=
 github.com/razzie/beepboop v0.0.0-20201008195814-0165ac27acf3 h1:+UBgdys1xlEEdp3D/0qSyapEZQfMgqCIz6EDYBgDBII=
 github.com/razzie/beepboop v0.0.0-20201008195814-0165ac27acf3/go.mod h1:Bu8cpp1UIPvB9VY6MfzlQ+WHfvyWUCakZMCntPxSbxw=
+github.com/razzie/beepboop v0.0.0-20201013053459-fa62e2eaf06b h1:3hT1/LGloMyVq7oEzOAk1SqtXHXevDHcVThD5nqr+wE=
+github.com/razzie/beepboop v0.0.0-20201013053459-fa62e2eaf06b/go.mod h1:Bu8cpp1UIPvB9VY6MfzlQ+WHfvyWUCakZMCntPxSbxw=
+github.com/razzie/beepboop v0.0.0-20201013055806-b55e81978d3d h1:OUWU1OBL6sdFmq47v9tXNNOlnl90SGGp2axY6ukb3AE=
+github.com/razzie/beepboop v0.0.0-20201013055806-b55e81978d3d/go.mod h1:Bu8cpp1UIPvB9VY6MfzlQ+WHfvyWUCakZMCntPxSbxw=
 github.com/razzie/geoip-server v0.0.0-20200717211516-d78b93ab9e14 h1:596YTcVuRoacI0kJ5M2yt6obGZ4mtsZEPb1KfKS+ZSQ=
 github.com/razzie/geoip-server v0.0.0-20200717211516-d78b93ab9e14/go.mod h1:H1xjjW4QbZdPyvvx7BImgKhOEKEd/qd1fTBD8FYXu/s=
 github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8 h1:JtDgeCbamFUKWFIIbVhsGQ/fVDklmbprEHeCPWmGIvE=

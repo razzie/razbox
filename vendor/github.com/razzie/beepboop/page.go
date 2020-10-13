@@ -48,6 +48,7 @@ func (page *Page) newPageRequest(r *http.Request, renderer LayoutRenderer, ctx *
 		RequestID: xid.New().String(),
 		RelPath:   strings.TrimPrefix(r.URL.Path, page.Path),
 		RelURI:    strings.TrimPrefix(r.RequestURI, page.Path),
+		IsAPI:     false,
 		Title:     page.Title,
 		renderer:  renderer,
 	}

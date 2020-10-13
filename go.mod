@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.1.2
 	github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-	github.com/razzie/beepboop v0.0.0-20201008195814-0165ac27acf3
+	github.com/razzie/beepboop v0.0.0-20201013055806-b55e81978d3d
 	github.com/stretchr/testify v1.6.1 // indirect
 	golang.org/x/image v0.0.0-20200927104501-e162460cd6b5
 	golang.org/x/net v0.0.0-20201006153459-a7d1128ccaa0 // indirect

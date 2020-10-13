@@ -26,6 +26,7 @@ func NewAPI(page *Page) *API {
 func (api *API) GetHandler(ctx ContextGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		pr := api.newPageRequest(r, ctx(r.Context()))
+		go pr.logRequest()
 
 		var view *View
 		if api.page.Handler != nil {
@@ -46,11 +47,17 @@ func (api *API) newPageRequest(r *http.Request, ctx *Context) *PageRequest {
 		RequestID: xid.New().String(),
 		RelPath:   strings.TrimPrefix(r.URL.Path, api.Path),
 		RelURI:    strings.TrimPrefix(r.RequestURI, api.Path),
+		IsAPI:     true,
 	}
 }
 
 func renderAPIResponse(w http.ResponseWriter, view *View) {
 	w.WriteHeader(view.StatusCode)
+
+	if view.Error != nil {
+		w.Write([]byte(view.Error.Error()))
+		return
+	}
 
 	if view.Data != nil {
 		data, err := json.MarshalIndent(view.Data, "", "\t")
@@ -64,11 +71,6 @@ func renderAPIResponse(w http.ResponseWriter, view *View) {
 
 	if view.StatusCode == http.StatusOK {
 		w.Write([]byte("OK"))
-		return
-	}
-
-	if view.Error != nil {
-		w.Write([]byte(view.Error.Error()))
 		return
 	}
 

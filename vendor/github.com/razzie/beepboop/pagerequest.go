@@ -18,6 +18,7 @@ type PageRequest struct {
 	RequestID string
 	RelPath   string
 	RelURI    string
+	IsAPI     bool
 	Title     string
 	renderer  LayoutRenderer
 }
