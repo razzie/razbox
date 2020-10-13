@@ -1,9 +1,33 @@
+<script>
+function _(el) {
+	return document.getElementById(el);
+}
+function deleteFile(filename) {
+	if (!confirm('Are you sure?')) {
+		return false;
+	}
+	let xhr = new XMLHttpRequest();
+	xhr.open('GET', '/api/delete/' + filename);
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState !== 4) return;
+		if (xhr.status === 200) {
+			_('gallery-item-' + filename).remove()
+		}
+		else {
+			console.log('/api/delete/' + filename, xhr.status, xhr.statusText);
+		}
+	};
+	xhr.send();
+	return false;
+}
+</script>
 <div class="grid" style="width: 90vw; max-width: 1200px">
 	{{$Redirect := .Redirect}}
 	{{$EditRedirect := .EditRedirect}}
 	{{$MaxThumbWidth := .MaxThumbWidth}}
 	{{range .Entries}}
-		<div class="grid-item" style="width: {{$MaxThumbWidth}}px; padding: 15px; text-align: center">
+		<div class="grid-item" style="width: {{$MaxThumbWidth}}px; padding: 15px; text-align: center"
+			id="gallery-item-{{.RelPath}}">
 			<a class="glightbox" href="/x/{{.RelPath}}" target="_blank">
 				<img
 					src="/thumb/{{.RelPath}}"
@@ -15,7 +39,7 @@
 				<a href="/x/{{.RelPath}}?download">&#8681;</a>
 				{{if .EditMode}}
 					<a href="/edit/{{.RelPath}}/?r={{$EditRedirect}}">&#9998;</a>
-					<a href="/delete/{{.RelPath}}/?r={{$EditRedirect}}" onclick="return confirm('Are you sure?')">&#10008;</a>
+					<a href="/delete/{{.RelPath}}/?r={{$EditRedirect}}" onclick="return deleteFile('{{.RelPath}}');">&#10008;</a>
 				{{end}}
 			</div>
 			<div style="position: relative; top: -1em;">
