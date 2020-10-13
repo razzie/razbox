@@ -27,8 +27,10 @@ func NewAPI(root string) (*API, error) {
 		}
 	}
 
+	tmpCookieExpiration := time.Hour * 24 * 7
 	return &API{
 		root:                root,
+		CookieExpiration:    &tmpCookieExpiration,
 		ThumbnailRetryAfter: time.Hour,
 		AuthsPerMin:         3,
 	}, nil
