@@ -26,6 +26,10 @@ type archivePageView struct {
 }
 
 func (v *archivePageView) addEntry(f archiver.File) error {
+	if f.IsDir() {
+		return nil
+	}
+
 	entry := &archiveEntry{
 		Name:     f.Name(),
 		Size:     f.Size(),
