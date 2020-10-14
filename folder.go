@@ -325,7 +325,6 @@ func (f *FolderEntry) updateThumbBounds(file *internal.File, thumbnailRetryAfter
 	}
 
 	if f.PrimaryType != "image" &&
-		f.PrimaryType != "video" &&
 		len(thumb.Data) == 0 &&
 		thumb.Timestamp.Add(thumbnailRetryAfter).After(time.Now()) {
 
