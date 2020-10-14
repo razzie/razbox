@@ -28,6 +28,7 @@ func NewServer(api *razbox.API, defaultFolder string) *beepboop.Server {
 		page.Gallery(api),
 		page.Thumbnail(api),
 		page.Text(api),
+		page.Archive(api),
 		page.CreateSubfolder(api),
 		page.DeleteSubfolder(api),
 	)

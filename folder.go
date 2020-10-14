@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mholt/archiver"
 	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox/internal"
 )
@@ -279,6 +280,7 @@ type FolderEntry struct {
 	EditMode      bool             `json:"edit_mode,omitempty"`
 	HasThumbnail  bool             `json:"has_thumbnail,omitempty"`
 	ThumbBounds   *ThumbnailBounds `json:"thumb_bounds,omitempty"`
+	Archive       bool             `json:"archive,omitempty"`
 }
 
 func newSubfolderEntry(uri, subfolder string) *FolderEntry {
@@ -311,6 +313,12 @@ func newFileEntry(uri string, file *internal.File, thumbnailRetryAfter time.Dura
 		HasThumbnail:  internal.IsThumbnailSupported(file.MIME),
 	}
 	entry.updateThumbBounds(file, thumbnailRetryAfter)
+	if entry.PrimaryType == "application" {
+		if iface, _ := archiver.ByExtension(file.Name); iface != nil {
+			entry.Prefix = "&#128230;"
+			entry.Archive = true
+		}
+	}
 	return entry
 }
 
@@ -320,7 +328,8 @@ func (f *FolderEntry) updateThumbBounds(file *internal.File, thumbnailRetryAfter
 		return
 	}
 
-	if !strings.HasPrefix(f.MIME, "image/") &&
+	if f.PrimaryType != "image" &&
+		f.PrimaryType != "video" &&
 		len(thumb.Data) == 0 &&
 		thumb.Timestamp.Add(thumbnailRetryAfter).After(time.Now()) {
 

@@ -1,5 +1,4 @@
 <script>
-// credit: https://www.w3schools.com/howto/howto_js_sort_table.asp
 function _(el) {
 	return document.getElementById(el);
 }
@@ -15,6 +14,7 @@ function less(x,y) {
 function greater(x,y) {
 	return parseInt(x) > parseInt(y);
 }
+// credit: https://www.w3schools.com/howto/howto_js_sort_table.asp
 function sortTable(column, comparator) {
 	var table, rows, switching, i, x, y, shouldSwitch;
 	table = _('entries');

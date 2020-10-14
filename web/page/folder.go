@@ -2,7 +2,6 @@ package page
 
 import (
 	"path"
-	"strings"
 	"time"
 
 	"github.com/razzie/beepboop"
@@ -34,8 +33,11 @@ func folderPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View
 
 	// this is a file
 	if len(entries) == 1 && !entries[0].Folder {
-		if strings.HasPrefix(entries[0].MIME, "text/") {
+		if entries[0].PrimaryType == "text" {
 			return pr.RedirectView("/text/" + folderOrFilename)
+		}
+		if entries[0].Archive {
+			return pr.RedirectView("/archive/" + folderOrFilename)
 		}
 
 		reader, err := api.OpenFile(token, folderOrFilename)

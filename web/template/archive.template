@@ -1,0 +1,30 @@
+<div style="clear: both">
+	<div style="float: right">
+		<a href="/text/{{.Folder}}/{{.Filename}}?download">&#8681; Download raw</a> |
+		<a href="/x/{{.Folder}}">Go back &#10548;</a>
+	</div>
+</div>
+<table id="entries" class="first20">
+	<style type="text/css" scoped>
+		table {
+			width: 100%;
+		}
+		@media screen and (min-width: 1200px) {
+			td {
+				min-width: 80px;
+			}
+		}
+    </style>
+    <tr>
+        <td>Name</td>
+        <td>Size</td>
+        <td>Modified</td>
+    </tr>
+    {{range .Entries}}
+        <tr>
+            <td>{{.Name}}</td>
+            <td>{{.SizeStr}}</td>
+            <td>{{.ModifiedStr}}</td>
+        </tr>
+    {{end}}
+</table>

@@ -85,6 +85,36 @@ func (api API) OpenFile(token *beepboop.AccessToken, filePath string) (*FileRead
 	return newFileReader(file)
 }
 
+// GetInternalFilename ...
+func (api API) GetInternalFilename(token *beepboop.AccessToken, filePath string) (string, error) {
+	filePath = path.Clean(filePath)
+	dir := path.Dir(filePath)
+	folder, cached, err := api.getFolder(dir)
+	if err != nil {
+		return "", &ErrNotFound{}
+	}
+	if !cached {
+		defer api.goCacheFolder(folder)
+	}
+
+	hasViewAccess := folder.EnsureReadAccess(token.AccessMap) == nil
+
+	basename := filepath.Base(filePath)
+	file, err := folder.GetFile(basename)
+	if err != nil {
+		if !hasViewAccess {
+			return "", &ErrNoReadAccess{Folder: dir}
+		}
+		return "", &ErrNotFound{}
+	}
+
+	if !hasViewAccess && !file.Public {
+		return "", &ErrNoReadAccess{Folder: dir}
+	}
+
+	return file.GetInternalFilename(), nil
+}
+
 // UploadFileOptions ...
 type UploadFileOptions struct {
 	Folder    string

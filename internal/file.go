@@ -48,9 +48,14 @@ func getFile(root, relPath string) (*File, error) {
 	return file, json.Unmarshal(data, file)
 }
 
+// GetInternalFilename ...
+func (f *File) GetInternalFilename() string {
+	return path.Join(f.Root, f.RelPath+".bin")
+}
+
 // Open ...
 func (f *File) Open() (FileReader, error) {
-	return os.Open(path.Join(f.Root, f.RelPath+".bin"))
+	return os.Open(f.GetInternalFilename())
 }
 
 // Save ...
