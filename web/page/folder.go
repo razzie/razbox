@@ -2,7 +2,6 @@ package page
 
 import (
 	"path"
-	"time"
 
 	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
@@ -69,9 +68,6 @@ func folderPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View
 		}
 		if !v.Gallery && entry.HasThumbnail {
 			v.Gallery = true
-		}
-		if !entry.Folder {
-			entry.UploadedStr = TimeElapsed(time.Now(), time.Unix(entry.Uploaded, 0), false)
 		}
 		v.Entries = append(v.Entries, entry)
 	}

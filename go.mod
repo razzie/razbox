@@ -6,6 +6,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dsnet/compress v0.0.1 // indirect
+	github.com/frankban/quicktest v1.11.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.1.1
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/google/uuid v1.1.2
@@ -14,7 +15,7 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/nwaples/rardecode v1.1.0
 	github.com/pierrec/lz4 v2.5.2+incompatible // indirect
-	github.com/razzie/beepboop v0.0.0-20201013055806-b55e81978d3d
+	github.com/razzie/beepboop v0.0.0-20201014031001-5e4f38fd7a73
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect

@@ -179,8 +179,8 @@ function deleteFile(filename) {
 					<a href="/x/{{$Folder}}/?tag={{.}}">{{.}}</a>
 				{{end}}
 			</td>
-			<td data-sortvalue="{{.Size}}">{{.SizeStr}}</td>
-			<td data-sortvalue="{{.Uploaded}}">{{.UploadedStr}}</td>
+			<td data-sortvalue="{{.Size}}">{{if not .Folder}}{{ByteCountSI .Size}}{{end}}</td>
+			<td data-sortvalue="{{.Uploaded}}">{{if not .Folder}}{{TimeElapsed .Uploaded}}{{end}}</td>
 			<td>
 				{{if not .Folder}}
 					<a href="/x/{{.RelPath}}?download">&#8681;</a>

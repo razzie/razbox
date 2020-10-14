@@ -11,15 +11,12 @@ import (
 	"github.com/nwaples/rardecode"
 	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
-	"github.com/razzie/razbox/internal"
 )
 
 type archiveEntry struct {
-	Name        string
-	Size        int64
-	SizeStr     string
-	Modified    time.Time
-	ModifiedStr string
+	Name     string
+	Size     int64
+	Modified time.Time
 }
 
 type archivePageView struct {
@@ -30,11 +27,9 @@ type archivePageView struct {
 
 func (v *archivePageView) addEntry(f archiver.File) error {
 	entry := &archiveEntry{
-		Name:        f.Name(),
-		Size:        f.Size(),
-		SizeStr:     internal.ByteCountSI(f.Size()),
-		Modified:    f.ModTime(),
-		ModifiedStr: f.ModTime().Format("Mon, 02 Jan 2006 15:04:05 MST"),
+		Name:     f.Name(),
+		Size:     f.Size(),
+		Modified: f.ModTime(),
 	}
 
 	switch h := f.Header.(type) {

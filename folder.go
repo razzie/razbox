@@ -273,9 +273,7 @@ type FolderEntry struct {
 	SecondaryType string           `json:"secondary_type,omitempty"`
 	Tags          []string         `json:"tags,omitempty"`
 	Size          int64            `json:"size,omitempty"`
-	SizeStr       string           `json:"size_str,omitempty"`
 	Uploaded      int64            `json:"uploaded,omitempty"`
-	UploadedStr   string           `json:"uploaded_str,omitempty"`
 	Public        bool             `json:"public,omitempty"`
 	EditMode      bool             `json:"edit_mode,omitempty"`
 	HasThumbnail  bool             `json:"has_thumbnail,omitempty"`
@@ -306,9 +304,7 @@ func newFileEntry(uri string, file *internal.File, thumbnailRetryAfter time.Dura
 		SecondaryType: typ[1],
 		Tags:          file.Tags,
 		Size:          file.Size,
-		SizeStr:       internal.ByteCountSI(file.Size),
 		Uploaded:      file.Uploaded.Unix(),
-		UploadedStr:   file.Uploaded.Format("Mon, 02 Jan 2006 15:04:05 MST"),
 		Public:        file.Public,
 		HasThumbnail:  internal.IsThumbnailSupported(file.MIME),
 	}

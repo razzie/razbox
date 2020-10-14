@@ -23,8 +23,8 @@
     {{range .Entries}}
         <tr>
             <td>{{.Name}}</td>
-            <td>{{.SizeStr}}</td>
-            <td>{{.ModifiedStr}}</td>
+            <td>{{ByteCountSI .Size}}</td>
+            <td>{{.Modified.Format "Mon, 02 Jan 2006 15:04:05 MST"}}</td>
         </tr>
     {{end}}
 </table>
