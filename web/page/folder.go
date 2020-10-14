@@ -32,18 +32,20 @@ func folderPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View
 
 	// this is a file
 	if len(entries) == 1 && !entries[0].Folder {
-		if entries[0].PrimaryType == "text" {
-			return pr.RedirectView("/text/" + folderOrFilename)
-		}
-		if entries[0].Archive {
-			return pr.RedirectView("/archive/" + folderOrFilename)
+		_, download := r.URL.Query()["download"]
+		if !download {
+			if entries[0].PrimaryType == "text" {
+				return pr.RedirectView("/text/" + folderOrFilename)
+			}
+			if entries[0].Archive {
+				return pr.RedirectView("/archive/" + folderOrFilename)
+			}
 		}
 
 		reader, err := api.OpenFile(token, folderOrFilename)
 		if err != nil {
 			return HandleError(r, err)
 		}
-		_, download := r.URL.Query()["download"]
 		if download {
 			return ServeFileAsAttachmentAsync(r, reader)
 		}

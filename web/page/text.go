@@ -26,10 +26,6 @@ func textPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	if err != nil {
 		return HandleError(r, err)
 	}
-	_, download := r.URL.Query()["download"]
-	if download {
-		return ServeFileAsAttachmentAsync(r, file)
-	}
 	defer file.Close()
 
 	if !strings.HasPrefix(file.MIME, "text/") {
