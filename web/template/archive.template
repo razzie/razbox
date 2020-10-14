@@ -1,6 +1,6 @@
 <div style="clear: both">
 	<div style="float: right">
-		<a href="/x/{{.Folder}}/{{.Filename}}?download">&#8681; Download raw</a> |
+		<a href="/x/{{.Folder}}/{{.Filename}}?download">&#8681; Download</a> |
 		<a href="/x/{{.Folder}}">Go back &#10548;</a>
 	</div>
 </div>
