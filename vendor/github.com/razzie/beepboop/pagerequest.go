@@ -34,8 +34,9 @@ func (r *PageRequest) logRequest() {
 	ua := user_agent.New(r.Request.UserAgent())
 	browser, ver := ua.Browser()
 
-	logmsg := fmt.Sprintf("[%s]: %s\n - IP: %s\n - hostnames: %s\n - browser: %s",
+	logmsg := fmt.Sprintf("[%s]: %s %s\n - IP: %s\n - hostnames: %s\n - browser: %s",
 		r.RequestID,
+		r.Request.Method,
 		r.Request.URL.Path,
 		ip,
 		strings.Join(hostnames, ", "),

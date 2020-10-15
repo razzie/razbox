@@ -7,5 +7,5 @@ require (
 	github.com/mo7zayed/reqip v0.0.0-20200520084230-ae375eb9322b
 	github.com/mssola/user_agent v0.5.2
 	github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8
-	github.com/rs/xid v1.2.1
+	github.com/tjarratt/babble v0.0.0-20191209142150-eecdf8c2339d
 )

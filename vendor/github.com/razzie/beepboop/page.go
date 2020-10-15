@@ -3,8 +3,6 @@ package beepboop
 import (
 	"net/http"
 	"strings"
-
-	"github.com/rs/xid"
 )
 
 // Page ...
@@ -45,7 +43,7 @@ func (page *Page) newPageRequest(r *http.Request, renderer LayoutRenderer, ctx *
 	return &PageRequest{
 		Context:   ctx,
 		Request:   r,
-		RequestID: xid.New().String(),
+		RequestID: UniqueID(),
 		RelPath:   strings.TrimPrefix(r.URL.Path, page.Path),
 		RelURI:    strings.TrimPrefix(r.RequestURI, page.Path),
 		IsAPI:     false,

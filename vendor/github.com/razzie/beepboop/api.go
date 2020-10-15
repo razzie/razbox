@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
-
-	"github.com/rs/xid"
 )
 
 // API is lightweight frontend-less version of a page
@@ -44,7 +42,7 @@ func (api *API) newPageRequest(r *http.Request, ctx *Context) *PageRequest {
 	return &PageRequest{
 		Context:   ctx,
 		Request:   r,
-		RequestID: xid.New().String(),
+		RequestID: UniqueID(),
 		RelPath:   strings.TrimPrefix(r.URL.Path, api.Path),
 		RelURI:    strings.TrimPrefix(r.RequestURI, api.Path),
 		IsAPI:     true,

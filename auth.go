@@ -1,7 +1,6 @@
 package razbox
 
 import (
-	"github.com/google/uuid"
 	"github.com/razzie/beepboop"
 )
 
@@ -27,12 +26,7 @@ func (api API) Auth(pr *beepboop.PageRequest, folderName, accessType, password s
 				token.AccessMap.Merge(sessToken.AccessMap)
 			}
 		} else {
-			newSessionID, err := uuid.NewRandom()
-			if err != nil {
-				pr.Log("session ID gen err:", err)
-			} else {
-				sessionID = newSessionID.String()
-			}
+			sessionID = pr.RequestID
 		}
 	}
 
