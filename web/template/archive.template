@@ -14,19 +14,19 @@
 				min-width: 80px;
 			}
 		}
-    </style>
-    <tr>
-        <td>Name</td>
-        <td>Size</td>
-        <td>Modified</td>
-    </tr>
+	</style>
+	<tr>
+		<td>Name</td>
+		<td>Size</td>
+		<td>Modified</td>
+	</tr>
 	{{$Folder := .Folder}}
 	{{$Filename := .Filename}}
-    {{range .Entries}}
-        <tr>
-            <td><a href="/archive/{{$Folder}}/{{$Filename}}?download={{.Name}}">{{.Name}}</a></td>
-            <td>{{ByteCountSI .Size}}</td>
-            <td>{{.Modified.Format "Mon, 02 Jan 2006 15:04:05 MST"}}</td>
-        </tr>
-    {{end}}
+	{{range .Entries}}
+		<tr>
+			<td><a href="/archive/{{$Folder}}/{{$Filename}}?download={{.Name}}">{{.Name}}</a></td>
+			<td>{{ByteCountSI .Size}}</td>
+			<td>{{.Modified.Format "Mon, 02 Jan 2006 15:04:05 MST"}}</td>
+		</tr>
+	{{end}}
 </table>
