@@ -37,7 +37,7 @@ func (r *PageRequest) logRequest() {
 	logmsg := fmt.Sprintf("[%s]: %s %s\n - IP: %s\n - hostnames: %s\n - browser: %s",
 		r.RequestID,
 		r.Request.Method,
-		r.Request.URL.Path,
+		r.Request.RequestURI,
 		ip,
 		strings.Join(hostnames, ", "),
 		fmt.Sprintf("%s %s %s", ua.OS(), browser, ver))

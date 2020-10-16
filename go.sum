@@ -60,14 +60,10 @@ github.com/pierrec/lz4 v2.5.2+incompatible h1:WCjObylUIOlKy/+7Abdn34TLIkXiA4UWUM
 github.com/pierrec/lz4 v2.5.2+incompatible/go.mod h1:pdkljMzZIN41W+lC3N2tnIh5sFi+IEE17M5jbnwPHcY=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/razzie/babble v0.0.0-20201015035939-3d03da02e3ea h1:4v500uCKxGzS+CjEZz/ORqgkL72BbPithZPoo7nZPdc=
-github.com/razzie/babble v0.0.0-20201015035939-3d03da02e3ea/go.mod h1:wvMAgH5y/Ps0KJu0ZRDzISGETlgUpHvKczllq0aHGFE=
 github.com/razzie/babble v0.0.0-20201015224220-210f32b7a231 h1:+idxFsIjkAY9jL00CxwNbnkmVyA3BjcEJ08zeRq+Q5o=
 github.com/razzie/babble v0.0.0-20201015224220-210f32b7a231/go.mod h1:wvMAgH5y/Ps0KJu0ZRDzISGETlgUpHvKczllq0aHGFE=
-github.com/razzie/beepboop v0.0.0-20201015040206-77987692837c h1:NelXc5gmjlh0ciwTBATCd0etOxfgg2ujqkqZrqg+5oI=
-github.com/razzie/beepboop v0.0.0-20201015040206-77987692837c/go.mod h1:6WAebzgHUJzRaPbvxZHB+B5q6RpClzDpMd0/B9LThEs=
-github.com/razzie/beepboop v0.0.0-20201015224455-acd266525005 h1:qg8jRcWYL20+xC9qXdWgTD40H5zSQtA60SSM6xPHOH4=
-github.com/razzie/beepboop v0.0.0-20201015224455-acd266525005/go.mod h1:sV3oq3oaeMrLvrtPinYmxKgivtYvXWRYuoW5ym2ak7g=
+github.com/razzie/beepboop v0.0.0-20201016012511-a3966d425485 h1:5vzKqd8dmFISl2MMBvYY8ZA+3yREiC3KBz9KSQdMleQ=
+github.com/razzie/beepboop v0.0.0-20201016012511-a3966d425485/go.mod h1:sV3oq3oaeMrLvrtPinYmxKgivtYvXWRYuoW5ym2ak7g=
 github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8 h1:JtDgeCbamFUKWFIIbVhsGQ/fVDklmbprEHeCPWmGIvE=
 github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8/go.mod h1:H1xjjW4QbZdPyvvx7BImgKhOEKEd/qd1fTBD8FYXu/s=
 github.com/stretchr/objx v0.1.0 h1:4G4v2dO3VZwixGIRoQ5Lfboy6nUhCyYzaqnIAPPhYs4=

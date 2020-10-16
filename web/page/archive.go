@@ -3,8 +3,12 @@ package page
 import (
 	"archive/tar"
 	"archive/zip"
+	"fmt"
+	"io"
+	"net/http"
 	"path"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/mholt/archiver"
@@ -30,23 +34,40 @@ func (v *archivePageView) addEntry(f archiver.File) error {
 		return nil
 	}
 
-	entry := &archiveEntry{
-		Name:     f.Name(),
+	v.Entries = append(v.Entries, &archiveEntry{
+		Name:     archiveGetFilename(f),
 		Size:     f.Size(),
 		Modified: f.ModTime(),
-	}
+	})
+	return nil
+}
 
+func archiveGetFilename(f archiver.File) string {
 	switch h := f.Header.(type) {
 	case zip.FileHeader:
-		entry.Name = h.Name
+		return h.Name
 	case *tar.Header:
-		entry.Name = h.Name
+		return h.Name
 	case *rardecode.FileHeader:
-		entry.Name = h.Name
+		return h.Name
+	default:
+		return f.Name()
 	}
+}
 
-	v.Entries = append(v.Entries, entry)
-	return nil
+func archiveDownloadFile(archive, filename string, walker archiver.Walker) *beepboop.View {
+	return beepboop.HandlerView(nil, func(w http.ResponseWriter, r *http.Request) {
+		walker.Walk(archive, func(f archiver.File) error {
+			if archiveGetFilename(f) == filename {
+				w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", f.Name()))
+				w.Header().Set("Content-Type", "application/octet-stream")
+				w.Header().Set("Content-Length", strconv.FormatInt(f.Size(), 10))
+				io.Copy(w, f)
+				return archiver.ErrStopWalk
+			}
+			return nil
+		})
+	})
 }
 
 func archivePageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
@@ -69,6 +90,11 @@ func archivePageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vie
 	if !ok {
 		pr.Log("archive error: walk not supported for format:", iface)
 		return pr.RedirectView("/x/" + filename)
+	}
+
+	download := r.URL.Query().Get("download")
+	if len(download) > 0 {
+		return archiveDownloadFile(internalFilename, download, w)
 	}
 
 	pr.Title = filename
