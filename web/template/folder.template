@@ -160,7 +160,9 @@ function deleteFile(filename) {
 		{{end}}
 		<tr id="folder-item-{{.RelPath}}" data-isfolder="{{.Folder}}">
 			<td data-sortvalue="{{.Name}}">
-				{{.Prefix}} <a {{if eq .PrimaryType "image"}}class="glightbox"{{end}} href="/x/{{.RelPath}}">{{.Name}}</a>
+				{{.Prefix}}
+				<a href="/x/{{.RelPath}}"
+					{{if or (eq .PrimaryType "image") (eq .PrimaryType "video")}}class="glightbox"{{end}}>{{.Name}}</a>
 				{{if .Public}}<small>[public]</small>{{end}}
 			</td>
 			<td data-sortvalue="{{.MIME}}">
