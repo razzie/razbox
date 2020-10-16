@@ -52,13 +52,7 @@ function deleteFile(filename) {
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState !== 4) return;
 		if (xhr.status === 200) {
-			var rows = _('entries').rows;
-			for (i = 1; i < (rows.length - 1); i++) {
-				if (rows[i].getElementsByTagName('TD')[0].dataset.relpath == filename) {
-					rows[i].remove();
-					return false;
-				}
-			}
+			_('folder-item-' + filename).remove()
 		}
 		else {
 			console.log('/api/delete/' + filename, xhr.status, xhr.statusText);
@@ -164,8 +158,8 @@ function deleteFile(filename) {
 				<td colspan="6" style="text-align: center"><a href="javascript:toggleFirst20()">Show more/less</a></td>
 			</tr>
 		{{end}}
-		<tr data-isfolder="{{.Folder}}">
-			<td data-sortvalue="{{.Name}}" data-relpath="{{.RelPath}}">
+		<tr id="folder-item-{{.RelPath}}" data-isfolder="{{.Folder}}">
+			<td data-sortvalue="{{.Name}}">
 				{{.Prefix}} <a {{if eq .PrimaryType "image"}}class="glightbox"{{end}} href="/x/{{.RelPath}}">{{.Name}}</a>
 				{{if .Public}}<small>[public]</small>{{end}}
 			</td>
