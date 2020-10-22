@@ -2,11 +2,21 @@ package beepboop
 
 import (
 	"fmt"
+	"html/template"
 	"math"
 	"strconv"
 	"strings"
 	"time"
 )
+
+// TemplateFuncs is beepboop's built in template FuncMap
+var TemplateFuncs = template.FuncMap{
+	"TimeElapsed": func(then int64) string {
+		return TimeElapsed(time.Now(), time.Unix(then, 0), false)
+	},
+	"ByteCountSI":  ByteCountSI,
+	"ByteCountIEC": ByteCountIEC,
+}
 
 func s(x float64) string {
 	if int(x) == 1 {

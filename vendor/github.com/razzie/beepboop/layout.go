@@ -4,7 +4,6 @@ import (
 	"html/template"
 	"net/http"
 	"strings"
-	"time"
 )
 
 var styleT = `
@@ -152,17 +151,9 @@ type Layout interface {
 type LayoutRenderer func(w http.ResponseWriter, r *http.Request, title string, data interface{}, statusCode int)
 
 // DefaultLayout is razlink's default layout
-var DefaultLayout Layout = (*layout)(template.Must(template.New("layout").Funcs(templateFuncs).Parse(layoutT)))
+var DefaultLayout Layout = (*layout)(template.Must(template.New("layout").Funcs(TemplateFuncs).Parse(layoutT)))
 
 type layout template.Template
-
-var templateFuncs = template.FuncMap{
-	"TimeElapsed": func(then int64) string {
-		return TimeElapsed(time.Now(), time.Unix(then, 0), false)
-	},
-	"ByteCountSI":  ByteCountSI,
-	"ByteCountIEC": ByteCountIEC,
-}
 
 // BindTemplate creates a layout renderer function from a page template
 func (l *layout) BindTemplate(pageTemplate string, stylesheets, scripts []string, meta map[string]string) (LayoutRenderer, error) {

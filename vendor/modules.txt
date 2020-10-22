@@ -9,6 +9,8 @@ github.com/dsnet/compress/bzip2/internal/sais
 github.com/dsnet/compress/internal
 github.com/dsnet/compress/internal/errors
 github.com/dsnet/compress/internal/prefix
+# github.com/elazarl/go-bindata-assetfs v1.0.1
+github.com/elazarl/go-bindata-assetfs
 # github.com/gabriel-vasile/mimetype v1.1.1
 github.com/gabriel-vasile/mimetype
 github.com/gabriel-vasile/mimetype/internal/json
@@ -50,7 +52,7 @@ github.com/pierrec/lz4
 github.com/pierrec/lz4/internal/xxh32
 # github.com/razzie/babble v0.0.0-20201015224220-210f32b7a231
 github.com/razzie/babble
-# github.com/razzie/beepboop v0.0.0-20201016012511-a3966d425485
+# github.com/razzie/beepboop v0.0.0-20201022203429-35e314ca3b1a
 github.com/razzie/beepboop
 # github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8
 github.com/razzie/geoip-server/client

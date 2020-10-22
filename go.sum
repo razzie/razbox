@@ -10,6 +10,8 @@ github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/dsnet/compress v0.0.1 h1:PlZu0n3Tuv04TzpfPbrnI0HW/YwodEXDS+oPKahKF0Q=
 github.com/dsnet/compress v0.0.1/go.mod h1:Aw8dCMJ7RioblQeTqt88akK31OvO8Dhf5JflhBbQEHo=
 github.com/dsnet/golib v0.0.0-20171103203638-1ea166775780/go.mod h1:Lj+Z9rebOhdfkVLjJ8T6VcRQv3SXugXy999NBtR9aFY=
+github.com/elazarl/go-bindata-assetfs v1.0.1 h1:m0kkaHRKEu7tUIUFVwhGGGYClXvyl4RE03qmvRTNfbw=
+github.com/elazarl/go-bindata-assetfs v1.0.1/go.mod h1:v+YaWX3bdea5J/mo8dSETolEo7R71Vk1u8bnjau5yw4=
 github.com/frankban/quicktest v1.11.1 h1:stwUsXhUGliQs9t0ZS39BWCltFdOHgABiIlihop8AD4=
 github.com/frankban/quicktest v1.11.1/go.mod h1:K+q6oSqb0W0Ininfk863uOk1lMy69l/P6txr3mVT54s=
 github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=
@@ -62,8 +64,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/razzie/babble v0.0.0-20201015224220-210f32b7a231 h1:+idxFsIjkAY9jL00CxwNbnkmVyA3BjcEJ08zeRq+Q5o=
 github.com/razzie/babble v0.0.0-20201015224220-210f32b7a231/go.mod h1:wvMAgH5y/Ps0KJu0ZRDzISGETlgUpHvKczllq0aHGFE=
-github.com/razzie/beepboop v0.0.0-20201016012511-a3966d425485 h1:5vzKqd8dmFISl2MMBvYY8ZA+3yREiC3KBz9KSQdMleQ=
-github.com/razzie/beepboop v0.0.0-20201016012511-a3966d425485/go.mod h1:sV3oq3oaeMrLvrtPinYmxKgivtYvXWRYuoW5ym2ak7g=
+github.com/razzie/beepboop v0.0.0-20201022203429-35e314ca3b1a h1:owRMqYX7fzeFMGwQytg4n2dvSie3gRfYq7nVTXLtlO0=
+github.com/razzie/beepboop v0.0.0-20201022203429-35e314ca3b1a/go.mod h1:6RAAHFiK7SwcXaOVE1+7tH18TRwwnUL6LLWUD8nEmIU=
 github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8 h1:JtDgeCbamFUKWFIIbVhsGQ/fVDklmbprEHeCPWmGIvE=
 github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8/go.mod h1:H1xjjW4QbZdPyvvx7BImgKhOEKEd/qd1fTBD8FYXu/s=
 github.com/stretchr/objx v0.1.0 h1:4G4v2dO3VZwixGIRoQ5Lfboy6nUhCyYzaqnIAPPhYs4=

@@ -2,7 +2,11 @@ package beepboop
 
 import (
 	"net/http"
+	"os"
+	"path"
 	"strings"
+
+	assetfs "github.com/elazarl/go-bindata-assetfs"
 )
 
 // Page ...
@@ -58,5 +62,33 @@ func (page *Page) addMetadata(meta map[string]string) {
 	}
 	for name, content := range meta {
 		page.Metadata[name] = content
+	}
+}
+
+// StaticAssetPage returns a page that serves static assets from a directory
+func StaticAssetPage(pagePath, assetDir string) *Page {
+	handler := func(pr *PageRequest) *View {
+		uri := path.Clean(pr.RelPath)
+		if fi, _ := os.Stat(path.Join(assetDir, uri)); fi != nil && fi.IsDir() {
+			return pr.ErrorView("Forbidden", http.StatusForbidden)
+		}
+		return pr.HandlerView(func(w http.ResponseWriter, r *http.Request) {
+			http.ServeFile(w, r, path.Join(assetDir, uri))
+		})
+	}
+	return &Page{
+		Path:    pagePath,
+		Handler: handler,
+	}
+}
+
+// AssetFSPage returns a page that serves assets from AssetFS
+func AssetFSPage(pagePath string, assets *assetfs.AssetFS) *Page {
+	handler := func(pr *PageRequest) *View {
+		return pr.HandlerView(http.FileServer(assets).ServeHTTP)
+	}
+	return &Page{
+		Path:    pagePath,
+		Handler: handler,
 	}
 }
