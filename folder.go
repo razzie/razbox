@@ -398,7 +398,7 @@ func (api API) GetFolderEntries(token *beepboop.AccessToken, folderOrFilename st
 	}
 
 	var entries []*FolderEntry
-	if len(folder.RelPath) > 0 {
+	if folder.ConfigInherited {
 		entries = append(entries, newSubfolderEntry(folderOrFilename, ".."))
 	}
 	for _, subfolder := range folder.GetSubfolders() {
