@@ -11,7 +11,7 @@ services:
       - ./uploads:/uploads
     working_dir: /app
     environment:
-      - VIRTUAL_HOST=box.gorzsony.com
+      - VIRTUAL_HOST=razbox.xyz
       - VIRTUAL_PORT=8080
     command: go run -mod=vendor ./cmd/razbox -root /uploads -redis-addr redis:6379
 
