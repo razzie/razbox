@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	geoclient "github.com/razzie/geoip-server/client"
 	"github.com/razzie/geoip-server/geoip"
@@ -20,17 +21,18 @@ type Server struct {
 	DB          *DB
 	Logger      *log.Logger
 	GeoIPClient geoip.Client
+	Limiters    map[string]*RateLimiter
+	Middlewares []Middleware
 }
 
 // NewServer creates a new Server
 func NewServer() *Server {
 	srv := &Server{
-		FaviconPNG: favicon,
-		Metadata: map[string]string{
-			"generator": "https://github.com/razzie/beepboop",
-		},
+		FaviconPNG:  favicon,
+		Metadata:    map[string]string{"generator": "https://github.com/razzie/beepboop"},
 		Logger:      log.New(os.Stdout, "", log.LstdFlags),
 		GeoIPClient: geoclient.DefaultClient,
+		Limiters:    make(map[string]*RateLimiter),
 	}
 	srv.mux.HandleFunc("/favicon.png", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "image/png")
@@ -51,14 +53,14 @@ func (srv *Server) AddPage(page *Page) error {
 // AddPageWithLayout adds a new servable page with custom layout to the server
 func (srv *Server) AddPageWithLayout(page *Page, layout Layout) error {
 	page.addMetadata(srv.Metadata)
-	renderer, err := page.GetHandler(layout, srv.getContext())
+	renderer, err := page.GetHandler(layout, srv.getContext)
 	if err != nil {
 		return err
 	}
 
 	api := NewAPI(page)
 	srv.mux.HandleFunc(page.Path, renderer)
-	srv.mux.HandleFunc(api.Path, api.GetHandler(srv.getContext()))
+	srv.mux.HandleFunc(api.Path, api.GetHandler(srv.getContext))
 	return nil
 }
 
@@ -70,6 +72,22 @@ func (srv *Server) AddPages(pages ...*Page) {
 			panic(err)
 		}
 	}
+}
+
+// AddServiceRate limit sets up a rate limiter for a given service name
+// which can be used by page handlers and middlewares
+func (srv *Server) AddServiceRate(service string, interval time.Duration, n int) {
+	srv.Limiters[service] = NewRateLimiter(interval, n)
+}
+
+// AddMiddleware adds a middleware
+func (srv *Server) AddMiddleware(middleware Middleware) {
+	srv.Middlewares = append(srv.Middlewares, middleware)
+}
+
+// AddMiddlewares adds middlewares
+func (srv *Server) AddMiddlewares(middlewares ...Middleware) {
+	srv.Middlewares = append(srv.Middlewares, middlewares...)
 }
 
 // ConnectDB ...
@@ -87,15 +105,8 @@ func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	srv.mux.ServeHTTP(w, r)
 }
 
-func (srv *Server) getContext() ContextGetter {
-	return func(ctx context.Context) *Context {
-		return &Context{
-			Context:     ctx,
-			DB:          srv.DB,
-			Logger:      srv.Logger,
-			GeoIPClient: srv.GeoIPClient,
-		}
-	}
+func (srv *Server) getContext(ctx context.Context) *Context {
+	return newContext(ctx, srv)
 }
 
 var favicon, _ = base64.StdEncoding.DecodeString("" +

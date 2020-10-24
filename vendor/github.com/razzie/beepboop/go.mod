@@ -10,4 +10,5 @@ require (
 	github.com/razzie/babble v0.0.0-20201015224220-210f32b7a231
 	github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8
 	github.com/tjarratt/babble v0.0.0-20191209142150-eecdf8c2339d // indirect
+	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
 )

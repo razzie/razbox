@@ -21,18 +21,19 @@ type Page struct {
 }
 
 // GetHandler creates a http.HandlerFunc that uses the given layout to render the page
-func (page *Page) GetHandler(layout Layout, ctx ContextGetter) (http.HandlerFunc, error) {
+func (page *Page) GetHandler(layout Layout, getctx ContextGetter) (http.HandlerFunc, error) {
 	renderer, err := layout.BindTemplate(page.ContentTemplate, page.Stylesheets, page.Scripts, page.Metadata)
 	if err != nil {
 		return nil, err
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		pr := page.newPageRequest(r, renderer, ctx(r.Context()))
+		ctx := getctx(r.Context())
+		pr := page.newPageRequest(r, renderer, ctx)
 		go pr.logRequest()
 
-		var view *View
-		if page.Handler != nil {
+		view := ctx.runMiddlewares(pr)
+		if view == nil && page.Handler != nil {
 			view = page.Handler(pr)
 		}
 		if view == nil {

@@ -21,13 +21,14 @@ func NewAPI(page *Page) *API {
 }
 
 // GetHandler creates a http.HandlerFunc that uses Razlink layout
-func (api *API) GetHandler(ctx ContextGetter) http.HandlerFunc {
+func (api *API) GetHandler(getctx ContextGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		pr := api.newPageRequest(r, ctx(r.Context()))
+		ctx := getctx(r.Context())
+		pr := api.newPageRequest(r, ctx)
 		go pr.logRequest()
 
-		var view *View
-		if api.page.Handler != nil {
+		view := ctx.runMiddlewares(pr)
+		if view == nil && api.page.Handler != nil {
 			view = api.page.Handler(pr)
 		}
 		if view == nil {
