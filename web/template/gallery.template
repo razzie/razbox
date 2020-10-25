@@ -23,7 +23,10 @@ function deleteFile(filename) {
 </script>
 <div>
 	{{if .Search}}
-		<span style="float: left">&#128269; Search results for tag: <strong>{{.Search}}</strong></span>
+		<span style="float: left">
+			&#128269; Search results for tag: <strong>{{.Search}}</strong>
+			(<a href="/gallery/{{.Folder}}">clear search</a>)
+		</span>
 	{{end}}
 	<span style="float: right">&#128194; <a href="{{.Redirect}}">View folder content</a></span>
 </div>
