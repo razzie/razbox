@@ -108,7 +108,7 @@ function deleteFile(filename) {
 			left: 0;
 			bottom: 0.5em;
 		}
-		table.first20 > tbody > tr:nth-child(n+22):not(.first20_ignore) > td {
+		table.first20 > tbody > tr:nth-child(n+23) > td {
 			display: none !important;
 		}
 	</style>
@@ -152,9 +152,10 @@ function deleteFile(filename) {
 	</tr>
 	{{$Folder := .Folder}}
 	{{$Redirect := .Redirect}}
+	{{$EntryCount := len .Entries}}
 	{{range $i, $e := .Entries}}
-		{{if eq $i 20}}
-			<tr class="first20_ignore">
+		{{if and (gt $EntryCount 20) (eq $i 20)}}
+			<tr>
 				<td colspan="6" style="text-align: center"><a href="javascript:toggleFirst20()">Show more/less</a></td>
 			</tr>
 		{{end}}
