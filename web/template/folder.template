@@ -77,14 +77,25 @@ function deleteFile(filename) {
 		table {
 			width: 100%;
 		}
+		td {
+			text-overflow: ellipsis;
+			overflow: hidden;
+			white-space: nowrap;
+		}
 		@media screen and (min-width: 1200px) {
 			td:not(:last-child) {
 				min-width: 80px;
+			}
+			.hiddentag {
+				display: none;
 			}
 		}
 		@media screen and (max-width: 1200px) {
 			td:nth-child(2) {
 				display: none;
+			}
+			td {
+				max-width: 300px;
 			}
 		}
 		sup, sub {
@@ -172,6 +183,9 @@ function deleteFile(filename) {
 				{{end}}
 			</td>
 			<td data-sortvalue="{{range .Tags}}{{.}} {{end}}">
+				{{if .MIME}}
+					<a href="/x/{{$Folder}}/?tag={{.PrimaryType}}" class="hiddentag">{{.PrimaryType}}</a>
+				{{end}}
 				{{range .Tags}}
 					<a href="/x/{{$Folder}}/?tag={{.}}">{{.}}</a>
 				{{end}}
