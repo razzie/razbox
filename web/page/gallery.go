@@ -10,6 +10,7 @@ import (
 
 type galleryPageView struct {
 	Folder        string                `json:"folder,omitempty"`
+	Search        string                `json:"search,omitempty"`
 	Entries       []*razbox.FolderEntry `json:"entries,omitempty"`
 	Redirect      string                `json:"redirect,omitempty"`
 	EditRedirect  string                `json:"edit_redirect,omitempty"`
@@ -23,6 +24,7 @@ func galleryPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vie
 	tag := r.URL.Query().Get("tag")
 	v := &galleryPageView{
 		Folder:        uri,
+		Search:        tag,
 		Redirect:      "/x/" + uri,
 		EditRedirect:  r.URL.RequestURI(),
 		MaxThumbWidth: maxThumbWidth,

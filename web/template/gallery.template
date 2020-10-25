@@ -21,7 +21,15 @@ function deleteFile(filename) {
 	return false;
 }
 </script>
+<div>
+	{{if .Search}}
+		<span style="float: left">&#128269; Search results for tag: <strong>{{.Search}}</strong></span>
+	{{end}}
+	<span style="float: right">&#128194; <a href="{{.Redirect}}">View folder content</a></span>
+</div>
+<div style="clear: both; margin-bottom: 1rem"></div>
 <div class="grid" style="width: 90vw; max-width: 1200px">
+	{{$Folder := .Folder}}
 	{{$Redirect := .Redirect}}
 	{{$EditRedirect := .EditRedirect}}
 	{{$MaxThumbWidth := .MaxThumbWidth}}
@@ -43,13 +51,17 @@ function deleteFile(filename) {
 				{{end}}
 			</div>
 			<div style="position: relative; top: -1em;">
-				<small>{{.Name}}</small>
+				<small>
+					{{.Name}}<br />
+					tags:
+					<a href="/gallery/{{$Folder}}/?tag={{.PrimaryType}}">{{.PrimaryType}}</a>
+					{{range .Tags}}
+						<a href="/gallery/{{$Folder}}/?tag={{.}}">{{.}}</a>
+					{{end}}
+				</small>
 			</div>
 		</div>
 	{{end}}
-</div>
-<div style="text-align: right">
-	<a href="{{.Redirect}}">Go back &#10548;</a>
 </div>
 <script>
 var msnry = new Masonry('.grid', {
