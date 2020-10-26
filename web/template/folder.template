@@ -41,7 +41,9 @@ function sortTable(column, comparator) {
 	}
 }
 function toggleFirst20() {
-	_("entries").classList.toggle('first20');
+	_('entries').classList.toggle('first20');
+	_('top').classList.toggle('hidden')
+	_('bottom').classList.toggle('hidden')
 }
 function deleteFile(filename) {
 	if (!confirm('Are you sure?')) {
@@ -62,8 +64,31 @@ function deleteFile(filename) {
 	return false;
 }
 </script>
-<div style="text-align: center; margin-bottom: -1em">
-	<a href="{{.Redirect}}#controls" style="text-decoration: none; position: relative; top: -1.25em">&#9660;</a>
+<style type="text/css" scoped>
+	#top {
+		text-align: center;
+		margin-bottom: -1em;
+	}
+	#top > a {
+		text-decoration: none;
+		position: relative;
+		top: -1.25em;
+	}
+	#bottom {
+		text-align: center;
+		margin-top: -1em;
+	}
+	#bottom > a {
+		text-decoration: none;
+		position: relative;
+		bottom: -1.25em;
+	}
+	.hidden {
+		display: none;
+	}
+</style>
+<div id="top" class="hidden">
+	<a href="{{.URI}}#bottom">&#9660;</a>
 </div>
 {{if .Search}}
 	<div>
@@ -130,42 +155,42 @@ function deleteFile(filename) {
 		<td>
 			Name
 			<span class="sort">
-				<sup><a href="{{.Redirect}}#" onclick="sortTable(0, strless)">&#9650;</a></sup>
-				<sub><a href="{{.Redirect}}#" onclick="sortTable(0, strgreater)">&#9660;</a></sub>
+				<sup><a href="{{.URI}}#" onclick="sortTable(0, strless)">&#9650;</a></sup>
+				<sub><a href="{{.URI}}#" onclick="sortTable(0, strgreater)">&#9660;</a></sub>
 			</span>
 		</td>
 		<td>
 			Type
 			<span class="sort">
-				<sup><a href="{{.Redirect}}#" onclick="sortTable(1, strless)">&#9650;</a></sup>
-				<sub><a href="{{.Redirect}}#" onclick="sortTable(1, strgreater)">&#9660;</a></sub>
+				<sup><a href="{{.URI}}#" onclick="sortTable(1, strless)">&#9650;</a></sup>
+				<sub><a href="{{.URI}}#" onclick="sortTable(1, strgreater)">&#9660;</a></sub>
 			</span>
 		</td>
 		<td>
 			Tags
 			<span class="sort">
-				<sup><a href="{{.Redirect}}#" onclick="sortTable(2, strless)">&#9650;</a></sup>
-				<sub><a href="{{.Redirect}}#" onclick="sortTable(2, strgreater)">&#9660;</a></sub>
+				<sup><a href="{{.URI}}#" onclick="sortTable(2, strless)">&#9650;</a></sup>
+				<sub><a href="{{.URI}}#" onclick="sortTable(2, strgreater)">&#9660;</a></sub>
 			</span>
 		</td>
 		<td>
 			Size
 			<span class="sort">
-				<sup><a href="{{.Redirect}}#" onclick="sortTable(3, less)">&#9650;</a></sup>
-				<sub><a href="{{.Redirect}}#" onclick="sortTable(3, greater)">&#9660;</a></sub>
+				<sup><a href="{{.URI}}#" onclick="sortTable(3, less)">&#9650;</a></sup>
+				<sub><a href="{{.URI}}#" onclick="sortTable(3, greater)">&#9660;</a></sub>
 			</span>
 		</td>
 		<td>
 			Uploaded
 			<span class="sort">
-				<sup><a href="{{.Redirect}}#" onclick="sortTable(4, less)">&#9650;</a></sup>
-				<sub><a href="{{.Redirect}}#" onclick="sortTable(4, greater)">&#9660;</a></sub>
+				<sup><a href="{{.URI}}#" onclick="sortTable(4, less)">&#9650;</a></sup>
+				<sub><a href="{{.URI}}#" onclick="sortTable(4, greater)">&#9660;</a></sub>
 			</span>
 		</td>
 		<td></td>
 	</tr>
 	{{$Folder := .Folder}}
-	{{$Redirect := .Redirect}}
+	{{$URI := .URI}}
 	{{$EntryCount := len .Entries}}
 	{{range $i, $e := .Entries}}
 		{{if and (gt $EntryCount 20) (eq $i 20)}}
@@ -200,8 +225,8 @@ function deleteFile(filename) {
 					<a href="/x/{{.RelPath}}?download">&#8681;</a>
 				{{end}}
 				{{if .EditMode}}
-					<a href="/edit/{{.RelPath}}/?r={{$Redirect}}">&#9998;</a>
-					<a href="/delete/{{.RelPath}}/?r={{$Redirect}}" onclick="return deleteFile('{{.RelPath}}');">&#10008;</a>
+					<a href="/edit/{{.RelPath}}/?r={{$URI}}">&#9998;</a>
+					<a href="/delete/{{.RelPath}}/?r={{$URI}}" onclick="return deleteFile('{{.RelPath}}');">&#10008;</a>
 				{{end}}
 			</td>
 		</tr>
@@ -234,6 +259,9 @@ function deleteFile(filename) {
 			<button formaction="/gallery/{{.Folder}}"{{if not .Gallery}} disabled{{end}}>Gallery</button>
 		{{end}}
 	</form>
+</div>
+<div id="bottom" class="hidden">
+	<a href="{{.URI}}#top">&#9650;</a>
 </div>
 <script>
 	var lightbox = GLightbox();

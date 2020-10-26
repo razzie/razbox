@@ -1,7 +1,6 @@
 package page
 
 import (
-	"fmt"
 	"path"
 
 	"github.com/razzie/beepboop"
@@ -12,8 +11,7 @@ type galleryPageView struct {
 	Folder        string                `json:"folder,omitempty"`
 	Search        string                `json:"search,omitempty"`
 	Entries       []*razbox.FolderEntry `json:"entries,omitempty"`
-	Redirect      string                `json:"redirect,omitempty"`
-	EditRedirect  string                `json:"edit_redirect,omitempty"`
+	URI           string                `json:"uri,omitempty"`
 	MaxThumbWidth uint                  `json:"max_thumb_width,omitempty"`
 }
 
@@ -25,12 +23,8 @@ func galleryPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vie
 	v := &galleryPageView{
 		Folder:        uri,
 		Search:        tag,
-		Redirect:      "/x/" + uri,
-		EditRedirect:  r.URL.RequestURI(),
+		URI:           r.URL.RequestURI(),
 		MaxThumbWidth: maxThumbWidth,
-	}
-	if len(tag) > 0 {
-		v.Redirect = fmt.Sprintf("/x/%s/?tag=%s", uri, tag)
 	}
 
 	token := beepboop.NewAccessTokenFromRequest(pr)

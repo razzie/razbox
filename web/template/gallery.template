@@ -21,20 +21,47 @@ function deleteFile(filename) {
 	return false;
 }
 </script>
+{{$EntryCount := len .Entries}}
+{{if gt $EntryCount 20}}
+	<style type="text/css" scoped>
+		#top {
+			text-align: center;
+			margin-bottom: -1em;
+		}
+		#top > a {
+			text-decoration: none;
+			position: relative;
+			top: -1.25em;
+		}
+		#bottom {
+			text-align: center;
+			margin-top: -1em;
+		}
+		#bottom > a {
+			text-decoration: none;
+			position: relative;
+			bottom: -1.25em;
+		}
+	</style>
+	<div id="top">
+		<a href="{{.URI}}#bottom">&#9660;</a>
+	</div>
+{{end}}
 <div>
 	{{if .Search}}
 		<span style="float: left">
 			&#128269; Search results for tag: <strong>{{.Search}}</strong>
 			(<a href="/gallery/{{.Folder}}">clear search</a>)
 		</span>
+		<span style="float: right">&#128194; <a href="/x/{{.Folder}}?tag={{.Search}}">View folder content</a></span>
+	{{else}}
+		<span style="float: right">&#128194; <a href="/x/{{.Folder}}">View folder content</a></span>
 	{{end}}
-	<span style="float: right">&#128194; <a href="{{.Redirect}}">View folder content</a></span>
 </div>
 <div style="clear: both; margin-bottom: 1rem"></div>
 <div class="grid" style="width: 90vw; max-width: 1200px">
 	{{$Folder := .Folder}}
-	{{$Redirect := .Redirect}}
-	{{$EditRedirect := .EditRedirect}}
+	{{$URI := .URI}}
 	{{$MaxThumbWidth := .MaxThumbWidth}}
 	{{range .Entries}}
 		<div class="grid-item" style="width: {{$MaxThumbWidth}}px; padding: 15px; text-align: center"
@@ -49,8 +76,8 @@ function deleteFile(filename) {
 			<div style="position: relative; top: -2em; background-color: rgba(255,255,255,0.5);">
 				<a href="/x/{{.RelPath}}?download">&#8681;</a>
 				{{if .EditMode}}
-					<a href="/edit/{{.RelPath}}/?r={{$EditRedirect}}">&#9998;</a>
-					<a href="/delete/{{.RelPath}}/?r={{$EditRedirect}}" onclick="return deleteFile('{{.RelPath}}');">&#10008;</a>
+					<a href="/edit/{{.RelPath}}/?r={{$URI}}">&#9998;</a>
+					<a href="/delete/{{.RelPath}}/?r={{$URI}}" onclick="return deleteFile('{{.RelPath}}');">&#10008;</a>
 				{{end}}
 			</div>
 			<div style="position: relative; top: -1em;">
@@ -66,6 +93,11 @@ function deleteFile(filename) {
 		</div>
 	{{end}}
 </div>
+{{if gt $EntryCount 20}}
+	<div id="bottom">
+		<a href="{{.URI}}#top">&#9650;</a>
+	</div>
+{{end}}
 <script>
 var msnry = new Masonry('.grid', {
 	itemSelector: '.grid-item',
