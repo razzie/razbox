@@ -29,24 +29,27 @@ func (r *PageRequest) logRequest() {
 		ip, _, _ = net.SplitHostPort(r.Request.RemoteAddr)
 	}
 
-	hostnames, _ := net.LookupAddr(ip)
-
 	ua := user_agent.New(r.Request.UserAgent())
 	browser, ver := ua.Browser()
 
-	logmsg := fmt.Sprintf("[%s]: %s %s\n - IP: %s\n - hostnames: %s\n - browser: %s",
+	logmsg := fmt.Sprintf("[%s]: %s %s\n - IP: %s\n - browser: %s",
 		r.RequestID,
 		r.Request.Method,
 		r.Request.RequestURI,
 		ip,
-		strings.Join(hostnames, ", "),
 		fmt.Sprintf("%s %s %s", ua.OS(), browser, ver))
 
+	var hasLocation bool
 	if r.Context.GeoIPClient != nil {
 		loc, _ := r.Context.GeoIPClient.GetLocation(context.Background(), ip)
 		if loc != nil {
+			hasLocation = true
 			logmsg += "\n - location: " + loc.String()
 		}
+	}
+	if !hasLocation {
+		hostnames, _ := net.LookupAddr(ip)
+		logmsg += "\n - hostnames: " + strings.Join(hostnames, ", ")
 	}
 
 	session, _ := r.Request.Cookie("session")
