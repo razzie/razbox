@@ -1,3 +1,39 @@
+<script>
+function _(el) {
+	return document.getElementById(el);
+}
+function toggleFirst20() {
+	_('entries').classList.toggle('first20');
+	_('top').classList.toggle('hidden')
+	_('bottom').classList.toggle('hidden')
+}
+</script>
+<style type="text/css" scoped>
+	#top {
+		text-align: center;
+		margin-bottom: -1em;
+	}
+	#top > a {
+		text-decoration: none;
+		position: relative;
+		top: -1.25em;
+	}
+	#bottom {
+		text-align: center;
+		margin-top: -1em;
+	}
+	#bottom > a {
+		text-decoration: none;
+		position: relative;
+		bottom: -1.25em;
+	}
+	.hidden {
+		display: none;
+	}
+</style>
+<div id="top" class="hidden">
+	<a href="{{.URI}}#bottom">&#9660;</a>
+</div>
 <div style="clear: both">
 	<div style="float: right">
 		<a href="/x/{{.Folder}}/{{.Filename}}?download">&#8681; Download</a> |
@@ -8,6 +44,9 @@
 	<style type="text/css" scoped>
 		table {
 			width: 100%;
+		}
+		table.first20 > tbody > tr:nth-child(n+23) > td {
+			display: none !important;
 		}
 		@media screen and (min-width: 1200px) {
 			td {
@@ -22,7 +61,13 @@
 	</tr>
 	{{$Folder := .Folder}}
 	{{$Filename := .Filename}}
-	{{range .Entries}}
+	{{$EntryCount := len .Entries}}
+	{{range $i, $e := .Entries}}
+		{{if and (gt $EntryCount 20) (eq $i 20)}}
+			<tr>
+				<td colspan="3" style="text-align: center"><a href="javascript:toggleFirst20()">Show more/less</a></td>
+			</tr>
+		{{end}}
 		<tr>
 			<td><a href="/archive/{{$Folder}}/{{$Filename}}?download={{.Name}}">{{.Name}}</a></td>
 			<td>{{ByteCountSI .Size}}</td>
@@ -30,3 +75,6 @@
 		</tr>
 	{{end}}
 </table>
+<div id="bottom" class="hidden">
+	<a href="{{.URI}}#top">&#9650;</a>
+</div>

@@ -26,6 +26,7 @@ type archiveEntry struct {
 type archivePageView struct {
 	Filename string          `json:"filename,omitempty"`
 	Folder   string          `json:"folder,omitempty"`
+	URI      string          `json:"uri,omitempty"`
 	Entries  []*archiveEntry `json:"entries,omitempty"`
 }
 
@@ -101,6 +102,7 @@ func archivePageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vie
 	v := &archivePageView{
 		Filename: filepath.Base(filename),
 		Folder:   dir,
+		URI:      r.RequestURI,
 	}
 	w.Walk(internalFilename, v.addEntry)
 	return pr.Respond(v)
