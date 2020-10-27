@@ -25,7 +25,9 @@ func (api *API) GetHandler(getctx ContextGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := getctx(r.Context())
 		pr := api.newPageRequest(r, ctx)
-		go pr.logRequest()
+		if !api.page.OnlyLogOnError {
+			pr.logRequestNonblocking()
+		}
 
 		view := ctx.runMiddlewares(pr)
 		if view == nil && api.page.Handler != nil {

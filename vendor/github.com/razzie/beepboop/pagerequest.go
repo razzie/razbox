@@ -21,6 +21,7 @@ type PageRequest struct {
 	IsAPI     bool
 	Title     string
 	renderer  LayoutRenderer
+	logged    bool
 }
 
 func (r *PageRequest) logRequest() {
@@ -58,16 +59,28 @@ func (r *PageRequest) logRequest() {
 	}
 
 	r.Context.Logger.Print(logmsg)
+	r.logged = true
+}
+
+func (r *PageRequest) logRequestNonblocking() {
+	r.logged = true
+	go r.logRequest()
 }
 
 // Log ...
 func (r *PageRequest) Log(a ...interface{}) {
+	if !r.logged {
+		r.logRequestNonblocking()
+	}
 	prefix := fmt.Sprintf("[%s] ", r.RequestID)
 	r.Context.Logger.Output(2, prefix+fmt.Sprint(a...))
 }
 
 // Logf ...
 func (r *PageRequest) Logf(format string, a ...interface{}) {
+	if !r.logged {
+		r.logRequestNonblocking()
+	}
 	prefix := fmt.Sprintf("[%s] ", r.RequestID)
 	r.Context.Logger.Output(2, prefix+fmt.Sprintf(format, a...))
 }

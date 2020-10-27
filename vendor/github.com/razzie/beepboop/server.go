@@ -16,6 +16,7 @@ import (
 // Server ...
 type Server struct {
 	mux         http.ServeMux
+	Layout      Layout
 	FaviconPNG  []byte
 	Metadata    map[string]string
 	DB          *DB
@@ -28,6 +29,7 @@ type Server struct {
 // NewServer creates a new Server
 func NewServer() *Server {
 	srv := &Server{
+		Layout:      DefaultLayout,
 		FaviconPNG:  favicon,
 		Metadata:    map[string]string{"generator": "https://github.com/razzie/beepboop"},
 		Logger:      log.New(os.Stdout, "", log.LstdFlags),
@@ -47,7 +49,7 @@ func NewServer() *Server {
 
 // AddPage adds a new servable page to the server
 func (srv *Server) AddPage(page *Page) error {
-	return srv.AddPageWithLayout(page, DefaultLayout)
+	return srv.AddPageWithLayout(page, srv.Layout)
 }
 
 // AddPageWithLayout adds a new servable page with custom layout to the server

@@ -41,5 +41,6 @@ func Thumbnail(api *razbox.API) *beepboop.Page {
 		Handler: func(pr *beepboop.PageRequest) *beepboop.View {
 			return thumbnailPageHandler(api, pr)
 		},
+		OnlyLogOnError: true,
 	}
 }

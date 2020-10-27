@@ -18,6 +18,7 @@ type Page struct {
 	Scripts         []string
 	Metadata        map[string]string
 	Handler         func(*PageRequest) *View
+	OnlyLogOnError  bool
 }
 
 // GetHandler creates a http.HandlerFunc that uses the given layout to render the page
@@ -30,7 +31,9 @@ func (page *Page) GetHandler(layout Layout, getctx ContextGetter) (http.HandlerF
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := getctx(r.Context())
 		pr := page.newPageRequest(r, renderer, ctx)
-		go pr.logRequest()
+		if !page.OnlyLogOnError {
+			pr.logRequestNonblocking()
+		}
 
 		view := ctx.runMiddlewares(pr)
 		if view == nil && page.Handler != nil {
@@ -78,8 +81,9 @@ func StaticAssetPage(pagePath, assetDir string) *Page {
 		})
 	}
 	return &Page{
-		Path:    pagePath,
-		Handler: handler,
+		Path:           pagePath,
+		Handler:        handler,
+		OnlyLogOnError: true,
 	}
 }
 
@@ -89,7 +93,8 @@ func AssetFSPage(pagePath string, assets *assetfs.AssetFS) *Page {
 		return pr.HandlerView(http.FileServer(assets).ServeHTTP)
 	}
 	return &Page{
-		Path:    pagePath,
-		Handler: handler,
+		Path:           pagePath,
+		Handler:        handler,
+		OnlyLogOnError: true,
 	}
 }
