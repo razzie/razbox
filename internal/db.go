@@ -14,10 +14,6 @@ func GetCachedFolder(db *beepboop.DB, folderName string) (*Folder, error) {
 		return nil, err
 	}
 
-	if len(folder.CachedFiles) == 0 || len(folder.CachedSubfolders) == 0 {
-		return nil, &ErrFolderMissingCache{Folder: folder.RelPath}
-	}
-
 	return &folder, nil
 }
 

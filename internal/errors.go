@@ -4,15 +4,6 @@ import (
 	"fmt"
 )
 
-// ErrFolderMissingCache ...
-type ErrFolderMissingCache struct {
-	Folder string
-}
-
-func (err ErrFolderMissingCache) Error() string {
-	return fmt.Sprintf("Cached folder %s doesn't contain cached file or subfolder list", err.Folder)
-}
-
 // ErrFileAlreadyExists ...
 type ErrFileAlreadyExists struct {
 	File string
