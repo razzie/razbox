@@ -389,7 +389,7 @@ func (api API) GetFolderEntries(token *beepboop.AccessToken, folderOrFilename st
 		if hasViewAccess || file.Public {
 			entry := newFileEntry(folderOrFilename, file, api.ThumbnailRetryAfter)
 			entry.EditMode = hasEditAccess
-			return []*FolderEntry{entry}, getFolderFlags(token, folder), nil
+			return []*FolderEntry{entry}, nil, nil
 		}
 	}
 

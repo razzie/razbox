@@ -31,7 +31,7 @@ func folderPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View
 	}
 
 	// this is a file
-	if len(entries) == 1 && !entries[0].Folder {
+	if flags == nil {
 		_, download := r.URL.Query()["download"]
 		if !download {
 			if entries[0].PrimaryType == "text" {
