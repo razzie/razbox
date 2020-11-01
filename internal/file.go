@@ -11,14 +11,6 @@ import (
 	"time"
 )
 
-// FileReader ...
-type FileReader interface {
-	io.Reader
-	io.Seeker
-	io.Closer
-	Stat() (os.FileInfo, error)
-}
-
 // File ...
 type File struct {
 	Name      string     `json:"name"`
@@ -53,7 +45,7 @@ func (f *File) GetInternalFilename() string {
 
 // Open ...
 func (f *File) Open() (FileReader, error) {
-	return os.Open(f.GetInternalFilename())
+	return newFileReader(f)
 }
 
 // Save ...

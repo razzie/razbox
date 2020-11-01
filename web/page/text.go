@@ -28,7 +28,7 @@ func textPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	}
 	defer file.Close()
 
-	if !strings.HasPrefix(file.MIME, "text/") {
+	if !strings.HasPrefix(file.MimeType(), "text/") {
 		return pr.RedirectView("/x/" + filename)
 	}
 

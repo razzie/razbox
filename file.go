@@ -16,51 +16,14 @@ import (
 )
 
 // FileReader ...
-type FileReader struct {
-	r    internal.FileReader
-	Name string
-	MIME string
-}
-
-// Read implements io.Reader
-func (r FileReader) Read(p []byte) (int, error) {
-	return r.r.Read(p)
-}
-
-// Seek implements io.Seeker
-func (r FileReader) Seek(offset int64, whence int) (int64, error) {
-	return r.r.Seek(offset, whence)
-}
-
-// Close implements io.Closer
-func (r FileReader) Close() error {
-	return r.r.Close()
-}
-
-// Stat returns os.FileInfo
-func (r FileReader) Stat() (os.FileInfo, error) {
-	return r.r.Stat()
-}
-
-// Readdir does nothing and is just here to implement http.File interface
-func (r FileReader) Readdir(count int) ([]os.FileInfo, error) {
-	return nil, nil
-}
-
-func newFileReader(file *internal.File) (*FileReader, error) {
-	r, err := file.Open()
-	if err != nil {
-		return nil, err
-	}
-	return &FileReader{
-		r:    r,
-		Name: file.Name,
-		MIME: file.MIME,
-	}, nil
+type FileReader interface {
+	http.File
+	os.FileInfo
+	MimeType() string
 }
 
 // OpenFile ...
-func (api API) OpenFile(token *beepboop.AccessToken, filePath string) (*FileReader, error) {
+func (api API) OpenFile(token *beepboop.AccessToken, filePath string) (FileReader, error) {
 	filePath = path.Clean(filePath)
 	dir := path.Dir(filePath)
 	folder, cached, err := api.getFolder(dir)
@@ -86,7 +49,7 @@ func (api API) OpenFile(token *beepboop.AccessToken, filePath string) (*FileRead
 		return nil, &ErrNoReadAccess{Folder: dir}
 	}
 
-	return newFileReader(file)
+	return file.Open()
 }
 
 // GetInternalFilename ...
