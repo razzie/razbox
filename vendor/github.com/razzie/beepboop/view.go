@@ -14,17 +14,26 @@ type View struct {
 	Data       interface{}
 	Redirect   string
 	renderer   func(w http.ResponseWriter)
+	closer     func() error
 }
 
-// Render ...
+// Render renders the view
 func (view *View) Render(w http.ResponseWriter) {
 	view.renderer(w)
 }
 
-// ViewOption ...
+// Close frees resources used by the view
+func (view *View) Close() error {
+	if view.closer != nil {
+		return view.closer()
+	}
+	return nil
+}
+
+// ViewOption is used to customize the error message, error code or data in the view
 type ViewOption func(view *View)
 
-// WithError ...
+// WithError sets the view error and error code
 func WithError(err error, errcode int) ViewOption {
 	return func(view *View) {
 		view.Error = err
@@ -32,22 +41,22 @@ func WithError(err error, errcode int) ViewOption {
 	}
 }
 
-// WithErrorMessage ...
+// WithErrorMessage sets the view error message and error code
 func WithErrorMessage(errmsg string, errcode int) ViewOption {
 	return WithError(fmt.Errorf("%s", errmsg), errcode)
 }
 
-// WithData ...
+// WithData sets the view data
 func WithData(data interface{}) ViewOption {
 	return func(view *View) {
 		view.Data = data
 	}
 }
 
-var errViewRenderer, _ = DefaultLayout.BindTemplate("<strong>{{.}}</strong>", nil, nil, nil)
+var defaultErrorRenderer = GetErrorRenderer(DefaultLayout)
 
-// ErrorView returns a View that represents an error
-func ErrorView(r *http.Request, errmsg string, errcode int, opts ...ViewOption) *View {
+// CustomErrorView returns a View that represents an error and uses a custom renderer
+func CustomErrorView(r *http.Request, errmsg string, errcode int, renderer ErrorRenderer, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: errcode,
 		Error:      fmt.Errorf("%s", errmsg),
@@ -56,17 +65,27 @@ func ErrorView(r *http.Request, errmsg string, errcode int, opts ...ViewOption) 
 		opt(v)
 	}
 	v.renderer = func(w http.ResponseWriter) {
-		errViewRenderer(w, r, errmsg, errmsg, v.StatusCode)
+		renderer(w, r, errmsg, v.StatusCode)
 	}
 	return v
 }
 
-// ErrorView ...
+// CustomErrorView returns a View that represents an error and uses a custom renderer
+func (r *PageRequest) CustomErrorView(errmsg string, errcode int, renderer ErrorRenderer, opts ...ViewOption) *View {
+	return CustomErrorView(r.Request, errmsg, errcode, renderer, opts...)
+}
+
+// ErrorView returns a View that represents an error
+func ErrorView(r *http.Request, errmsg string, errcode int, opts ...ViewOption) *View {
+	return CustomErrorView(r, errmsg, errcode, defaultErrorRenderer, opts...)
+}
+
+// ErrorView returns a View that represents an error
 func (r *PageRequest) ErrorView(errmsg string, errcode int, opts ...ViewOption) *View {
 	return ErrorView(r.Request, errmsg, errcode, opts...)
 }
 
-// EmbedView returns a View that embeds the given website
+// EmbedView returns a View that embeds the given URL
 func EmbedView(url string, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: http.StatusOK,
@@ -83,12 +102,12 @@ func EmbedView(url string, opts ...ViewOption) *View {
 	return v
 }
 
-// EmbedView ...
+// EmbedView returns a View that embeds the given URL
 func (r *PageRequest) EmbedView(url string, opts ...ViewOption) *View {
 	return EmbedView(url, opts...)
 }
 
-// RedirectView ...
+// RedirectView returns a View that redirects to the given URL
 func RedirectView(r *http.Request, url string, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: http.StatusOK,
@@ -103,12 +122,12 @@ func RedirectView(r *http.Request, url string, opts ...ViewOption) *View {
 	return v
 }
 
-// RedirectView ...
+// RedirectView returns a View that redirects to the given URL
 func (r *PageRequest) RedirectView(url string, opts ...ViewOption) *View {
 	return RedirectView(r.Request, url, opts...)
 }
 
-// CookieAndRedirectView ...
+// CookieAndRedirectView returns a View that contains a cookie and redirects to the given URL
 func CookieAndRedirectView(r *http.Request, cookie *http.Cookie, url string, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: http.StatusOK,
@@ -125,12 +144,12 @@ func CookieAndRedirectView(r *http.Request, cookie *http.Cookie, url string, opt
 	return v
 }
 
-// CookieAndRedirectView ...
+// CookieAndRedirectView returns a View that contains a cookie and redirects to the given URL
 func (r *PageRequest) CookieAndRedirectView(cookie *http.Cookie, url string, opts ...ViewOption) *View {
 	return CookieAndRedirectView(r.Request, cookie, url, opts...)
 }
 
-// CopyView ...
+// CopyView returns a View that copies the content of a http.Response
 func CopyView(resp *http.Response, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: resp.StatusCode,
@@ -150,22 +169,22 @@ func CopyView(resp *http.Response, opts ...ViewOption) *View {
 	return v
 }
 
-// CopyView ...
+// CopyView returns a View that copies the content of a http.Response
 func (r *PageRequest) CopyView(resp *http.Response, opts ...ViewOption) *View {
 	return CopyView(resp, opts...)
 }
 
-// AsyncCopyView ...
+// AsyncCopyView returns a View that copies the content of a http.Response asynchronously
 func AsyncCopyView(resp *http.Response, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: resp.StatusCode,
 		Data:       resp,
+		closer:     resp.Body.Close,
 	}
 	for _, opt := range opts {
 		opt(v)
 	}
 	v.renderer = func(w http.ResponseWriter) {
-		defer resp.Body.Close()
 		for k, v := range resp.Header {
 			w.Header().Set(k, v[0])
 		}
@@ -175,12 +194,12 @@ func AsyncCopyView(resp *http.Response, opts ...ViewOption) *View {
 	return v
 }
 
-// AsyncCopyView ...
+// AsyncCopyView returns a View that copies the content of a http.Response asynchronously
 func (r *PageRequest) AsyncCopyView(resp *http.Response, opts ...ViewOption) *View {
 	return AsyncCopyView(resp, opts...)
 }
 
-// HandlerView ...
+// HandlerView returns a View that uses a http.HandlerFunc to render a response
 func HandlerView(r *http.Request, handler http.HandlerFunc, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: http.StatusOK,
@@ -194,7 +213,41 @@ func HandlerView(r *http.Request, handler http.HandlerFunc, opts ...ViewOption) 
 	return v
 }
 
-// HandlerView ...
+// HandlerView returns a View that uses a http.HandlerFunc to render a response
 func (r *PageRequest) HandlerView(handler http.HandlerFunc, opts ...ViewOption) *View {
 	return HandlerView(r.Request, handler, opts...)
+}
+
+// FileView returns a View that serves a file
+func FileView(r *http.Request, file http.File, mime string, attachment bool, opts ...ViewOption) *View {
+	v := &View{
+		StatusCode: http.StatusOK,
+		closer:     file.Close,
+	}
+	for _, opt := range opts {
+		opt(v)
+	}
+	fi, err := file.Stat()
+	if err != nil {
+		v.Error = err
+		v.renderer = func(w http.ResponseWriter) {
+			defaultErrorRenderer(w, r, err.Error(), http.StatusInternalServerError)
+		}
+		return v
+	}
+	v.renderer = func(w http.ResponseWriter) {
+		if attachment {
+			w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", fi.Name()))
+		}
+		if len(mime) > 0 {
+			w.Header().Set("Content-Type", mime)
+		}
+		http.ServeContent(w, r, fi.Name(), fi.ModTime(), file)
+	}
+	return v
+}
+
+// FileView returns a View that serves a file
+func (r *PageRequest) FileView(file http.File, mime string, attachment bool, opts ...ViewOption) *View {
+	return FileView(r.Request, file, mime, attachment, opts...)
 }

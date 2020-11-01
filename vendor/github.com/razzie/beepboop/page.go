@@ -29,7 +29,7 @@ func (page *Page) GetHandler(layout Layout, getctx ContextGetter) (http.HandlerF
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := getctx(r.Context())
+		ctx := getctx(r.Context(), layout)
 		pr := page.newPageRequest(r, renderer, ctx)
 		if !page.OnlyLogOnError {
 			pr.logRequestNonblocking()
@@ -43,6 +43,7 @@ func (page *Page) GetHandler(layout Layout, getctx ContextGetter) (http.HandlerF
 			view = pr.Respond(nil)
 		}
 
+		defer view.Close()
 		view.Render(w)
 	}, nil
 }

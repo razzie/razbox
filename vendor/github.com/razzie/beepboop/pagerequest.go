@@ -33,29 +33,26 @@ func (r *PageRequest) logRequest() {
 	ua := user_agent.New(r.Request.UserAgent())
 	browser, ver := ua.Browser()
 
-	logmsg := fmt.Sprintf("[%s]: %s %s\n - IP: %s\n - browser: %s",
-		r.RequestID,
-		r.Request.Method,
-		r.Request.RequestURI,
-		ip,
-		fmt.Sprintf("%s %s %s", ua.OS(), browser, ver))
+	logmsg := fmt.Sprintf("[%s]: %s %s\n • %s, %s %s %s",
+		r.RequestID, r.Request.Method, r.Request.RequestURI,
+		ip, ua.OS(), browser, ver)
 
 	var hasLocation bool
 	if r.Context.GeoIPClient != nil {
 		loc, _ := r.Context.GeoIPClient.GetLocation(context.Background(), ip)
 		if loc != nil {
 			hasLocation = true
-			logmsg += "\n - location: " + loc.String()
+			logmsg += ", " + loc.String()
 		}
 	}
 	if !hasLocation {
 		hostnames, _ := net.LookupAddr(ip)
-		logmsg += "\n - hostnames: " + strings.Join(hostnames, ", ")
+		logmsg += ", " + strings.Join(hostnames, ", ")
 	}
 
 	session, _ := r.Request.Cookie("session")
 	if session != nil {
-		logmsg += "\n - sessionID: " + session.Value
+		logmsg += ", session: " + session.Value
 	}
 
 	r.Context.Logger.Print(logmsg)

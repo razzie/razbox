@@ -23,7 +23,7 @@ func NewAPI(page *Page) *API {
 // GetHandler creates a http.HandlerFunc that uses Razlink layout
 func (api *API) GetHandler(getctx ContextGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := getctx(r.Context())
+		ctx := getctx(r.Context(), nil)
 		pr := api.newPageRequest(r, ctx)
 		if !api.page.OnlyLogOnError {
 			pr.logRequestNonblocking()
@@ -37,6 +37,7 @@ func (api *API) GetHandler(getctx ContextGetter) http.HandlerFunc {
 			view = pr.Respond(nil)
 		}
 
+		defer view.Close()
 		renderAPIResponse(w, view)
 	}
 }

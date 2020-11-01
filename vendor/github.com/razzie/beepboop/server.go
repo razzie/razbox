@@ -107,8 +107,8 @@ func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	srv.mux.ServeHTTP(w, r)
 }
 
-func (srv *Server) getContext(ctx context.Context) *Context {
-	return newContext(ctx, srv)
+func (srv *Server) getContext(ctx context.Context, layout Layout) *Context {
+	return newContext(ctx, layout, srv)
 }
 
 var favicon, _ = base64.StdEncoding.DecodeString("" +

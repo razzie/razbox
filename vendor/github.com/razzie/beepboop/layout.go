@@ -197,3 +197,14 @@ func GetBase(r *http.Request) string {
 	}
 	return "/"
 }
+
+// ErrorRenderer is a special kind of layout renderer to render an error
+type ErrorRenderer func(w http.ResponseWriter, r *http.Request, errmsg string, errcode int)
+
+// GetErrorRenderer returns an ErrorRenderer using the given layout
+func GetErrorRenderer(layout Layout) ErrorRenderer {
+	renderer, _ := layout.BindTemplate("<strong>{{.}}</strong>", nil, nil, nil)
+	return func(w http.ResponseWriter, r *http.Request, errmsg string, errcode int) {
+		renderer(w, r, errmsg, errmsg, errcode)
+	}
+}
