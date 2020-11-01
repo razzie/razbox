@@ -46,10 +46,7 @@ func folderPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View
 		if err != nil {
 			return HandleError(r, err)
 		}
-		if download {
-			return ServeFileAsAttachmentAsync(r, reader)
-		}
-		return ServeFileAsync(r, reader)
+		return pr.FileView(reader, reader.MIME, download)
 	}
 
 	pr.Title = folderOrFilename

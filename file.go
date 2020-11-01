@@ -42,6 +42,11 @@ func (r FileReader) Stat() (os.FileInfo, error) {
 	return r.r.Stat()
 }
 
+// Readdir does nothing and is just here to implement http.File interface
+func (r FileReader) Readdir(count int) ([]os.FileInfo, error) {
+	return nil, nil
+}
+
 func newFileReader(file *internal.File) (*FileReader, error) {
 	r, err := file.Open()
 	if err != nil {
