@@ -5,13 +5,16 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"html/template"
+	"io"
 	"math/rand"
+	"net/http"
 	"os"
 	"path"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/google/uuid"
 )
 
@@ -49,6 +52,24 @@ func IsFolder(root, relPath string) bool {
 	}
 
 	return fi.IsDir()
+}
+
+// DetectContentType determines the MIME type of a given file
+func DetectContentType(r io.ReadSeeker) (string, error) {
+	r.Seek(0, io.SeekStart)
+	mime, err := mimetype.DetectReader(r)
+	if err != nil {
+		return mime.String(), err
+	}
+
+	if mime.String() == "application/octet-stream" {
+		var header [512]byte
+		r.Seek(0, io.SeekStart)
+		_, _ = r.Read(header[:])
+		return http.DetectContentType(header[:]), nil
+	}
+
+	return mime.String(), nil
 }
 
 // MIMEtoSymbol returns a symbol that represents the MIME type

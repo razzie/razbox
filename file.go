@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gabriel-vasile/mimetype"
 	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox/internal"
 )
@@ -175,7 +174,7 @@ func (api API) UploadFile(token *beepboop.AccessToken, o *UploadFileOptions) err
 		}
 		defer data.Close()
 
-		mime, _ := mimetype.DetectReader(data)
+		mime, _ := internal.DetectContentType(data)
 		data.Seek(0, io.SeekStart)
 
 		file := &internal.File{
@@ -183,7 +182,7 @@ func (api API) UploadFile(token *beepboop.AccessToken, o *UploadFileOptions) err
 			Root:     api.root,
 			RelPath:  path.Join(o.Folder, internal.FilenameToUUID(filename)),
 			Tags:     o.Tags,
-			MIME:     mime.String(),
+			MIME:     mime,
 			Size:     header.Size,
 			Uploaded: time.Now(),
 			Public:   o.Public,
