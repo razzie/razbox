@@ -19,8 +19,6 @@ github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORN
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0 h1:45sCR5RtlFHMR4UwH9sdQ5TC8v0qDQCHnXt+kaKSTVE=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
-github.com/mo7zayed/reqip v0.0.0-20200520084230-ae375eb9322b h1:iT2SENTc9+/iWoMbwDbWnrFNxumMeGbNkE00dTdQ1VA=
-github.com/mo7zayed/reqip v0.0.0-20200520084230-ae375eb9322b/go.mod h1:GOo5cmSfDrzCuxKV7XqjlNabC0ThcdxIeD1scxYcRos=
 github.com/mssola/user_agent v0.5.2 h1:CZkTUahjL1+OcZ5zv3kZr8QiJ8jy2H08vZIEkBeRbxo=
 github.com/mssola/user_agent v0.5.2/go.mod h1:TTPno8LPY3wAIEKRpAtkdMT0f8SE24pLRGPahjCH4uw=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
@@ -32,6 +30,8 @@ github.com/razzie/babble v0.0.0-20201015224220-210f32b7a231 h1:+idxFsIjkAY9jL00C
 github.com/razzie/babble v0.0.0-20201015224220-210f32b7a231/go.mod h1:wvMAgH5y/Ps0KJu0ZRDzISGETlgUpHvKczllq0aHGFE=
 github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8 h1:JtDgeCbamFUKWFIIbVhsGQ/fVDklmbprEHeCPWmGIvE=
 github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8/go.mod h1:H1xjjW4QbZdPyvvx7BImgKhOEKEd/qd1fTBD8FYXu/s=
+github.com/razzie/reqip v0.0.0-20201102012254-b5eb0ae76a05 h1:+XT3xUiFQooke/qsk7wgURDbXg+GUowK67F5KHrA2Ig=
+github.com/razzie/reqip v0.0.0-20201102012254-b5eb0ae76a05/go.mod h1:bT5Wl4zFfiCnpXc6Ix+c2ebhematm28MR7EBjLiU3ig=
 github.com/thedevsaddam/gojsonq v2.3.0+incompatible h1:i2lFTvGY4LvoZ2VUzedsFlRiyaWcJm3Uh6cQ9+HyQA8=
 github.com/thedevsaddam/gojsonq v2.3.0+incompatible/go.mod h1:RBcQaITThgJAAYKH7FNp2onYodRz8URfsuEGpAch0NA=
 github.com/tjarratt/babble v0.0.0-20191209142150-eecdf8c2339d h1:b7oHBI6TgTdCDuqTijsVldzlh+6cfQpdYLz1EKtCAoY=

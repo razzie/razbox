@@ -2,12 +2,11 @@ package beepboop
 
 import (
 	"fmt"
-	"net"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/mo7zayed/reqip"
+	"github.com/razzie/reqip"
 )
 
 // AccessToken ...
@@ -28,9 +27,6 @@ func NewAccessToken() *AccessToken {
 func NewAccessTokenFromRequest(r *PageRequest) *AccessToken {
 	token := new(AccessToken).fromCookies(r.Request.Cookies())
 	token.IP = reqip.GetClientIP(r.Request)
-	if len(token.IP) == 0 {
-		token.IP, _, _ = net.SplitHostPort(r.Request.RemoteAddr)
-	}
 	db := r.Context.DB
 	if db != nil && len(token.SessionID) > 0 {
 		dbToken, err := db.GetAccessToken(token.SessionID, token.IP)

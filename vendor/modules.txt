@@ -29,8 +29,6 @@ github.com/golang/snappy
 github.com/google/uuid
 # github.com/mholt/archiver v3.1.1+incompatible
 github.com/mholt/archiver
-# github.com/mo7zayed/reqip v0.0.0-20200520084230-ae375eb9322b
-github.com/mo7zayed/reqip
 # github.com/mssola/user_agent v0.5.2
 github.com/mssola/user_agent
 # github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d
@@ -52,11 +50,13 @@ github.com/pierrec/lz4
 github.com/pierrec/lz4/internal/xxh32
 # github.com/razzie/babble v0.0.0-20201015224220-210f32b7a231
 github.com/razzie/babble
-# github.com/razzie/beepboop v0.0.0-20201101145859-75bec3856990
+# github.com/razzie/beepboop v0.0.0-20201105012233-f279da90b9e6
 github.com/razzie/beepboop
 # github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8
 github.com/razzie/geoip-server/client
 github.com/razzie/geoip-server/geoip
+# github.com/razzie/reqip v0.0.0-20201102012254-b5eb0ae76a05
+github.com/razzie/reqip
 # github.com/thedevsaddam/gojsonq v2.3.0+incompatible
 github.com/thedevsaddam/gojsonq
 # github.com/ulikunitz/xz v0.5.8

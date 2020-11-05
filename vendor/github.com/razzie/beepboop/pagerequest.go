@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mo7zayed/reqip"
 	"github.com/mssola/user_agent"
+	"github.com/razzie/reqip"
 )
 
 // PageRequest ...
@@ -26,10 +26,6 @@ type PageRequest struct {
 
 func (r *PageRequest) logRequest() {
 	ip := reqip.GetClientIP(r.Request)
-	if len(ip) == 0 {
-		ip, _, _ = net.SplitHostPort(r.Request.RemoteAddr)
-	}
-
 	ua := user_agent.New(r.Request.UserAgent())
 	browser, ver := ua.Browser()
 
@@ -95,4 +91,9 @@ func (r *PageRequest) Respond(data interface{}, opts ...ViewOption) *View {
 		r.renderer(w, r.Request, r.Title, data, v.StatusCode)
 	}
 	return v
+}
+
+// AccessToken returns an AccessToken from this page request
+func (r *PageRequest) AccessToken() *AccessToken {
+	return NewAccessTokenFromRequest(r)
 }
