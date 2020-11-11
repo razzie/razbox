@@ -27,8 +27,7 @@ func galleryPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vie
 		MaxThumbWidth: maxThumbWidth,
 	}
 
-	token := beepboop.NewAccessTokenFromRequest(pr)
-	entries, _, err := api.GetFolderEntries(token, uri)
+	entries, _, err := api.GetFolderEntries(pr.Session(), uri)
 	if err != nil {
 		return HandleError(r, err)
 	}

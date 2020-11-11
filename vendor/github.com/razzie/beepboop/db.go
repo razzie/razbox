@@ -82,8 +82,7 @@ func (db *DB) IsWithinRateLimit(reqType, ip string, rate int) (bool, error) {
 	return int(incr.Val()) <= rate, nil
 }
 
-// AddSessionAccess merges an AccessMap into a session's AccessMap
-func (db *DB) AddSessionAccess(sessionID, ip string, access AccessMap) error {
+func (db *DB) addSessionAccess(sessionID, ip string, access AccessMap) error {
 	key := fmt.Sprintf("beepboop-session:%s:%s", sessionID, ip)
 	data, _ := db.client.Get(key).Result()
 
@@ -106,8 +105,7 @@ func (db *DB) AddSessionAccess(sessionID, ip string, access AccessMap) error {
 	return db.client.Set(key, string(newData), db.SessionDuration).Err()
 }
 
-// RemoveSessionAccess removes/unmerges an AccessMap from a session's AccessMap
-func (db *DB) RemoveSessionAccess(sessionID, ip string, access AccessMap) error {
+func (db *DB) revokeSessionAccess(sessionID, ip string, revoke AccessRevokeMap) error {
 	key := fmt.Sprintf("beepboop-session:%s:%s", sessionID, ip)
 	data, err := db.client.Get(key).Result()
 	if err != nil {
@@ -120,7 +118,7 @@ func (db *DB) RemoveSessionAccess(sessionID, ip string, access AccessMap) error 
 		return err
 	}
 
-	sessAccess.Unmerge(access)
+	sessAccess.Revoke(revoke, false)
 
 	newData, err := json.Marshal(sessAccess)
 	if err != nil {
@@ -130,8 +128,7 @@ func (db *DB) RemoveSessionAccess(sessionID, ip string, access AccessMap) error 
 	return db.client.Set(key, string(newData), db.SessionDuration).Err()
 }
 
-// GetAccessToken returns an AccessToken for the given session
-func (db *DB) GetAccessToken(sessionID, ip string) (*AccessToken, error) {
+func (db *DB) getAccessMap(sessionID, ip string) (AccessMap, error) {
 	key := fmt.Sprintf("beepboop-session:%s:%s", sessionID, ip)
 	data, err := db.client.Get(key).Result()
 	if err != nil {
@@ -144,9 +141,5 @@ func (db *DB) GetAccessToken(sessionID, ip string) (*AccessToken, error) {
 		return nil, err
 	}
 
-	return &AccessToken{
-		SessionID: sessionID,
-		IP:        ip,
-		AccessMap: access,
-	}, nil
+	return access, nil
 }

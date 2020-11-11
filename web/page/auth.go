@@ -38,13 +38,12 @@ func authPageHandler(api *razbox.API, accessType string, pr *beepboop.PageReques
 		pw := r.FormValue(pwPrefix + "-password")
 		v.Redirect = r.FormValue("redirect")
 
-		newToken, err := api.Auth(pr, dir, accessType, pw)
-		if err != nil {
+		if err := api.Auth(pr, dir, accessType, pw); err != nil {
 			v.Error = err.Error()
 			return pr.Respond(v, beepboop.WithError(err, http.StatusUnauthorized))
 		}
 
-		return pr.CookieAndRedirectView(newToken.ToCookie(api.CookieExpiration), v.Redirect)
+		return pr.RedirectView(v.Redirect)
 	}
 
 	return pr.Respond(v)

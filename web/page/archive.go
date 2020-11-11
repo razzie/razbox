@@ -75,8 +75,7 @@ func archivePageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vie
 	r := pr.Request
 	filename := path.Clean(pr.RelPath)
 	dir := path.Dir(filename)
-	token := beepboop.NewAccessTokenFromRequest(pr)
-	internalFilename, err := api.GetInternalFilename(token, filename)
+	internalFilename, err := api.GetInternalFilename(pr.Session(), filename)
 	if err != nil {
 		return HandleError(r, err)
 	}

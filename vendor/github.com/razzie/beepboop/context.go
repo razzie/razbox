@@ -3,6 +3,7 @@ package beepboop
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/razzie/geoip-server/geoip"
 	"golang.org/x/time/rate"
@@ -10,24 +11,26 @@ import (
 
 // Context ...
 type Context struct {
-	Context     context.Context
-	middlewares []Middleware
-	DB          *DB
-	Logger      *log.Logger
-	GeoIPClient geoip.Client
-	Limiters    map[string]*RateLimiter
-	Layout      Layout
+	Context          context.Context
+	middlewares      []Middleware
+	DB               *DB
+	Logger           *log.Logger
+	GeoIPClient      geoip.Client
+	Limiters         map[string]*RateLimiter
+	Layout           Layout
+	CookieExpiration time.Duration
 }
 
 func newContext(ctx context.Context, layout Layout, srv *Server) *Context {
 	return &Context{
-		Context:     ctx,
-		middlewares: srv.Middlewares,
-		DB:          srv.DB,
-		Logger:      srv.Logger,
-		GeoIPClient: srv.GeoIPClient,
-		Limiters:    srv.Limiters,
-		Layout:      layout,
+		Context:          ctx,
+		middlewares:      srv.Middlewares,
+		DB:               srv.DB,
+		Logger:           srv.Logger,
+		GeoIPClient:      srv.GeoIPClient,
+		Limiters:         srv.Limiters,
+		Layout:           layout,
+		CookieExpiration: srv.CookieExpiration,
 	}
 }
 

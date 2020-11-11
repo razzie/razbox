@@ -20,8 +20,7 @@ func uploadPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View
 	r := pr.Request
 	dir := path.Clean(pr.RelPath)
 
-	token := beepboop.NewAccessTokenFromRequest(pr)
-	flags, err := api.GetFolderFlags(token, dir)
+	flags, err := api.GetFolderFlags(pr.Session(), dir)
 	if err != nil {
 		return HandleError(r, err)
 	}
@@ -63,7 +62,7 @@ func uploadPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View
 			Overwrite: r.FormValue("overwrite") == "overwrite",
 			Public:    r.FormValue("public") == "public",
 		}
-		err = api.UploadFile(token, o)
+		err = api.UploadFile(pr.Session(), o)
 		if err != nil {
 			return handleError(err)
 		}

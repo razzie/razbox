@@ -5,34 +5,21 @@ import (
 )
 
 // Auth ...
-func (api API) Auth(pr *beepboop.PageRequest, folderName, accessType, password string) (*beepboop.AccessToken, error) {
-	token := beepboop.NewAccessTokenFromRequest(pr)
-	sessionID := token.SessionID
+func (api API) Auth(pr *beepboop.PageRequest, folderName, accessType, password string) error {
+	sess := pr.Session()
 
 	if api.db != nil {
-		if len(token.IP) == 0 {
+		if len(sess.IP()) == 0 {
 			pr.Log("auth: no IP in request")
 		}
-		if ok, err := api.db.IsWithinRateLimit("auth", token.IP, api.AuthsPerMin); !ok && err == nil {
-			return nil, &ErrRateLimitExceeded{ReqPerMin: api.AuthsPerMin}
-		}
-
-		if len(sessionID) > 0 {
-			sessToken, err := api.db.GetAccessToken(sessionID, token.IP)
-			if err != nil {
-				pr.Log("session token error:", err)
-				sessionID = ""
-			} else {
-				token.AccessMap.Merge(sessToken.AccessMap)
-			}
-		} else {
-			sessionID = pr.RequestID
+		if ok, err := api.db.IsWithinRateLimit("auth", sess.IP(), api.AuthsPerMin); !ok && err == nil {
+			return &ErrRateLimitExceeded{ReqPerMin: api.AuthsPerMin}
 		}
 	}
 
 	folder, cached, err := api.getFolder(folderName)
 	if err != nil {
-		return nil, &ErrNotFound{}
+		return &ErrNotFound{}
 	}
 	if !cached {
 		defer api.goCacheFolder(folder)
@@ -41,21 +28,10 @@ func (api API) Auth(pr *beepboop.PageRequest, folderName, accessType, password s
 	if folder.TestPassword(accessType, password) {
 		newToken, err := folder.GetAccessToken(accessType)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		if api.db != nil && len(sessionID) > 0 {
-			if err = api.db.AddSessionAccess(sessionID, token.IP, newToken); err == nil {
-				return &beepboop.AccessToken{
-					SessionID: sessionID,
-				}, nil
-			}
-			pr.Log("session token error:", err)
-		}
-		return &beepboop.AccessToken{
-			SessionID: sessionID,
-			AccessMap: newToken,
-		}, nil
+		return sess.MergeAccess(newToken)
 	}
 
-	return nil, &ErrWrongPassword{}
+	return &ErrWrongPassword{}
 }

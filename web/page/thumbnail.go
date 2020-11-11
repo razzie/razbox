@@ -14,8 +14,7 @@ const maxThumbWidth = 250
 func thumbnailPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	filename := path.Clean(pr.RelPath)
-	token := beepboop.NewAccessTokenFromRequest(pr)
-	thumb, err := api.GetFileThumbnail(token, filename, maxThumbWidth)
+	thumb, err := api.GetFileThumbnail(pr.Session(), filename, maxThumbWidth)
 	if err != nil {
 		switch err := err.(type) {
 		case *razbox.ErrNoReadAccess:

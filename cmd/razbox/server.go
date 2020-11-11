@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/razzie/beepboop"
@@ -10,8 +12,13 @@ import (
 	"github.com/razzie/razbox/web/page"
 )
 
-// NewServer ...
-func NewServer(api *razbox.API, defaultFolder string) *beepboop.Server {
+// Server ...
+type Server struct {
+	srv *beepboop.Server
+}
+
+// NewServer returns a new Server
+func NewServer(api *razbox.API, defaultFolder string, db *beepboop.DB) *Server {
 	srv := beepboop.NewServer()
 	srv.FaviconPNG, _ = ioutil.ReadFile("web/favicon.png")
 	srv.AddPages(
@@ -32,6 +39,16 @@ func NewServer(api *razbox.API, defaultFolder string) *beepboop.Server {
 		page.CreateSubfolder(api),
 		page.DeleteSubfolder(api),
 	)
+	srv.DB = db
 	srv.Logger = log.New(os.Stdout, "", log.Lshortfile|log.LstdFlags)
-	return srv
+	return &Server{srv: srv}
+}
+
+// Serve listens on the given port to serve http requests
+func (s *Server) Serve(port int) error {
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: s.srv,
+	}
+	return srv.ListenAndServe()
 }

@@ -1,6 +1,7 @@
 package beepboop
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -13,13 +14,47 @@ type View struct {
 	Error      error
 	Data       interface{}
 	Redirect   string
+	cookies    []*http.Cookie
 	renderer   func(w http.ResponseWriter)
 	closer     func() error
 }
 
 // Render renders the view
 func (view *View) Render(w http.ResponseWriter) {
+	for _, cookie := range view.cookies {
+		http.SetCookie(w, cookie)
+	}
 	view.renderer(w)
+}
+
+// RenderAPIResponse renders the API response of the view
+func (view *View) RenderAPIResponse(w http.ResponseWriter) {
+	for _, cookie := range view.cookies {
+		http.SetCookie(w, cookie)
+	}
+	w.WriteHeader(view.StatusCode)
+
+	if view.Error != nil {
+		w.Write([]byte(view.Error.Error()))
+		return
+	}
+
+	if view.Data != nil {
+		data, err := json.MarshalIndent(view.Data, "", "\t")
+		if err != nil {
+			w.Write([]byte(err.Error()))
+			return
+		}
+		w.Write(data)
+		return
+	}
+
+	if view.StatusCode == http.StatusOK {
+		w.Write([]byte("OK"))
+		return
+	}
+
+	w.Write([]byte(http.StatusText(view.StatusCode)))
 }
 
 // Close frees resources used by the view
@@ -50,6 +85,13 @@ func WithErrorMessage(errmsg string, errcode int) ViewOption {
 func WithData(data interface{}) ViewOption {
 	return func(view *View) {
 		view.Data = data
+	}
+}
+
+// WithCookie adds a cookie to the view
+func WithCookie(cookie *http.Cookie) ViewOption {
+	return func(view *View) {
+		view.cookies = append(view.cookies, cookie)
 	}
 }
 
@@ -125,28 +167,6 @@ func RedirectView(r *http.Request, url string, opts ...ViewOption) *View {
 // RedirectView returns a View that redirects to the given URL
 func (r *PageRequest) RedirectView(url string, opts ...ViewOption) *View {
 	return RedirectView(r.Request, url, opts...)
-}
-
-// CookieAndRedirectView returns a View that contains a cookie and redirects to the given URL
-func CookieAndRedirectView(r *http.Request, cookie *http.Cookie, url string, opts ...ViewOption) *View {
-	v := &View{
-		StatusCode: http.StatusOK,
-		Data:       cookie,
-		Redirect:   url,
-	}
-	for _, opt := range opts {
-		opt(v)
-	}
-	v.renderer = func(w http.ResponseWriter) {
-		http.SetCookie(w, cookie)
-		http.Redirect(w, r, url, http.StatusSeeOther)
-	}
-	return v
-}
-
-// CookieAndRedirectView returns a View that contains a cookie and redirects to the given URL
-func (r *PageRequest) CookieAndRedirectView(cookie *http.Cookie, url string, opts ...ViewOption) *View {
-	return CookieAndRedirectView(r.Request, cookie, url, opts...)
 }
 
 // CopyView returns a View that copies the content of a http.Response

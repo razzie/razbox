@@ -15,35 +15,35 @@ import (
 
 // Server ...
 type Server struct {
-	mux         http.ServeMux
-	Layout      Layout
-	FaviconPNG  []byte
-	Metadata    map[string]string
-	DB          *DB
-	Logger      *log.Logger
-	GeoIPClient geoip.Client
-	Limiters    map[string]*RateLimiter
-	Middlewares []Middleware
+	mux              http.ServeMux
+	Layout           Layout
+	FaviconPNG       []byte
+	Metadata         map[string]string
+	DB               *DB
+	Logger           *log.Logger
+	GeoIPClient      geoip.Client
+	Limiters         map[string]*RateLimiter
+	Middlewares      []Middleware
+	CookieExpiration time.Duration
 }
 
 // NewServer creates a new Server
 func NewServer() *Server {
 	srv := &Server{
-		Layout:      DefaultLayout,
-		FaviconPNG:  favicon,
-		Metadata:    map[string]string{"generator": "https://github.com/razzie/beepboop"},
-		Logger:      log.New(os.Stdout, "", log.LstdFlags),
-		GeoIPClient: geoclient.DefaultClient,
-		Limiters:    make(map[string]*RateLimiter),
+		Layout:           DefaultLayout,
+		FaviconPNG:       favicon,
+		Metadata:         map[string]string{"generator": "https://github.com/razzie/beepboop"},
+		Logger:           log.New(os.Stdout, "", log.LstdFlags),
+		GeoIPClient:      geoclient.DefaultClient,
+		Limiters:         make(map[string]*RateLimiter),
+		CookieExpiration: time.Hour * 24 * 7,
 	}
 	srv.mux.HandleFunc("/favicon.png", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "image/png")
 		w.Header().Set("Content-Length", strconv.Itoa(len(srv.FaviconPNG)))
 		_, _ = w.Write(srv.FaviconPNG)
 	})
-	srv.mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/favicon.png", http.StatusSeeOther)
-	})
+	srv.mux.Handle("/favicon.ico", http.RedirectHandler("/favicon.png", http.StatusMovedPermanently))
 	return srv
 }
 
@@ -60,9 +60,8 @@ func (srv *Server) AddPageWithLayout(page *Page, layout Layout) error {
 		return err
 	}
 
-	api := NewAPI(page)
-	srv.mux.HandleFunc(page.Path, renderer)
-	srv.mux.HandleFunc(api.Path, api.GetHandler(srv.getContext))
+	srv.mux.Handle(page.Path, renderer)
+	srv.mux.Handle("/api"+page.Path, page.GetAPIHandler(srv.getContext))
 	return nil
 }
 

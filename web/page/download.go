@@ -19,8 +19,7 @@ type downloadPageView struct {
 func downloadPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	r := pr.Request
 	dir := path.Clean(pr.RelPath)
-	token := beepboop.NewAccessTokenFromRequest(pr)
-	flags, err := api.GetFolderFlags(token, dir)
+	flags, err := api.GetFolderFlags(pr.Session(), dir)
 	if err != nil {
 		return HandleError(r, err)
 	}
@@ -48,7 +47,7 @@ func downloadPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vi
 			Overwrite: r.FormValue("overwrite") == "overwrite",
 			Public:    r.FormValue("public") == "public",
 		}
-		err := api.DownloadFileToFolder(token, o)
+		err := api.DownloadFileToFolder(pr.Session(), o)
 		if err != nil {
 			v.Error = err.Error()
 			return pr.Respond(v, beepboop.WithError(err, http.StatusInternalServerError))

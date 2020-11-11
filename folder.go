@@ -1,7 +1,6 @@
 package razbox
 
 import (
-	"fmt"
 	"html/template"
 	"io/ioutil"
 	"os"
@@ -26,8 +25,8 @@ type FolderFlags struct {
 	MaxUploadSizeMB int64
 }
 
-func getFolderFlags(token *beepboop.AccessToken, f *internal.Folder) *FolderFlags {
-	gotWriteAccess := f.EnsureWriteAccess(token.AccessMap) == nil
+func getFolderFlags(sess *beepboop.Session, f *internal.Folder) *FolderFlags {
+	gotWriteAccess := f.EnsureWriteAccess(sess) == nil
 	deletable := false
 	if gotWriteAccess && f.ConfigInherited {
 		entries, err := ioutil.ReadDir(path.Join(f.Root, f.RelPath))
@@ -63,7 +62,7 @@ func (api API) goCacheFolder(folder *internal.Folder) {
 }
 
 // GetFolderFlags ...
-func (api API) GetFolderFlags(token *beepboop.AccessToken, folderName string) (*FolderFlags, error) {
+func (api API) GetFolderFlags(sess *beepboop.Session, folderName string) (*FolderFlags, error) {
 	folder, cached, err := api.getFolder(folderName)
 	if err != nil {
 		return nil, &ErrNotFound{}
@@ -72,20 +71,20 @@ func (api API) GetFolderFlags(token *beepboop.AccessToken, folderName string) (*
 		defer api.goCacheFolder(folder)
 	}
 
-	err = folder.EnsureReadAccess(token.AccessMap)
+	err = folder.EnsureReadAccess(sess)
 	if err != nil {
 		return nil, &ErrNoReadAccess{Folder: folderName}
 	}
 
-	return getFolderFlags(token, folder), nil
+	return getFolderFlags(sess, folder), nil
 }
 
 // ChangeFolderPassword ...
-func (api API) ChangeFolderPassword(token *beepboop.AccessToken, folderName, accessType, password string) (*beepboop.AccessToken, error) {
+func (api API) ChangeFolderPassword(sess *beepboop.Session, folderName, accessType, password string) error {
 	changed := false
 	folder, cached, err := api.getFolder(folderName)
 	if err != nil {
-		return nil, &ErrNotFound{}
+		return &ErrNotFound{}
 	}
 	defer func() {
 		if !cached || changed {
@@ -93,50 +92,34 @@ func (api API) ChangeFolderPassword(token *beepboop.AccessToken, folderName, acc
 		}
 	}()
 
-	err = folder.EnsureReadAccess(token.AccessMap)
+	err = folder.EnsureReadAccess(sess)
 	if err != nil {
-		return nil, &ErrNoReadAccess{Folder: folderName}
+		return &ErrNoReadAccess{Folder: folderName}
 	}
 
-	err = folder.EnsureWriteAccess(token.AccessMap)
+	err = folder.EnsureWriteAccess(sess)
 	if err != nil {
-		return nil, &ErrNoWriteAccess{Folder: folderName}
+		return &ErrNoWriteAccess{Folder: folderName}
 	}
 
 	err = folder.SetPassword(accessType, password)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	changed = true
 
 	newToken, err := folder.GetAccessToken(accessType)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if api.db != nil && len(token.SessionID) > 0 {
-		tokenToRemove := make(beepboop.AccessMap)
-		tokenToRemove.Add(accessType, folderName, "")
-		if err := api.db.RemoveSessionAccess(token.SessionID, token.IP, tokenToRemove); err != nil {
-			fmt.Println("session token error:", err)
-		}
-
-		if err := api.db.AddSessionAccess(token.SessionID, token.IP, newToken); err == nil {
-			return &beepboop.AccessToken{
-				SessionID: token.SessionID,
-			}, nil
-		}
-		fmt.Println("session token error:", err)
-	}
-
-	return &beepboop.AccessToken{
-		AccessMap: newToken,
-	}, nil
+	sess.RemoveAccess(accessType, folderName)
+	return sess.MergeAccess(newToken)
 }
 
 // GetSubfolders ...
-func (api *API) GetSubfolders(token *beepboop.AccessToken, folderName string) ([]string, error) {
-	subfolders, err := api.getSubfoldersRecursive(token, folderName, true, false)
+func (api *API) GetSubfolders(sess *beepboop.Session, folderName string) ([]string, error) {
+	subfolders, err := api.getSubfoldersRecursive(sess, folderName, true, false)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +135,7 @@ func (api *API) GetSubfolders(token *beepboop.AccessToken, folderName string) ([
 	return relSubfolders, nil
 }
 
-func (api *API) getSubfoldersRecursive(token *beepboop.AccessToken, folderName string, fromConfigRoot, inheritedOnly bool) ([]string, error) {
+func (api *API) getSubfoldersRecursive(sess *beepboop.Session, folderName string, fromConfigRoot, inheritedOnly bool) ([]string, error) {
 	folder, cached, err := api.getFolder(folderName)
 	if err != nil {
 		return nil, &ErrNotFound{}
@@ -162,7 +145,7 @@ func (api *API) getSubfoldersRecursive(token *beepboop.AccessToken, folderName s
 		defer api.goCacheFolder(tmpFolder)
 	}
 
-	err = folder.EnsureReadAccess(token.AccessMap)
+	err = folder.EnsureReadAccess(sess)
 	if err != nil {
 		return nil, &ErrNoReadAccess{Folder: folderName}
 	}
@@ -184,14 +167,14 @@ func (api *API) getSubfoldersRecursive(token *beepboop.AccessToken, folderName s
 	var subfolders []string
 	subfolders = append(subfolders, folder.RelPath)
 	for _, subfolder := range folder.GetSubfolders() {
-		subsubfolders, _ := api.getSubfoldersRecursive(token, path.Join(folder.RelPath, subfolder), false, true)
+		subsubfolders, _ := api.getSubfoldersRecursive(sess, path.Join(folder.RelPath, subfolder), false, true)
 		subfolders = append(subfolders, subsubfolders...)
 	}
 	return subfolders, nil
 }
 
 // CreateSubfolder ...
-func (api *API) CreateSubfolder(token *beepboop.AccessToken, folderName, subfolder string) (string, error) {
+func (api *API) CreateSubfolder(sess *beepboop.Session, folderName, subfolder string) (string, error) {
 	changed := false
 	folder, cached, err := api.getFolder(folderName)
 	if err != nil {
@@ -203,12 +186,12 @@ func (api *API) CreateSubfolder(token *beepboop.AccessToken, folderName, subfold
 		}
 	}()
 
-	err = folder.EnsureReadAccess(token.AccessMap)
+	err = folder.EnsureReadAccess(sess)
 	if err != nil {
 		return "", &ErrNoReadAccess{Folder: folderName}
 	}
 
-	err = folder.EnsureWriteAccess(token.AccessMap)
+	err = folder.EnsureWriteAccess(sess)
 	if err != nil {
 		return "", &ErrNoWriteAccess{Folder: folderName}
 	}
@@ -233,8 +216,8 @@ func (api *API) CreateSubfolder(token *beepboop.AccessToken, folderName, subfold
 }
 
 // DeleteSubfolder ...
-func (api *API) DeleteSubfolder(token *beepboop.AccessToken, folderName, subfolder string) error {
-	flags, err := api.GetFolderFlags(token, path.Join(folderName, subfolder))
+func (api *API) DeleteSubfolder(sess *beepboop.Session, folderName, subfolder string) error {
+	flags, err := api.GetFolderFlags(sess, path.Join(folderName, subfolder))
 	if err != nil {
 		return err
 	}
@@ -356,7 +339,7 @@ func (f *FolderEntry) HasTag(tag string) bool {
 }
 
 // GetFolderEntries ...
-func (api API) GetFolderEntries(token *beepboop.AccessToken, folderOrFilename string) ([]*FolderEntry, *FolderFlags, error) {
+func (api API) GetFolderEntries(sess *beepboop.Session, folderOrFilename string) ([]*FolderEntry, *FolderFlags, error) {
 	folderOrFilename = path.Clean(folderOrFilename)
 
 	var filename string
@@ -374,8 +357,8 @@ func (api API) GetFolderEntries(token *beepboop.AccessToken, folderOrFilename st
 		defer api.goCacheFolder(folder)
 	}
 
-	hasViewAccess := folder.EnsureReadAccess(token.AccessMap) == nil
-	hasEditAccess := folder.EnsureWriteAccess(token.AccessMap) == nil
+	hasViewAccess := folder.EnsureReadAccess(sess) == nil
+	hasEditAccess := folder.EnsureWriteAccess(sess) == nil
 
 	if len(filename) > 0 {
 		file, err := folder.GetFile(filepath.Base(filename))
@@ -412,7 +395,7 @@ func (api API) GetFolderEntries(token *beepboop.AccessToken, folderOrFilename st
 	}
 
 	SortFolderEntries(entries)
-	return entries, getFolderFlags(token, folder), nil
+	return entries, getFolderFlags(sess, folder), nil
 }
 
 // SortFolderEntries sorts the entries by the upload date (most recent first)

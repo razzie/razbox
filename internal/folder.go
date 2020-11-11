@@ -265,12 +265,12 @@ func (f *Folder) save() error {
 }
 
 // EnsureReadAccess returns an error if the access token doesn't permit read access
-func (f *Folder) EnsureReadAccess(token beepboop.AccessMap) error {
+func (f *Folder) EnsureReadAccess(sess *beepboop.Session) error {
 	if len(f.Config.ReadPassword) == 0 {
 		return nil
 	}
 
-	pw, _ := token.Get("read", FilenameToUUID(f.ConfigRootFolder))
+	pw, _ := sess.GetAccessCode("read", FilenameToUUID(f.ConfigRootFolder))
 	if pw != f.Config.ReadPassword {
 		return &ErrWrongPassword{}
 	}
@@ -279,12 +279,12 @@ func (f *Folder) EnsureReadAccess(token beepboop.AccessMap) error {
 }
 
 // EnsureWriteAccess returns an error if the access token doesn't permit write access
-func (f *Folder) EnsureWriteAccess(token beepboop.AccessMap) error {
+func (f *Folder) EnsureWriteAccess(sess *beepboop.Session) error {
 	if len(f.Config.WritePassword) == 0 {
 		return &ErrFolderNotWritable{}
 	}
 
-	pw, _ := token.Get("write", FilenameToUUID(f.ConfigRootFolder))
+	pw, _ := sess.GetAccessCode("write", FilenameToUUID(f.ConfigRootFolder))
 	if pw != f.Config.WritePassword {
 		return &ErrWrongPassword{}
 	}
@@ -293,12 +293,12 @@ func (f *Folder) EnsureWriteAccess(token beepboop.AccessMap) error {
 }
 
 // EnsureAccess returns an error if the access token doesn't permit access for the given access type
-func (f *Folder) EnsureAccess(accessType string, token beepboop.AccessMap) error {
+func (f *Folder) EnsureAccess(accessType string, sess *beepboop.Session) error {
 	switch accessType {
 	case "read":
-		return f.EnsureReadAccess(token)
+		return f.EnsureReadAccess(sess)
 	case "write":
-		return f.EnsureWriteAccess(token)
+		return f.EnsureWriteAccess(sess)
 	default:
 		return &ErrInvalidAccessType{AccessType: accessType}
 	}

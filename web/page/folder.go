@@ -24,8 +24,7 @@ func folderPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View
 	r := pr.Request
 	folderOrFilename := path.Clean(pr.RelPath)
 	tag := r.URL.Query().Get("tag")
-	token := beepboop.NewAccessTokenFromRequest(pr)
-	entries, flags, err := api.GetFolderEntries(token, folderOrFilename)
+	entries, flags, err := api.GetFolderEntries(pr.Session(), folderOrFilename)
 	if err != nil {
 		return HandleError(r, err)
 	}
@@ -42,7 +41,7 @@ func folderPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View
 			}
 		}
 
-		reader, err := api.OpenFile(token, folderOrFilename)
+		reader, err := api.OpenFile(pr.Session(), folderOrFilename)
 		if err != nil {
 			return HandleError(r, err)
 		}

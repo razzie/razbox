@@ -28,8 +28,7 @@ func createSubfolderPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beep
 		r.ParseForm()
 		subfolderName := r.FormValue("subfolder")
 
-		token := beepboop.NewAccessTokenFromRequest(pr)
-		subfolderPath, err := api.CreateSubfolder(token, dir, subfolderName)
+		subfolderPath, err := api.CreateSubfolder(pr.Session(), dir, subfolderName)
 		if err != nil {
 			v.Error = err.Error()
 			return pr.Respond(v, beepboop.WithError(err, http.StatusInternalServerError))
@@ -38,8 +37,7 @@ func createSubfolderPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beep
 		return pr.RedirectView("/x/" + subfolderPath)
 	}
 
-	token := beepboop.NewAccessTokenFromRequest(pr)
-	flags, err := api.GetFolderFlags(token, dir)
+	flags, err := api.GetFolderFlags(pr.Session(), dir)
 	if err != nil {
 		return HandleError(r, err)
 	}
@@ -58,9 +56,7 @@ func deleteSubfolderPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beep
 	dir := path.Clean(pr.RelPath)
 	parent := path.Dir(dir)
 
-	token := beepboop.NewAccessTokenFromRequest(pr)
-	err := api.DeleteSubfolder(token, parent, path.Base(dir))
-	if err != nil {
+	if err := api.DeleteSubfolder(pr.Session(), parent, path.Base(dir)); err != nil {
 		return HandleError(r, err)
 	}
 

@@ -30,8 +30,7 @@ func editPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 		redirect = "/x/" + dir
 	}
 
-	token := beepboop.NewAccessTokenFromRequest(pr)
-	entry, _, err := api.GetFolderEntries(token, filename)
+	entry, _, err := api.GetFolderEntries(pr.Session(), filename)
 	if err != nil {
 		return HandleError(r, err)
 	}
@@ -43,7 +42,7 @@ func editPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 	}
 
 	pr.Title = "Edit " + filename
-	subfolders, _ := api.GetSubfolders(token, dir)
+	subfolders, _ := api.GetSubfolders(pr.Session(), dir)
 	v := &editPageView{
 		Folder:     dir,
 		Filename:   entry[0].Name,
@@ -65,7 +64,7 @@ func editPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.View {
 			Public:           r.FormValue("public") == "public",
 			MoveTo:           r.FormValue("move"),
 		}
-		err := api.EditFile(token, o)
+		err := api.EditFile(pr.Session(), o)
 		if err != nil {
 			v.Error = err.Error()
 			return pr.Respond(v, beepboop.WithError(err, http.StatusInternalServerError))

@@ -3,8 +3,6 @@ package main
 import (
 	"flag"
 	"log"
-	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/razzie/razbox"
@@ -35,11 +33,10 @@ func init() {
 	flag.DurationVar(&CookieExpiration, "cookie-expiration", time.Hour*24*7, "Cookie expiration for read and write access (1 week by default)")
 	flag.DurationVar(&ThumbnailRetryAfter, "thumb-retry-after", time.Hour, "Duration to wait before attempting to create thumbnail again after fail")
 	flag.IntVar(&AuthsPerMin, "auths-per-min", 3, "Max auth attempts/minute/IP (only works with Redis)")
+	flag.Parse()
 }
 
 func main() {
-	flag.Parse()
-
 	api, err := razbox.NewAPI(Root)
 	if err != nil {
 		log.Fatal(err)
@@ -56,7 +53,6 @@ func main() {
 		log.Print("failed to connect to database:", err)
 	}
 
-	srv := NewServer(api, DefaultFolder)
-	srv.DB = db
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(Port), srv))
+	srv := NewServer(api, DefaultFolder, db)
+	log.Fatal(srv.Serve(Port))
 }
