@@ -14,6 +14,7 @@ type View struct {
 	Error      error
 	Data       interface{}
 	Redirect   string
+	header     http.Header
 	cookies    []*http.Cookie
 	renderer   func(w http.ResponseWriter)
 	closer     func() error
@@ -21,6 +22,11 @@ type View struct {
 
 // Render renders the view
 func (view *View) Render(w http.ResponseWriter) {
+	h := w.Header()
+	for key, values := range view.header {
+		key = http.CanonicalHeaderKey(key)
+		h[key] = append(h[key], values...)
+	}
 	for _, cookie := range view.cookies {
 		http.SetCookie(w, cookie)
 	}
@@ -29,6 +35,11 @@ func (view *View) Render(w http.ResponseWriter) {
 
 // RenderAPIResponse renders the API response of the view
 func (view *View) RenderAPIResponse(w http.ResponseWriter) {
+	h := w.Header()
+	for key, values := range view.header {
+		key = http.CanonicalHeaderKey(key)
+		h[key] = append(h[key], values...)
+	}
 	for _, cookie := range view.cookies {
 		http.SetCookie(w, cookie)
 	}
@@ -85,6 +96,16 @@ func WithErrorMessage(errmsg string, errcode int) ViewOption {
 func WithData(data interface{}) ViewOption {
 	return func(view *View) {
 		view.Data = data
+	}
+}
+
+// WithHeader adds a header field to the view
+func WithHeader(key, value string) ViewOption {
+	return func(view *View) {
+		if view.header == nil {
+			view.header = make(http.Header)
+		}
+		view.header.Add(key, value)
 	}
 }
 

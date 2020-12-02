@@ -1,5 +1,6 @@
 .DEFAULT_GOAL := razbox
-BUILDFLAGS := -mod=vendor -ldflags="-s -w" -gcflags=-trimpath=$(CURDIR)
+VERSION := `git describe --tags`
+BUILDFLAGS := -mod=vendor -ldflags="-s -w -X main.version=$(VERSION)" -gcflags=-trimpath=$(CURDIR)
 
 all: razbox mkfolder mkfile
 

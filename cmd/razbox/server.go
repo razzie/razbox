@@ -12,6 +12,8 @@ import (
 	"github.com/razzie/razbox/web/page"
 )
 
+var version string
+
 // Server ...
 type Server struct {
 	srv *beepboop.Server
@@ -41,6 +43,11 @@ func NewServer(api *razbox.API, defaultFolder string, db *beepboop.DB) *Server {
 	)
 	srv.DB = db
 	srv.Logger = log.New(os.Stdout, "", log.Lshortfile|log.LstdFlags)
+	if len(version) > 0 {
+		srv.Header.Set("Server", "razbox/"+version)
+	} else {
+		srv.Header.Set("Server", "razbox")
+	}
 	return &Server{srv: srv}
 }
 

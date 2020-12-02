@@ -15,7 +15,7 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/nwaples/rardecode v1.1.0
 	github.com/pierrec/lz4 v2.5.2+incompatible // indirect
-	github.com/razzie/beepboop v0.0.0-20201111001425-16e9d968d106
+	github.com/razzie/beepboop v0.0.0-20201126193430-1e054680a1ef
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
