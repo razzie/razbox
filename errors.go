@@ -117,3 +117,10 @@ type ErrSubfoldersDisabled struct {
 func (err ErrSubfoldersDisabled) Error() string {
 	return "Subfolders are disabled for this folder: " + err.Folder
 }
+
+// ErrFolderBusy ...
+type ErrFolderBusy struct{}
+
+func (err ErrFolderBusy) Error() string {
+	return "Folder is busy"
+}

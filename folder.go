@@ -43,7 +43,27 @@ func getFolderFlags(sess *beepboop.Session, f *internal.Folder) *FolderFlags {
 	}
 }
 
-func (api API) getFolder(folderName string) (folder *internal.Folder, cached bool, err error) {
+func (api *API) lockFolder(folder *internal.Folder) (unlock func(), err error) {
+	if _, locked := api.folderLock.LoadOrStore(folder.ConfigRootFolder, nil); locked {
+		return nil, &ErrFolderBusy{}
+	}
+	return func() {
+		api.folderLock.Delete(folder.ConfigRootFolder)
+	}, nil
+}
+
+func (api *API) getFolder(folderName string) (folder *internal.Folder, unlock func(), cached bool, err error) {
+	folder, cached, err = api.getFolderNoLock(folderName)
+	if folder != nil {
+		unlock, err = api.lockFolder(folder)
+		if err != nil {
+			folder = nil
+		}
+	}
+	return
+}
+
+func (api *API) getFolderNoLock(folderName string) (folder *internal.Folder, cached bool, err error) {
 	cached = true
 	if api.db != nil {
 		folder, _ = internal.GetCachedFolder(api.db, folderName)
@@ -51,25 +71,29 @@ func (api API) getFolder(folderName string) (folder *internal.Folder, cached boo
 	if folder == nil {
 		cached = false
 		folder, err = internal.GetFolder(api.root, folderName)
+		if err != nil {
+			err = &ErrNotFound{}
+		}
 	}
 	return
 }
 
-func (api API) goCacheFolder(folder *internal.Folder) {
+func (api *API) goCacheFolder(folder *internal.Folder) {
 	if api.db != nil {
 		go internal.CacheFolder(api.db, folder)
 	}
 }
 
 // GetFolderFlags ...
-func (api API) GetFolderFlags(sess *beepboop.Session, folderName string) (*FolderFlags, error) {
-	folder, cached, err := api.getFolder(folderName)
+func (api *API) GetFolderFlags(sess *beepboop.Session, folderName string) (*FolderFlags, error) {
+	folder, unlock, cached, err := api.getFolder(folderName)
 	if err != nil {
-		return nil, &ErrNotFound{}
+		return nil, err
 	}
 	if !cached {
 		defer api.goCacheFolder(folder)
 	}
+	defer unlock()
 
 	err = folder.EnsureReadAccess(sess)
 	if err != nil {
@@ -80,17 +104,18 @@ func (api API) GetFolderFlags(sess *beepboop.Session, folderName string) (*Folde
 }
 
 // ChangeFolderPassword ...
-func (api API) ChangeFolderPassword(sess *beepboop.Session, folderName, accessType, password string) error {
+func (api *API) ChangeFolderPassword(sess *beepboop.Session, folderName, accessType, password string) error {
 	changed := false
-	folder, cached, err := api.getFolder(folderName)
+	folder, unlock, cached, err := api.getFolder(folderName)
 	if err != nil {
-		return &ErrNotFound{}
+		return err
 	}
 	defer func() {
 		if !cached || changed {
 			api.goCacheFolder(folder)
 		}
 	}()
+	defer unlock()
 
 	err = folder.EnsureReadAccess(sess)
 	if err != nil {
@@ -136,13 +161,12 @@ func (api *API) GetSubfolders(sess *beepboop.Session, folderName string) ([]stri
 }
 
 func (api *API) getSubfoldersRecursive(sess *beepboop.Session, folderName string, fromConfigRoot, inheritedOnly bool) ([]string, error) {
-	folder, cached, err := api.getFolder(folderName)
+	folder, cached, err := api.getFolderNoLock(folderName)
 	if err != nil {
-		return nil, &ErrNotFound{}
+		return nil, err
 	}
 	if !cached {
-		tmpFolder := folder
-		defer api.goCacheFolder(tmpFolder)
+		defer api.goCacheFolder(folder)
 	}
 
 	err = folder.EnsureReadAccess(sess)
@@ -155,9 +179,9 @@ func (api *API) getSubfoldersRecursive(sess *beepboop.Session, folderName string
 	}
 
 	if fromConfigRoot && folder.ConfigInherited {
-		folder, cached, err = api.getFolder(folder.ConfigRootFolder)
+		folder, cached, err = api.getFolderNoLock(folder.ConfigRootFolder)
 		if err != nil {
-			return nil, &ErrNotFound{}
+			return nil, err
 		}
 		if !cached {
 			defer api.goCacheFolder(folder)
@@ -176,15 +200,16 @@ func (api *API) getSubfoldersRecursive(sess *beepboop.Session, folderName string
 // CreateSubfolder ...
 func (api *API) CreateSubfolder(sess *beepboop.Session, folderName, subfolder string) (string, error) {
 	changed := false
-	folder, cached, err := api.getFolder(folderName)
+	folder, unlock, cached, err := api.getFolder(folderName)
 	if err != nil {
-		return "", &ErrNotFound{}
+		return "", err
 	}
 	defer func() {
 		if !cached || changed {
 			api.goCacheFolder(folder)
 		}
 	}()
+	defer unlock()
 
 	err = folder.EnsureReadAccess(sess)
 	if err != nil {
@@ -230,10 +255,11 @@ func (api *API) DeleteSubfolder(sess *beepboop.Session, folderName, subfolder st
 		return &ErrNotDeletable{Name: subfolder}
 	}
 
-	parent, _, err := api.getFolder(folderName)
+	parent, unlock, _, err := api.getFolder(folderName)
 	if err != nil {
 		return &ErrNotDeletable{Name: subfolder}
 	}
+	defer unlock()
 
 	err = os.Remove(path.Join(api.root, folderName, subfolder))
 	if err != nil {
@@ -339,7 +365,7 @@ func (f *FolderEntry) HasTag(tag string) bool {
 }
 
 // GetFolderEntries ...
-func (api API) GetFolderEntries(sess *beepboop.Session, folderOrFilename string) ([]*FolderEntry, *FolderFlags, error) {
+func (api *API) GetFolderEntries(sess *beepboop.Session, folderOrFilename string) ([]*FolderEntry, *FolderFlags, error) {
 	folderOrFilename = path.Clean(folderOrFilename)
 
 	var filename string
@@ -349,13 +375,14 @@ func (api API) GetFolderEntries(sess *beepboop.Session, folderOrFilename string)
 		filename = folderOrFilename
 	}
 
-	folder, cached, err := api.getFolder(dir)
+	folder, unlock, cached, err := api.getFolder(dir)
 	if err != nil {
-		return nil, nil, &ErrNotFound{}
+		return nil, nil, err
 	}
 	if !cached {
 		defer api.goCacheFolder(folder)
 	}
+	defer unlock()
 
 	hasViewAccess := folder.EnsureReadAccess(sess) == nil
 	hasEditAccess := folder.EnsureWriteAccess(sess) == nil

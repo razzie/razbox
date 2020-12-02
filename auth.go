@@ -5,7 +5,7 @@ import (
 )
 
 // Auth ...
-func (api API) Auth(pr *beepboop.PageRequest, folderName, accessType, password string) error {
+func (api *API) Auth(pr *beepboop.PageRequest, folderName, accessType, password string) error {
 	sess := pr.Session()
 
 	if api.db != nil {
@@ -17,13 +17,14 @@ func (api API) Auth(pr *beepboop.PageRequest, folderName, accessType, password s
 		}
 	}
 
-	folder, cached, err := api.getFolder(folderName)
+	folder, unlock, cached, err := api.getFolder(folderName)
 	if err != nil {
-		return &ErrNotFound{}
+		return err
 	}
 	if !cached {
 		defer api.goCacheFolder(folder)
 	}
+	defer unlock()
 
 	if folder.TestPassword(accessType, password) {
 		newToken, err := folder.GetAccessToken(accessType)

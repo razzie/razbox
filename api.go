@@ -2,6 +2,7 @@ package razbox
 
 import (
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/razzie/beepboop"
@@ -11,6 +12,7 @@ import (
 type API struct {
 	root                string
 	db                  *beepboop.DB
+	folderLock          sync.Map
 	CacheDuration       time.Duration
 	CookieExpiration    time.Duration
 	ThumbnailRetryAfter time.Duration

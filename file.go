@@ -26,16 +26,17 @@ type FileReader interface {
 }
 
 // OpenFile ...
-func (api API) OpenFile(sess *beepboop.Session, filePath string) (FileReader, error) {
+func (api *API) OpenFile(sess *beepboop.Session, filePath string) (FileReader, error) {
 	filePath = path.Clean(filePath)
 	dir := path.Dir(filePath)
-	folder, cached, err := api.getFolder(dir)
+	folder, unlock, cached, err := api.getFolder(dir)
 	if err != nil {
-		return nil, &ErrNotFound{}
+		return nil, err
 	}
 	if !cached {
 		defer api.goCacheFolder(folder)
 	}
+	defer unlock()
 
 	hasViewAccess := folder.EnsureReadAccess(sess) == nil
 
@@ -56,16 +57,17 @@ func (api API) OpenFile(sess *beepboop.Session, filePath string) (FileReader, er
 }
 
 // GetInternalFilename ...
-func (api API) GetInternalFilename(sess *beepboop.Session, filePath string) (string, error) {
+func (api *API) GetInternalFilename(sess *beepboop.Session, filePath string) (string, error) {
 	filePath = path.Clean(filePath)
 	dir := path.Dir(filePath)
-	folder, cached, err := api.getFolder(dir)
+	folder, unlock, cached, err := api.getFolder(dir)
 	if err != nil {
-		return "", &ErrNotFound{}
+		return "", err
 	}
 	if !cached {
 		defer api.goCacheFolder(folder)
 	}
+	defer unlock()
 
 	hasViewAccess := folder.EnsureReadAccess(sess) == nil
 
@@ -96,17 +98,18 @@ type UploadFileOptions struct {
 }
 
 // UploadFile ...
-func (api API) UploadFile(sess *beepboop.Session, o *UploadFileOptions) error {
+func (api *API) UploadFile(sess *beepboop.Session, o *UploadFileOptions) error {
 	changed := false
-	folder, cached, err := api.getFolder(o.Folder)
+	folder, unlock, cached, err := api.getFolder(o.Folder)
 	if err != nil {
-		return &ErrNotFound{}
+		return err
 	}
 	defer func() {
 		if !cached || changed {
 			api.goCacheFolder(folder)
 		}
 	}()
+	defer unlock()
 
 	err = folder.EnsureReadAccess(sess)
 	if err != nil {
@@ -181,17 +184,18 @@ type DownloadFileToFolderOptions struct {
 }
 
 // DownloadFileToFolder ...
-func (api API) DownloadFileToFolder(sess *beepboop.Session, o *DownloadFileToFolderOptions) error {
+func (api *API) DownloadFileToFolder(sess *beepboop.Session, o *DownloadFileToFolderOptions) error {
 	changed := false
-	folder, cached, err := api.getFolder(o.Folder)
+	folder, unlock, cached, err := api.getFolder(o.Folder)
 	if err != nil {
-		return &ErrNotFound{}
+		return err
 	}
 	defer func() {
 		if !cached || changed {
 			api.goCacheFolder(folder)
 		}
 	}()
+	defer unlock()
 
 	err = folder.EnsureReadAccess(sess)
 	if err != nil {
@@ -258,17 +262,18 @@ type EditFileOptions struct {
 }
 
 // EditFile ...
-func (api API) EditFile(sess *beepboop.Session, o *EditFileOptions) error {
+func (api *API) EditFile(sess *beepboop.Session, o *EditFileOptions) error {
 	changed := false
-	folder, cached, err := api.getFolder(o.Folder)
+	folder, unlock, cached, err := api.getFolder(o.Folder)
 	if err != nil {
-		return &ErrNotFound{}
+		return err
 	}
 	defer func() {
 		if !cached || changed {
 			api.goCacheFolder(folder)
 		}
 	}()
+	defer unlock()
 
 	err = folder.EnsureReadAccess(sess)
 	if err != nil {
@@ -330,10 +335,11 @@ func (api API) EditFile(sess *beepboop.Session, o *EditFileOptions) error {
 		}
 		if newFolderName != o.Folder {
 			folder.UncacheFile(o.OriginalFilename)
-			newFolder, _, _ := api.getFolder(newFolderName)
+			newFolder, newFolderUnlock, _, _ := api.getFolder(newFolderName)
 			if newFolder != nil {
 				newFolder.CacheFile(file)
 				api.goCacheFolder(newFolder)
+				newFolderUnlock()
 			}
 		}
 		changed = true
@@ -343,19 +349,20 @@ func (api API) EditFile(sess *beepboop.Session, o *EditFileOptions) error {
 }
 
 // DeleteFile ...
-func (api API) DeleteFile(sess *beepboop.Session, filePath string) error {
+func (api *API) DeleteFile(sess *beepboop.Session, filePath string) error {
 	filePath = path.Clean(filePath)
 	dir := path.Dir(filePath)
 	changed := false
-	folder, cached, err := api.getFolder(dir)
+	folder, unlock, cached, err := api.getFolder(dir)
 	if err != nil {
-		return &ErrNotFound{}
+		return err
 	}
 	defer func() {
 		if !cached || changed {
 			api.goCacheFolder(folder)
 		}
 	}()
+	defer unlock()
 
 	err = folder.EnsureReadAccess(sess)
 	if err != nil {
@@ -406,19 +413,20 @@ func newThumbnail(thumb *internal.Thumbnail) *Thumbnail {
 }
 
 // GetFileThumbnail ...
-func (api API) GetFileThumbnail(sess *beepboop.Session, filePath string) (*Thumbnail, error) {
+func (api *API) GetFileThumbnail(sess *beepboop.Session, filePath string) (*Thumbnail, error) {
 	filePath = path.Clean(filePath)
 	dir := path.Dir(filePath)
 	changed := false
-	folder, cached, err := api.getFolder(dir)
+	folder, unlock, cached, err := api.getFolder(dir)
 	if err != nil {
-		return nil, &ErrNotFound{}
+		return nil, err
 	}
 	defer func() {
 		if !cached || changed {
 			api.goCacheFolder(folder)
 		}
 	}()
+	defer unlock()
 
 	err = folder.EnsureReadAccess(sess)
 	if err != nil {
