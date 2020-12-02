@@ -24,7 +24,7 @@ func galleryPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vie
 		Folder:        uri,
 		Search:        tag,
 		URI:           r.URL.RequestURI(),
-		MaxThumbWidth: maxThumbWidth,
+		MaxThumbWidth: razbox.MaxThumbnailWidth,
 	}
 
 	entries, _, err := api.GetFolderEntries(pr.Session(), uri)

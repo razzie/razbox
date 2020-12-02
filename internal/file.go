@@ -98,6 +98,12 @@ func (f *File) Create(content io.Reader, overwrite bool) error {
 			os.Remove(jsonFilename)
 			return err
 		}
+
+		if f.Thumbnail == nil && IsThumbnailSupported(f.MIME) {
+			if f.Thumbnail, _ = GetThumbnail(dataFilename, f.MIME); f.Thumbnail != nil {
+				f.Save()
+			}
+		}
 	}
 
 	return nil

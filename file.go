@@ -15,6 +15,9 @@ import (
 	"github.com/razzie/razbox/internal"
 )
 
+// MaxThumbnailWidth ...
+const MaxThumbnailWidth = internal.MaxThumbnailWidth
+
 // FileReader ...
 type FileReader interface {
 	http.File
@@ -403,7 +406,7 @@ func newThumbnail(thumb *internal.Thumbnail) *Thumbnail {
 }
 
 // GetFileThumbnail ...
-func (api API) GetFileThumbnail(sess *beepboop.Session, filePath string, maxWidth uint) (*Thumbnail, error) {
+func (api API) GetFileThumbnail(sess *beepboop.Session, filePath string) (*Thumbnail, error) {
 	filePath = path.Clean(filePath)
 	dir := path.Dir(filePath)
 	changed := false
@@ -435,7 +438,7 @@ func (api API) GetFileThumbnail(sess *beepboop.Session, filePath string, maxWidt
 	thumb := file.Thumbnail
 	if thumb == nil || (len(thumb.Data) == 0 && thumb.Timestamp.Add(api.ThumbnailRetryAfter).Before(time.Now())) {
 		changed = true
-		thumb, err = internal.GetThumbnail(path.Join(api.root, file.RelPath+".bin"), file.MIME, maxWidth)
+		thumb, err = internal.GetThumbnail(path.Join(api.root, file.RelPath+".bin"), file.MIME)
 		defer file.Save()
 		if err != nil {
 			file.Thumbnail = &internal.Thumbnail{Timestamp: time.Now()}

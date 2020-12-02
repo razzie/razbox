@@ -16,6 +16,9 @@ import (
 	"golang.org/x/image/webp"
 )
 
+// MaxThumbnailWidth ...
+const MaxThumbnailWidth = 250
+
 var ffmpegOK bool
 
 func init() {
@@ -50,7 +53,7 @@ func IsThumbnailSupported(mime string) bool {
 }
 
 // GetThumbnail returns the thumbnail of a media file
-func GetThumbnail(filename string, mime string, maxWidth uint) (*Thumbnail, error) {
+func GetThumbnail(filename string, mime string) (*Thumbnail, error) {
 	if strings.HasPrefix(mime, "image/") {
 		f, err := os.Open(filename)
 		if err != nil {
@@ -61,11 +64,11 @@ func GetThumbnail(filename string, mime string, maxWidth uint) (*Thumbnail, erro
 		if err != nil {
 			return nil, err
 		}
-		return getThumbnailImage(img, maxWidth)
+		return getThumbnailImage(img, MaxThumbnailWidth)
 	}
 
 	if ffmpegOK && strings.HasPrefix(mime, "video/") {
-		return getThumbnailFFMPEG(filename, maxWidth)
+		return getThumbnailFFMPEG(filename, MaxThumbnailWidth)
 	}
 
 	return nil, &ErrUnsupportedFileFormat{MIME: mime}
