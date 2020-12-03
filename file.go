@@ -335,11 +335,10 @@ func (api *API) EditFile(sess *beepboop.Session, o *EditFileOptions) error {
 		}
 		if newFolderName != o.Folder {
 			folder.UncacheFile(o.OriginalFilename)
-			newFolder, newFolderUnlock, _, _ := api.getFolder(newFolderName)
+			newFolder, _, _ := api.getFolderNoLock(newFolderName)
 			if newFolder != nil {
 				newFolder.CacheFile(file)
 				api.goCacheFolder(newFolder)
-				newFolderUnlock()
 			}
 		}
 		changed = true
