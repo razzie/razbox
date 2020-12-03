@@ -26,6 +26,10 @@ func CacheFolder(db *beepboop.DB, folder *Folder) error {
 		folder.GetSubfolders()
 	}
 
+	for _, file := range folder.CachedFiles {
+		file.Thumbnail = nil
+	}
+
 	return db.CacheValue("folder:"+path.Clean(folder.RelPath), folder, true)
 }
 

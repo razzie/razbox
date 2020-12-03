@@ -328,21 +328,16 @@ func newFileEntry(uri string, file *internal.File, thumbnailRetryAfter time.Dura
 }
 
 func (f *FolderEntry) updateThumbBounds(file *internal.File, thumbnailRetryAfter time.Duration) {
-	thumb := file.Thumbnail
-	if thumb == nil {
+	bounds, _ := file.GetThumbnailBounds(thumbnailRetryAfter)
+	if bounds == nil {
+		if f.PrimaryType != "image" {
+			f.HasThumbnail = false
+		}
 		return
 	}
 
-	if f.PrimaryType != "image" &&
-		len(thumb.Data) == 0 &&
-		thumb.Timestamp.Add(thumbnailRetryAfter).After(time.Now()) {
-
-		f.HasThumbnail = false
-		return
-	}
-
-	w := thumb.Bounds.Dx()
-	h := thumb.Bounds.Dy()
+	w := bounds.Dx()
+	h := bounds.Dy()
 	if w > 0 && h > 0 {
 		f.ThumbBounds = &ThumbnailBounds{
 			Width:  w,

@@ -3,6 +3,7 @@ package internal
 import (
 	"encoding/json"
 	"fmt"
+	"image"
 	"io"
 	"io/ioutil"
 	"os"
@@ -25,22 +26,95 @@ type File struct {
 }
 
 func getFile(root, relPath string) (*File, error) {
-	file := &File{
-		Root:    root,
-		RelPath: relPath,
-	}
-
 	data, err := ioutil.ReadFile(path.Join(root, relPath+".json"))
 	if err != nil {
 		return nil, err
 	}
 
-	return file, json.Unmarshal(data, file)
+	f := &File{
+		Root:    root,
+		RelPath: relPath,
+	}
+
+	if err := json.Unmarshal(data, f); err != nil {
+		return nil, err
+	}
+	f.Root = root // overwrite root with possible new root
+	return f, nil
 }
 
 // GetInternalFilename ...
 func (f *File) GetInternalFilename() string {
 	return path.Join(f.Root, f.RelPath+".bin")
+}
+
+// GetThumbnail ...
+func (f *File) GetThumbnail(retryAfter time.Duration) (*Thumbnail, error) {
+	if !IsThumbnailSupported(f.MIME) {
+		return nil, &ErrUnsupportedFileFormat{MIME: f.MIME}
+	}
+
+	thumbFilename := path.Join(f.Root, f.RelPath+".thumb")
+
+	// migrate thumbnails to .thumb files
+	if f.Thumbnail != nil && len(f.Thumbnail.Data) > 0 {
+		data, _ := json.MarshalIndent(f.Thumbnail, "", "  ")
+		if err := ioutil.WriteFile(thumbFilename, data, 0644); err != nil {
+			return f.Thumbnail, err
+		}
+		thumb := f.Thumbnail
+		f.Thumbnail.Data = nil
+		f.Save()
+		return thumb, nil
+	}
+
+	data, err := ioutil.ReadFile(thumbFilename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return f.createThumbnail()
+		}
+		return nil, err
+	}
+	thumb := new(Thumbnail)
+	if err := json.Unmarshal(data, &thumb); err != nil {
+		return nil, err
+	}
+	if len(thumb.Data) == 0 && thumb.Timestamp.Add(retryAfter).Before(time.Now()) {
+		return f.createThumbnail()
+	}
+	return thumb, nil
+}
+
+// GetThumbnailBounds ...
+func (f *File) GetThumbnailBounds(retryAfter time.Duration) (*image.Rectangle, error) {
+	if f.Thumbnail != nil {
+		return &f.Thumbnail.Bounds, nil
+	}
+	thumb, err := f.GetThumbnail(retryAfter)
+	if err != nil {
+		return nil, err
+	}
+	return &thumb.Bounds, nil
+}
+
+func (f *File) createThumbnail() (*Thumbnail, error) {
+	thumbFilename := path.Join(f.Root, f.RelPath+".thumb")
+	thumb, err := GetThumbnail(f.GetInternalFilename(), f.MIME)
+	if err != nil {
+		thumb = &Thumbnail{Timestamp: time.Now()}
+		data, _ := json.MarshalIndent(thumb, "", "  ")
+		ioutil.WriteFile(thumbFilename, data, 0644)
+		return nil, err
+	}
+	data, _ := json.MarshalIndent(thumb, "", "  ")
+	ioutil.WriteFile(thumbFilename, data, 0644)
+	f.Thumbnail = &Thumbnail{
+		MIME:      thumb.MIME,
+		Bounds:    thumb.Bounds,
+		Timestamp: thumb.Timestamp,
+	}
+	f.Save()
+	return thumb, nil
 }
 
 // Open ...
@@ -99,10 +173,8 @@ func (f *File) Create(content io.Reader, overwrite bool) error {
 			return err
 		}
 
-		if f.Thumbnail == nil && IsThumbnailSupported(f.MIME) {
-			if f.Thumbnail, _ = GetThumbnail(dataFilename, f.MIME); f.Thumbnail != nil {
-				f.Save()
-			}
+		if IsThumbnailSupported(f.MIME) {
+			f.createThumbnail()
 		}
 	}
 

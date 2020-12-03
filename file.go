@@ -417,7 +417,7 @@ func (api *API) GetFileThumbnail(sess *beepboop.Session, filePath string) (*Thum
 	filePath = path.Clean(filePath)
 	dir := path.Dir(filePath)
 	changed := false
-	folder, unlock, cached, err := api.getFolder(dir)
+	folder, cached, err := api.getFolderNoLock(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -426,7 +426,6 @@ func (api *API) GetFileThumbnail(sess *beepboop.Session, filePath string) (*Thum
 			api.goCacheFolder(folder)
 		}
 	}()
-	defer unlock()
 
 	err = folder.EnsureReadAccess(sess)
 	if err != nil {
@@ -443,18 +442,6 @@ func (api *API) GetFileThumbnail(sess *beepboop.Session, filePath string) (*Thum
 		return nil, &ErrUnsupportedFileFormat{MIME: file.MIME}
 	}
 
-	thumb := file.Thumbnail
-	if thumb == nil || (len(thumb.Data) == 0 && thumb.Timestamp.Add(api.ThumbnailRetryAfter).Before(time.Now())) {
-		changed = true
-		thumb, err = internal.GetThumbnail(path.Join(api.root, file.RelPath+".bin"), file.MIME)
-		defer file.Save()
-		if err != nil {
-			file.Thumbnail = &internal.Thumbnail{Timestamp: time.Now()}
-			return nil, err
-		}
-
-		file.Thumbnail = thumb
-	}
-
+	thumb, err := file.GetThumbnail(api.ThumbnailRetryAfter)
 	return newThumbnail(thumb), nil
 }
