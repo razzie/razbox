@@ -416,16 +416,10 @@ func newThumbnail(thumb *internal.Thumbnail) *Thumbnail {
 func (api *API) GetFileThumbnail(sess *beepboop.Session, filePath string) (*Thumbnail, error) {
 	filePath = path.Clean(filePath)
 	dir := path.Dir(filePath)
-	changed := false
-	folder, cached, err := api.getFolderNoLock(dir)
+	folder, _, err := api.getFolderNoLock(dir)
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		if !cached || changed {
-			api.goCacheFolder(folder)
-		}
-	}()
 
 	err = folder.EnsureReadAccess(sess)
 	if err != nil {
@@ -443,5 +437,8 @@ func (api *API) GetFileThumbnail(sess *beepboop.Session, filePath string) (*Thum
 	}
 
 	thumb, err := file.GetThumbnail(api.ThumbnailRetryAfter)
+	if err != nil {
+		return nil, err
+	}
 	return newThumbnail(thumb), nil
 }
