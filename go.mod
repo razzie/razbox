@@ -10,6 +10,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.1.1
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/google/uuid v1.1.2
+	github.com/kjk/lzmadec v0.0.0-20200118223809-980b947af806
 	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
