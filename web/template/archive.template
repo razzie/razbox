@@ -68,11 +68,19 @@ function toggleFirst20() {
 				<td colspan="3" style="text-align: center"><a href="javascript:toggleFirst20()">Show more/less</a></td>
 			</tr>
 		{{end}}
-		<tr>
-			<td><a href="/archive/{{$Folder}}/{{$Filename}}?download={{.Name}}">{{.Name}}</a></td>
-			<td>{{ByteCountSI .Size}}</td>
-			<td>{{.Modified.Format "Mon, 02 Jan 2006 15:04:05 MST"}}</td>
-		</tr>
+		{{if .}}
+			<tr>
+				<td><a href="/archive/{{$Folder}}/{{$Filename}}?download={{.Name}}">{{.Name}}</a></td>
+				<td>{{ByteCountSI .Size}}</td>
+				<td>{{.Modified.Format "Mon, 02 Jan 2006 15:04:05 MST"}}</td>
+			</tr>
+		{{else}}
+			<tr>
+				<td colspan="3" style="text-align: center">
+					Omitted (<a href="/archive/{{$Folder}}/{{$Filename}}?all">load all</a>)
+				</td>
+			</tr>
+		{{end}}
 	{{end}}
 </table>
 <div id="bottom" class="hidden">

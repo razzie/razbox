@@ -87,18 +87,25 @@ func archivePageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vie
 		return archiveDownloadFile(r, internalFilename, download, w)
 	}
 
+	_, all := r.URL.Query()["all"]
+
 	pr.Title = filename
 	v := &archivePageView{
 		Filename: filepath.Base(filename),
 		Folder:   dir,
 		URI:      r.RequestURI,
 	}
+	count := 0
 	walker := func(f archiver.File) error {
 		if err := r.Context().Err(); err != nil {
 			return err
 		}
 		if f.IsDir() {
 			return nil
+		}
+		if count++; !all && count > 19 {
+			v.Entries = append(v.Entries, nil)
+			return archiver.ErrStopWalk
 		}
 		v.Entries = append(v.Entries, &archiveEntry{
 			Name:     archiveGetFilename(f),
