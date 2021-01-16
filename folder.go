@@ -280,6 +280,7 @@ type FolderEntry struct {
 	MIME          string           `json:"mime,omitempty"`
 	PrimaryType   string           `json:"primary_type,omitempty"`
 	SecondaryType string           `json:"secondary_type,omitempty"`
+	Extension     string           `json:"extension"`
 	Tags          []string         `json:"tags,omitempty"`
 	Size          int64            `json:"size,omitempty"`
 	Uploaded      int64            `json:"uploaded,omitempty"`
@@ -311,6 +312,7 @@ func newFileEntry(uri string, file *internal.File, thumbnailRetryAfter time.Dura
 		MIME:          file.MIME,
 		PrimaryType:   typ[0],
 		SecondaryType: typ[1],
+		Extension:     path.Ext(file.Name),
 		Tags:          file.Tags,
 		Size:          file.Size,
 		Uploaded:      file.Uploaded.Unix(),
@@ -323,6 +325,9 @@ func newFileEntry(uri string, file *internal.File, thumbnailRetryAfter time.Dura
 			entry.Prefix = "&#128230;"
 			entry.Archive = true
 		}
+	}
+	if len(entry.Extension) > 0 {
+		entry.Extension = entry.Extension[1:]
 	}
 	return entry
 }
@@ -348,7 +353,7 @@ func (f *FolderEntry) updateThumbBounds(file *internal.File, thumbnailRetryAfter
 
 // HasTag ...
 func (f *FolderEntry) HasTag(tag string) bool {
-	if tag == f.PrimaryType {
+	if tag == f.PrimaryType || tag == f.SecondaryType || tag == f.Extension {
 		return true
 	}
 	for _, t := range f.Tags {

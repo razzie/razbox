@@ -153,6 +153,9 @@ function deleteFile(filename) {
 		table.first20 > tbody > tr:nth-child(n+23) > td {
 			display: none !important;
 		}
+		.hiddentag {
+			color: grey;
+		}
 	</style>
 	<tr>
 		<td>
@@ -210,15 +213,18 @@ function deleteFile(filename) {
 			</td>
 			<td data-sortvalue="{{.MIME}}">
 				{{if .MIME}}
-					<a href="/x/{{$Folder}}/?tag={{.PrimaryType}}">{{.PrimaryType}}</a>/{{.SecondaryType}}
+					<a href="/x/{{$Folder}}/?tag={{.PrimaryType}}" class="tag">{{.PrimaryType}}</a>/<a href="/x/{{$Folder}}/?tag={{.SecondaryType}}" class="tag">{{.SecondaryType}}</a>
 				{{end}}
 			</td>
 			<td data-sortvalue="{{range .Tags}}{{.}} {{end}}">
-				{{if .MIME}}
-					<a href="/x/{{$Folder}}/?tag={{.PrimaryType}}" class="hiddentag">{{.PrimaryType}}</a>
-				{{end}}
 				{{range .Tags}}
-					<a href="/x/{{$Folder}}/?tag={{.}}">{{.}}</a>
+					&nbsp;<a href="/x/{{$Folder}}/?tag={{.}}" class="tag">{{.}}</a>
+				{{end}}
+				{{if .MIME}}
+					&nbsp;<a href="/x/{{$Folder}}/?tag={{.PrimaryType}}" class="tag hiddentag">{{.PrimaryType}}</a>
+				{{end}}
+				{{if .Extension}}
+					&nbsp;<a href="/x/{{$Folder}}/?tag={{.SecondaryType}}" class="tag hiddentag">{{.Extension}}</a>
 				{{end}}
 			</td>
 			<td data-sortvalue="{{.Size}}">{{if not .Folder}}{{ByteCountSI .Size}}{{end}}</td>
