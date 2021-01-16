@@ -83,13 +83,13 @@ func archivePageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vie
 	iface, err := archiver.ByExtension(filename)
 	if err != nil {
 		pr.Log("archive error:", err)
-		return pr.RedirectView("/x/" + filename)
+		return pr.RedirectView("/x/" + filename + "?download")
 	}
 
 	w, ok := iface.(archiver.Walker)
 	if !ok {
 		pr.Log("archive error: walk not supported for format:", iface)
-		return pr.RedirectView("/x/" + filename)
+		return pr.RedirectView("/x/" + filename + "?download")
 	}
 
 	download := r.URL.Query().Get("download")
