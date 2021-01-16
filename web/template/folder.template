@@ -211,10 +211,12 @@ function deleteFile(filename) {
 					{{if or (eq .PrimaryType "image") (eq .PrimaryType "video")}}class="glightbox"{{end}}>{{.Name}}</a>
 				{{if .Public}}<small>[public]</small>{{end}}
 			</td>
-			<td data-sortvalue="{{.MIME}}">
-				{{if .MIME}}
-					<a href="/x/{{$Folder}}/?tag={{.PrimaryType}}" class="tag">{{.PrimaryType}}</a>/<a href="/x/{{$Folder}}/?tag={{.SecondaryType}}" class="tag">{{.SecondaryType}}</a>
+			<td data-sortvalue="{{.PrimaryType}}/{{.SecondaryType}}">
+				<a href="/x/{{$Folder}}/?tag={{.PrimaryType}}" class="tag">{{.PrimaryType}}</a><!--
+				{{if .SecondaryType}}
+					-->/<a href="/x/{{$Folder}}/?tag={{.SecondaryType}}" class="tag">{{.SecondaryType}}</a><!--
 				{{end}}
+				-->
 			</td>
 			<td data-sortvalue="{{range .Tags}}{{.}} {{end}}">
 				{{range .Tags}}

@@ -43,34 +43,29 @@ func newSubfolderEntry(uri, subfolder string) *FolderEntry {
 }
 
 func newFileEntry(uri string, file *internal.File, thumbnailRetryAfter time.Duration) *FolderEntry {
-	typ := strings.SplitN(file.MIME, "/", 2)
-	if len(typ) < 2 {
-		typ = append(typ, "")
-	}
+	symbol, primaryType, secondaryType, extension := ExtendType(file.MIME, file.Name)
 	entry := &FolderEntry{
-		Prefix:        MIMEtoSymbol(file.MIME),
+		Prefix:        symbol,
 		Name:          file.Name,
 		RelPath:       path.Join(uri, file.Name),
 		MIME:          file.MIME,
-		PrimaryType:   typ[0],
-		SecondaryType: typ[1],
-		Extension:     path.Ext(file.Name),
+		PrimaryType:   primaryType,
+		SecondaryType: secondaryType,
+		Extension:     extension,
 		Tags:          file.Tags,
 		Size:          file.Size,
 		Uploaded:      file.Uploaded.Unix(),
 		Public:        file.Public,
 		HasThumbnail:  internal.IsThumbnailSupported(file.MIME),
+		Archive:       primaryType == "archive",
 	}
 	entry.updateThumbBounds(file, thumbnailRetryAfter)
-	if entry.PrimaryType == "application" {
+	/*if entry.PrimaryType == "application" {
 		if iface, _ := archiver.ByExtension(file.Name); iface != nil {
 			entry.Prefix = "&#128230;"
 			entry.Archive = true
 		}
-	}
-	if len(entry.Extension) > 0 {
-		entry.Extension = entry.Extension[1:]
-	}
+	}*/
 	return entry
 }
 
@@ -177,39 +172,58 @@ func SortFolderEntries(entries []*FolderEntry) {
 	})
 }
 
-// MIMEtoSymbol returns a symbol that represents the MIME type
-func MIMEtoSymbol(mime string) template.HTML {
-	t := strings.SplitN(mime, "/", 2)
-	switch t[0] {
-	case "application":
-		if len(t) < 2 {
-			break
-		}
-		switch t[1] {
-		case "zip", "x-7z-compressed", "x-rar-compressed", "x-tar", "tar+gzip", "gzip", "x-bzip", "x-bzip2":
-			return "&#128230;"
-		case "vnd.microsoft.portable-executable", "vnd.debian.binary-package", "jar", "x-rpm":
-			return "&#128187;"
-		case "pdf", "msword", "vnd.openxmlformats-officedocument.wordprocessingml.document", "x-mobipocket-ebook", "epub+zip":
-			return "&#128209;"
-		case "x-iso9660-image", "x-cd-image", "x-raw-disk-image":
-			return "&#128191;"
-		case "vnd.ms-excel", "vnd.ms-powerpoint", "vnd.openxmlformats-officedocument.presentationml.presentation":
-			return "&#128200;"
-		}
-	case "audio":
-		return "&#127925;"
-	case "font":
-		return "&#9000;"
-	case "image":
-		return "&#127912;"
-	case "model":
-		return "&#127922;"
-	case "text":
-		return "&#128209;"
-	case "video":
-		return "&#127916;"
+// ExtendType ...
+func ExtendType(mime, filename string) (symbol template.HTML, primaryType, secondaryType, extension string) {
+	typ := strings.SplitN(mime, "/", 2)
+	if len(typ) < 2 {
+		typ = append(typ, "")
+	}
+	symbol = "&#128196;"
+	primaryType = typ[0]
+	secondaryType = typ[1]
+	extension = path.Ext(filename)
+	if len(extension) > 0 {
+		extension = extension[1:]
 	}
 
-	return "&#128196;"
+	switch primaryType {
+	case "application":
+		switch secondaryType {
+		case "zip", "x-7z-compressed", "x-rar-compressed", "x-tar", "tar+gzip", "gzip", "x-bzip", "x-bzip2":
+			symbol = "&#128230;"
+			primaryType = "archive"
+		case "vnd.microsoft.portable-executable", "x-executable", "vnd.debian.binary-package", "jar", "x-rpm":
+			symbol = "&#128187;"
+		case "pdf", "msword", "vnd.openxmlformats-officedocument.wordprocessingml.document", "x-mobipocket-ebook", "epub+zip":
+			symbol = "&#128209;"
+			primaryType = "document"
+		case "x-iso9660-image", "x-cd-image", "x-raw-disk-image":
+			symbol = "&#128191;"
+			primaryType = "disk-image"
+		case "vnd.ms-excel", "vnd.ms-powerpoint", "vnd.openxmlformats-officedocument.presentationml.presentation":
+			symbol = "&#128200;"
+			primaryType = "document"
+		default:
+			if iface, _ := archiver.ByExtension(filename); iface != nil {
+				symbol = "&#128230;"
+				primaryType = "archive"
+			} else {
+				primaryType = "other"
+			}
+		}
+	case "audio":
+		symbol = "&#127925;"
+	case "font":
+		symbol = "&#9000;"
+	case "image":
+		symbol = "&#127912;"
+	case "model":
+		symbol = "&#127922;"
+	case "text":
+		symbol = "&#128209;"
+	case "video":
+		symbol = "&#127916;"
+	}
+
+	return
 }
