@@ -398,7 +398,11 @@ func (f *Folder) GetMaxUploadSizeMB() int64 {
 			return 0
 		}
 		if f.Config.MaxFileSizeMB > 0 {
-			return min(f.Config.MaxFolderSizeMB-size, f.Config.MaxFileSizeMB)
+			maxFolderSizeMB := f.Config.MaxFolderSizeMB - size
+			if maxFolderSizeMB < f.Config.MaxFileSizeMB {
+				return maxFolderSizeMB
+			}
+			return f.Config.MaxFileSizeMB
 		}
 		return f.Config.MaxFolderSizeMB - size
 	} else if f.Config.MaxFileSizeMB > 0 {
