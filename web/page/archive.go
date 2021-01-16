@@ -30,19 +30,6 @@ type archivePageView struct {
 	Entries  []*archiveEntry `json:"entries,omitempty"`
 }
 
-func (v *archivePageView) addEntry(f archiver.File) error {
-	if f.IsDir() {
-		return nil
-	}
-
-	v.Entries = append(v.Entries, &archiveEntry{
-		Name:     archiveGetFilename(f),
-		Size:     f.Size(),
-		Modified: f.ModTime(),
-	})
-	return nil
-}
-
 func archiveGetFilename(f archiver.File) string {
 	switch h := f.Header.(type) {
 	case zip.FileHeader:
@@ -56,9 +43,12 @@ func archiveGetFilename(f archiver.File) string {
 	}
 }
 
-func archiveDownloadFile(archive, filename string, walker archiver.Walker) *beepboop.View {
-	return beepboop.HandlerView(nil, func(w http.ResponseWriter, r *http.Request) {
+func archiveDownloadFile(r *http.Request, archive, filename string, walker archiver.Walker) *beepboop.View {
+	return beepboop.HandlerView(r, func(w http.ResponseWriter, r *http.Request) {
 		walker.Walk(archive, func(f archiver.File) error {
+			if err := r.Context().Err(); err != nil {
+				return err
+			}
 			if archiveGetFilename(f) == filename {
 				w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", f.Name()))
 				w.Header().Set("Content-Type", "application/octet-stream")
@@ -94,7 +84,7 @@ func archivePageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vie
 
 	download := r.URL.Query().Get("download")
 	if len(download) > 0 {
-		return archiveDownloadFile(internalFilename, download, w)
+		return archiveDownloadFile(r, internalFilename, download, w)
 	}
 
 	pr.Title = filename
@@ -103,7 +93,21 @@ func archivePageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vie
 		Folder:   dir,
 		URI:      r.RequestURI,
 	}
-	w.Walk(internalFilename, v.addEntry)
+	walker := func(f archiver.File) error {
+		if err := r.Context().Err(); err != nil {
+			return err
+		}
+		if f.IsDir() {
+			return nil
+		}
+		v.Entries = append(v.Entries, &archiveEntry{
+			Name:     archiveGetFilename(f),
+			Size:     f.Size(),
+			Modified: f.ModTime(),
+		})
+		return nil
+	}
+	w.Walk(internalFilename, walker)
 	return pr.Respond(v)
 }
 
