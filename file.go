@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mholt/archiver"
 	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox/internal"
 )
@@ -85,6 +86,50 @@ func (api *API) GetInternalFilename(sess *beepboop.Session, filePath string) (st
 	}
 
 	return file.GetInternalFilename(), nil
+}
+
+// GetArchiveWalker ...
+func (api *API) GetArchiveWalker(sess *beepboop.Session, filePath string) (func(archiver.WalkFunc) error, error) {
+	filePath = path.Clean(filePath)
+	dir := path.Dir(filePath)
+	folder, unlock, cached, err := api.getFolder(dir)
+	if err != nil {
+		return nil, err
+	}
+	if !cached {
+		defer api.goCacheFolder(folder)
+	}
+	defer unlock()
+
+	hasViewAccess := folder.EnsureReadAccess(sess) == nil
+
+	basename := filepath.Base(filePath)
+	file, err := folder.GetFile(basename)
+	if err != nil {
+		if !hasViewAccess {
+			return nil, &ErrNoReadAccess{Folder: dir}
+		}
+		return nil, &ErrNotFound{}
+	}
+
+	if !hasViewAccess && !file.Public {
+		return nil, &ErrNoReadAccess{Folder: dir}
+	}
+
+	walker, err := internal.GetArchiveWalker(file.Name, file.MIME)
+	if err != nil {
+		return nil, err
+	}
+
+	return func(walkFn archiver.WalkFunc) error {
+		ctx := sess.Context()
+		return walker.Walk(file.GetInternalFilename(), func(f archiver.File) error {
+			if err := ctx.Err(); err != nil {
+				return err
+			}
+			return walkFn(f)
+		})
+	}, nil
 }
 
 // UploadFileOptions ...

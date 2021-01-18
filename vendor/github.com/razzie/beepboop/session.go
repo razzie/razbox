@@ -1,6 +1,7 @@
 package beepboop
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 
 // Session ...
 type Session struct {
+	ctx       context.Context
 	sessionID string
 	requestID string
 	ip        string
@@ -19,6 +21,7 @@ type Session struct {
 
 func newSession(r *PageRequest) *Session {
 	sess := &Session{
+		ctx:       r.Request.Context(),
 		requestID: r.RequestID,
 		ip:        reqip.GetClientIP(r.Request),
 		allAccess: make(AccessMap),
@@ -45,6 +48,11 @@ func newSession(r *PageRequest) *Session {
 	}
 
 	return sess
+}
+
+// Context returns the context of the session
+func (sess *Session) Context() context.Context {
+	return sess.ctx
 }
 
 // SessionID returns the sessionID

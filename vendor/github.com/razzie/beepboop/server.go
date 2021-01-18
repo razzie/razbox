@@ -33,7 +33,7 @@ func NewServer() *Server {
 	srv := &Server{
 		Layout:           DefaultLayout,
 		FaviconPNG:       favicon,
-		Header:           map[string][]string{"Server": []string{"beepboop"}},
+		Header:           map[string][]string{"Server": {"beepboop"}},
 		Metadata:         map[string]string{"generator": "https://github.com/razzie/beepboop"},
 		Logger:           log.New(os.Stdout, "", log.LstdFlags),
 		GeoIPClient:      geoclient.DefaultClient,
