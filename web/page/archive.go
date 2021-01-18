@@ -18,9 +18,9 @@ import (
 )
 
 type archiveEntry struct {
-	Name     string
-	Size     int64
-	Modified time.Time
+	Name     string    `json:"name"`
+	Size     int64     `json:"size"`
+	Modified time.Time `json:"modified"`
 }
 
 type archivePageView struct {
