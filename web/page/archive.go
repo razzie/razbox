@@ -1,8 +1,6 @@
 package page
 
 import (
-	"archive/tar"
-	"archive/zip"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,7 +10,6 @@ import (
 	"time"
 
 	"github.com/mholt/archiver"
-	"github.com/nwaples/rardecode"
 	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
 )
@@ -30,24 +27,11 @@ type archivePageView struct {
 	Entries  []*archiveEntry `json:"entries,omitempty"`
 }
 
-func archiveGetFilename(f archiver.File) string {
-	switch h := f.Header.(type) {
-	case zip.FileHeader:
-		return h.Name
-	case *tar.Header:
-		return h.Name
-	case *rardecode.FileHeader:
-		return h.Name
-	default:
-		return f.Name()
-	}
-}
-
-func archiveDownloadFile(archive func(archiver.WalkFunc) error, filename string) *beepboop.View {
+func archiveDownloadFile(archive razbox.ArchiveWalker, filename string) *beepboop.View {
 	return beepboop.HandlerView(nil, func(w http.ResponseWriter, r *http.Request) {
 		found := false
-		err := archive(func(f archiver.File) error {
-			if archiveGetFilename(f) == filename {
+		err := archive.Walk(func(f razbox.ArchiveFile) error {
+			if f.Name() == filename {
 				found = true
 				w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", f.Name()))
 				w.Header().Set("Content-Type", "application/octet-stream")
@@ -90,22 +74,18 @@ func archivePageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vie
 		URI:      r.RequestURI,
 	}
 	count := 0
-	walker := func(f archiver.File) error {
-		if f.IsDir() {
-			return nil
-		}
+	archive.Walk(func(f razbox.ArchiveFile) error {
 		if count++; !all && count > 19 {
 			v.Entries = append(v.Entries, nil)
 			return archiver.ErrStopWalk
 		}
 		v.Entries = append(v.Entries, &archiveEntry{
-			Name:     archiveGetFilename(f),
+			Name:     f.Name(),
 			Size:     f.Size(),
 			Modified: f.ModTime(),
 		})
 		return nil
-	}
-	archive(walker)
+	})
 	return pr.Respond(v)
 }
 
