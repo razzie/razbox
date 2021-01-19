@@ -27,8 +27,8 @@ type archivePageView struct {
 	Entries  []*archiveEntry `json:"entries,omitempty"`
 }
 
-func archiveDownloadFile(archive razbox.ArchiveWalker, filename string) *beepboop.View {
-	return beepboop.HandlerView(nil, func(w http.ResponseWriter, r *http.Request) {
+func archiveDownloadFile(r *http.Request, archive razbox.ArchiveWalker, filename string) *beepboop.View {
+	return beepboop.HandlerView(r, func(w http.ResponseWriter, r *http.Request) {
 		found := false
 		err := archive.Walk(func(f razbox.ArchiveFile) error {
 			if f.Name() == filename {
@@ -44,10 +44,10 @@ func archiveDownloadFile(archive razbox.ArchiveWalker, filename string) *beepboo
 			return nil
 		})
 		if err != nil {
-			http.Error(w, "Archive error", http.StatusInternalServerError)
+			beepboop.ErrorView(r, "Archive error", http.StatusInternalServerError).Render(w)
 		}
 		if !found {
-			http.Error(w, "Not found", http.StatusNotFound)
+			beepboop.ErrorView(r, "Not found", http.StatusNotFound).Render(w)
 		}
 	})
 }
@@ -64,7 +64,7 @@ func archivePageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vie
 	_, all := r.URL.Query()["all"]
 	download := r.URL.Query().Get("download")
 	if len(download) > 0 {
-		return archiveDownloadFile(archive, download)
+		return archiveDownloadFile(r, archive, download)
 	}
 
 	pr.Title = filename
