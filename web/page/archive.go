@@ -43,18 +43,28 @@ func archiveGetFilename(f archiver.File) string {
 	}
 }
 
-func archiveDownloadFile(walker func(archiver.WalkFunc) error, filename string) *beepboop.View {
+func archiveDownloadFile(archive func(archiver.WalkFunc) error, filename string) *beepboop.View {
 	return beepboop.HandlerView(nil, func(w http.ResponseWriter, r *http.Request) {
-		walker(func(f archiver.File) error {
+		found := false
+		err := archive(func(f archiver.File) error {
 			if archiveGetFilename(f) == filename {
+				found = true
 				w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", f.Name()))
 				w.Header().Set("Content-Type", "application/octet-stream")
 				w.Header().Set("Content-Length", strconv.FormatInt(f.Size(), 10))
-				io.Copy(w, f)
+				if _, err := io.Copy(w, f); err != nil {
+					return err
+				}
 				return archiver.ErrStopWalk
 			}
 			return nil
 		})
+		if err != nil {
+			http.Error(w, "Archive error", http.StatusInternalServerError)
+		}
+		if !found {
+			http.Error(w, "Not found", http.StatusNotFound)
+		}
 	})
 }
 
