@@ -21,28 +21,52 @@ function deleteFile(filename) {
 	return false;
 }
 </script>
+<style type="text/css" scoped>
+	img {
+		max-width: {{.MaxThumbWidth}}px;
+		border-radius: 15px;
+	}
+	#top {
+		text-align: center;
+		margin-bottom: -1em;
+	}
+	#top > a {
+		text-decoration: none;
+		position: relative;
+		top: -1.25em;
+	}
+	#bottom {
+		text-align: center;
+		margin-top: -1em;
+	}
+	#bottom > a {
+		text-decoration: none;
+		position: relative;
+		bottom: -1.25em;
+	}
+	.gallery-item {
+		width: {{.MaxThumbWidth}}px;
+		padding: 15px;
+		text-align: center;
+	}
+	.controls {
+		position: relative;
+		top: -2em;
+		background-color: rgba(255,255,255,0.5);
+	}
+	.nametag {
+		position: relative;
+		top: -1em;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		white-space: nowrap;
+	}
+	.hiddentag {
+		color: grey;
+	}
+</style>
 {{$EntryCount := len .Entries}}
 {{if gt $EntryCount 20}}
-	<style type="text/css" scoped>
-		#top {
-			text-align: center;
-			margin-bottom: -1em;
-		}
-		#top > a {
-			text-decoration: none;
-			position: relative;
-			top: -1.25em;
-		}
-		#bottom {
-			text-align: center;
-			margin-top: -1em;
-		}
-		#bottom > a {
-			text-decoration: none;
-			position: relative;
-			bottom: -1.25em;
-		}
-	</style>
 	<div id="top">
 		<a href="{{.URI}}#bottom">&#9660;</a>
 	</div>
@@ -62,31 +86,33 @@ function deleteFile(filename) {
 <div class="grid" style="width: 90vw; max-width: 1200px">
 	{{$Folder := .Folder}}
 	{{$URI := .URI}}
-	{{$MaxThumbWidth := .MaxThumbWidth}}
 	{{range .Entries}}
-		<div class="grid-item" style="width: {{$MaxThumbWidth}}px; padding: 15px; text-align: center"
-			id="gallery-item-{{.RelPath}}">
+		<div class="grid-item gallery-item" id="gallery-item-{{.RelPath}}">
 			<a class="glightbox" href="/x/{{.RelPath}}" target="_blank">
 				<img
 					src="/thumb/{{.RelPath}}"
 					{{if .ThumbBounds}} width="{{.ThumbBounds.Width}}" height="{{.ThumbBounds.Height}}"{{end}}
-					onload="msnry.layout()"
-					style="max-width: {{$MaxThumbWidth}}px; border-radius: 15px" />
+					onload="msnry.layout()" />
 			</a>
-			<div style="position: relative; top: -2em; background-color: rgba(255,255,255,0.5);">
+			<div class="controls">
 				<a href="/x/{{.RelPath}}?download">&#8681;</a>
 				{{if .EditMode}}
 					<a href="/edit/{{.RelPath}}/?r={{$URI}}">&#9998;</a>
 					<a href="/delete/{{.RelPath}}/?r={{$URI}}" onclick="return deleteFile('{{.RelPath}}');">&#10008;</a>
 				{{end}}
 			</div>
-			<div style="position: relative; top: -1em;">
+			<div class="nametag">
 				<small>
 					{{.Name}}<br />
 					tags:
-					<a href="/gallery/{{$Folder}}/?tag={{.PrimaryType}}">{{.PrimaryType}}</a>
 					{{range .Tags}}
-						<a href="/gallery/{{$Folder}}/?tag={{.}}">{{.}}</a>
+						&nbsp;<a href="/gallery/{{$Folder}}/?tag={{.}}" class="tag">{{.}}</a>
+					{{end}}
+					{{if .MIME}}
+						&nbsp;<a href="/gallery/{{$Folder}}/?tag={{.PrimaryType}}" class="tag hiddentag">{{.PrimaryType}}</a>
+					{{end}}
+					{{if .Extension}}
+						&nbsp;<a href="/gallery/{{$Folder}}/?tag={{.SecondaryType}}" class="tag hiddentag">{{.Extension}}</a>
 					{{end}}
 				</small>
 			</div>
@@ -101,7 +127,7 @@ function deleteFile(filename) {
 <script>
 var msnry = new Masonry('.grid', {
 	itemSelector: '.grid-item',
-	columnWidth: {{$MaxThumbWidth}}+30,
+	columnWidth: {{.MaxThumbWidth}}+30,
 	fitWidth: true
 });
 </script>
