@@ -54,7 +54,7 @@ function deleteFile(filename) {
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState !== 4) return;
 		if (xhr.status === 200) {
-			_('folder-item-' + filename).remove()
+			_('folder-item-' + filename).innerHTML = '<td colspan="6">&nbsp;</td>';
 		}
 		else {
 			console.log('/api/delete/' + filename, xhr.status, xhr.statusText);
