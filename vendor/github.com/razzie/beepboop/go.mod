@@ -1,9 +1,8 @@
 module github.com/razzie/beepboop
 
-go 1.12
+go 1.16
 
 require (
-	github.com/elazarl/go-bindata-assetfs v1.0.1
 	github.com/go-redis/redis/v7 v7.4.0
 	github.com/mssola/user_agent v0.5.2
 	github.com/razzie/babble v0.0.0-20201015224220-210f32b7a231

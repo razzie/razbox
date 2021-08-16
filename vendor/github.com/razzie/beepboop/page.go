@@ -1,11 +1,10 @@
 package beepboop
 
 import (
+	"io/fs"
 	"net/http"
 	"os"
 	"path"
-
-	assetfs "github.com/elazarl/go-bindata-assetfs"
 )
 
 // Page ...
@@ -87,10 +86,10 @@ func StaticAssetPage(pagePath, assetDir string) *Page {
 	}
 }
 
-// AssetFSPage returns a page that serves assets from AssetFS
-func AssetFSPage(pagePath string, assets *assetfs.AssetFS) *Page {
+// FSPage returns a page that serves assets from fs.FS
+func FSPage(pagePath string, f fs.FS) *Page {
 	handler := func(pr *PageRequest) *View {
-		return pr.HandlerView(http.FileServer(assets).ServeHTTP)
+		return pr.HandlerView(http.FileServer(http.FS(f)).ServeHTTP)
 	}
 	return &Page{
 		Path:           pagePath,

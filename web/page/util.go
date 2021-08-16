@@ -2,17 +2,17 @@ package page
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 
 	"github.com/razzie/beepboop"
 	"github.com/razzie/razbox"
+	"github.com/razzie/razbox/web"
 )
 
 // GetContentTemplate returns the content template for a page
 func GetContentTemplate(page string) string {
-	t, err := ioutil.ReadFile(fmt.Sprintf("web/template/%s.template", page))
+	t, err := web.Assets.ReadFile(fmt.Sprintf("template/%s.template", page))
 	if err != nil {
 		panic(err)
 	}
