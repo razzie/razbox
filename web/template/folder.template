@@ -248,6 +248,15 @@ function deleteFile(filename) {
 		</tr>
 	{{end}}
 </table>
+{{if .Tags}}
+	{{$Folder := .Folder}}
+	<div style="text-align: center">
+	Tags:
+	{{range .Tags}}
+		&nbsp;<a href="/x/{{$Folder}}/?tag={{.}}" class="tag">{{.}}</a>
+	{{end}}
+	</div>
+{{end}}
 <div style="text-align: center">
 	<form method="get" id="controls">
 		{{if .Search}}

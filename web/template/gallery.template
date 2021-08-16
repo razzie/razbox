@@ -79,6 +79,15 @@ function deleteFile(filename) {
 		</span>
 		<span style="float: right">&#128194; <a href="/x/{{.Folder}}?tag={{.Search}}">View folder content</a></span>
 	{{else}}
+		{{if .Tags}}
+			{{$Folder := .Folder}}
+			<span style="float: left">
+			Tags:
+			{{range .Tags}}
+				&nbsp;<a href="/x/{{$Folder}}/?tag={{.}}" class="tag">{{.}}</a>
+			{{end}}
+			</span>
+		{{end}}
 		<span style="float: right">&#128194; <a href="/x/{{.Folder}}">View folder content</a></span>
 	{{end}}
 </div>

@@ -11,6 +11,7 @@ type galleryPageView struct {
 	Folder        string                `json:"folder,omitempty"`
 	Search        string                `json:"search,omitempty"`
 	Entries       []*razbox.FolderEntry `json:"entries,omitempty"`
+	Tags          []string              `json:"tags,omitempty"`
 	URI           string                `json:"uri,omitempty"`
 	MaxThumbWidth uint                  `json:"max_thumb_width,omitempty"`
 }
@@ -41,6 +42,7 @@ func galleryPageHandler(api *razbox.API, pr *beepboop.PageRequest) *beepboop.Vie
 		}
 		v.Entries = append(v.Entries, entry)
 	}
+	v.Tags = collectTags(v.Entries)
 
 	return pr.Respond(v)
 }

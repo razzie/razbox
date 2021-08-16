@@ -44,6 +44,26 @@ func ServeThumbnail(thumb *razbox.Thumbnail) *beepboop.View {
 	})
 }
 
+func collectTags(entries []*razbox.FolderEntry) (tags []string) {
+	for _, entry := range entries {
+		for _, tag := range entry.Tags {
+			if !contains(tags, tag) {
+				tags = append(tags, tag)
+			}
+		}
+	}
+	return
+}
+
+func contains(items []string, val string) bool {
+	for _, item := range items {
+		if item == val {
+			return true
+		}
+	}
+	return false
+}
+
 func s(x float64) string {
 	if int(x) == 1 {
 		return ""
