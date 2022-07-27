@@ -94,8 +94,8 @@ func (srv *Server) AddMiddlewares(middlewares ...Middleware) {
 }
 
 // ConnectDB ...
-func (srv *Server) ConnectDB(redisAddr, redisPw string, redisDb int) error {
-	db, err := NewDB(redisAddr, redisPw, redisDb)
+func (srv *Server) ConnectDB(redisUrl string) error {
+	db, err := NewDB(redisUrl)
 	if err != nil {
 		return err
 	}

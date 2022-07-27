@@ -39,8 +39,8 @@ func NewAPI(root string) (*API, error) {
 }
 
 // ConnectDB ...
-func (api *API) ConnectDB(redisAddr, redisPw string, redisDb int) (*beepboop.DB, error) {
-	db, err := beepboop.NewDB(redisAddr, redisPw, redisDb)
+func (api *API) ConnectDB(redisUrl string) (*beepboop.DB, error) {
+	db, err := beepboop.NewDB(redisUrl)
 	if err != nil {
 		return nil, err
 	}

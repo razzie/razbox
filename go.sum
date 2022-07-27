@@ -58,8 +58,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/razzie/babble v0.0.0-20201015224220-210f32b7a231 h1:+idxFsIjkAY9jL00CxwNbnkmVyA3BjcEJ08zeRq+Q5o=
 github.com/razzie/babble v0.0.0-20201015224220-210f32b7a231/go.mod h1:wvMAgH5y/Ps0KJu0ZRDzISGETlgUpHvKczllq0aHGFE=
-github.com/razzie/beepboop v0.0.0-20210816220402-dffb064e4818 h1:HLcPB6S7AQsc/9d+z1LDT1XAcey2MC5gpwOGtRAqkXs=
-github.com/razzie/beepboop v0.0.0-20210816220402-dffb064e4818/go.mod h1:h3tZLvTFm3UyVD1g4dg8lkuAXdpzoRf/V4b/2VGs9ZE=
+github.com/razzie/beepboop v0.0.0-20220727153421-2c4dc6572fb5 h1:Aex0iMdGjZ7iysHK/0nd4MUIe0JeBfDQfJTjqcWnD0M=
+github.com/razzie/beepboop v0.0.0-20220727153421-2c4dc6572fb5/go.mod h1:h3tZLvTFm3UyVD1g4dg8lkuAXdpzoRf/V4b/2VGs9ZE=
 github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8 h1:JtDgeCbamFUKWFIIbVhsGQ/fVDklmbprEHeCPWmGIvE=
 github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8/go.mod h1:H1xjjW4QbZdPyvvx7BImgKhOEKEd/qd1fTBD8FYXu/s=
 github.com/razzie/reqip v0.0.0-20201102012254-b5eb0ae76a05 h1:+XT3xUiFQooke/qsk7wgURDbXg+GUowK67F5KHrA2Ig=
